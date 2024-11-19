@@ -1,0 +1,23 @@
+﻿@using Test.Model.Enums;
+
+@switch(Status)
+{
+    case Status.Start:
+        <span class="baged bg-secondary text-white p-1 rounded-2">@nameof(Status.Start)</span>
+        break;
+    case Status.InProgress:
+        <span class="baged bg-primary text-white p-1 rounded-2">@nameof(Status.InProgress)</span>
+        break;
+    case Status.Testing:
+        <span class="baged bg-warning text-white p-1 rounded-2">@nameof(Status.Testing)</span>
+        break;
+    case Status.Public:
+        <span class="baged bg-success text-white p-1 rounded-2">@nameof(Status.Public)</span>
+        break;
+}
+
+
+@code {
+    [Parameter]
+    public Status Status { get; set; }
+}

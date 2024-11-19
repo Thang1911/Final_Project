@@ -1,0 +1,98 @@
+﻿@page "/"
+@using Test.Components.Common;
+@using Test.Model.Enums;
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+
+
+<h3>Main</h3>
+
+@if (ResearchProjects == null)
+{
+    <LoadingIndicator></LoadingIndicator>
+} 
+else
+{
+    <div class="row pb-5">
+        <EditForm Model="@ProjectSearch" OnSubmit="@SearchForm" FormName="projectSearchForm">
+            <div class="d-flex flex-row justify-content-center align-items-center gap-4">
+                <div class="col form-group">
+                    <label for="Name">Name</label>
+                    <InputText class="form-control" @bind-Value="ProjectSearch.Name" id="Name"></InputText>
+                </div>
+
+                <div class="col form-group">
+                    <label for="Status">Status</label>
+                    <InputSelect class="form-control" @bind-Value="ProjectSearch.Status" id="Status">
+                        <option value="">Select a status</option>
+                        @foreach (var item in Enum.GetValues(typeof(Status)))
+                        {
+                            <option value="@item">@item</option>
+                        }
+                    </InputSelect>
+                </div>
+
+                <div class="col pt-4">
+                    <button type="submit" class="btn btn-primary">Search</button>
+                </div>
+
+                <div class="col pt-4">
+                    <a href="/projectCreate" class="pointer-event"><button type="button" class="btn btn-success">Create</button></a>
+                </div>
+            </div>
+        </EditForm>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    ProjectName
+                </th>
+                <th>
+                    ProjectDescription
+                </th>
+                <th>
+                    ProjectImage
+                </th>
+                <th>
+                    Advisor
+                </th>
+                <th>
+                    Students
+                </th>
+                <th>
+                    Status
+                </th>
+                <th>
+                    CreatedAt
+                </th>
+                <th>
+                    UpdatedAt
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in ResearchProjects)
+            {
+                <tr>
+                    <td>@item.ProjectName</td>
+                    <td>@item.ProjectDescription</td>
+                    <td>@item.ProjectImage</td>
+                    <td>@item.Advisor</td>
+                    <td>@item.Students</td>
+                    <td><StatusBaged Status="@item.Status"></StatusBaged></td>
+                    <td>@item.CreatedAt.ToString(Configuration["DateTimeFormat"])</td>
+                    <td>@item.UpdatedAt.ToString(Configuration["DateTimeFormat"])</td>
+                    <td><a href="/projectDetails/@item.Id" class="btn btn-primary">Detail</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+
+
+@code {
+
+}

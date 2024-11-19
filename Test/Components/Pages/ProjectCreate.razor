@@ -1,0 +1,60 @@
+﻿@page "/projectCreate"
+@using Test.Model;
+@using Test.Model.Enums;
+@using Test.Services;
+
+@inject IResearchProjectApiClient ResearchProjectApiClient;
+@inject NavigationManager NavigationManager;
+@inject IToastService toastService;
+
+<h3>ProjectCreate</h3>
+<EditForm Model="@pjCreate" OnValidSubmit="@SubmitProject" FormName="CreateProject">
+    <DataAnnotationsValidator />
+    <div class="d-grid gap-3">
+        <div class="form-group w-50 p-1">
+            <label for="exampleInputName">Project Name</label>
+            <InputText class="form-control" id="exampleInputName" placeholder="Enter project name" @bind-Value="pjCreate.ProjectName" />
+            <ValidationMessage For="() => pjCreate.ProjectName"></ValidationMessage>
+        </div>
+        <div class="form-group w-50 p-1">
+            <label for="exampleInputDespcription">Project Description</label>
+            <InputTextArea class="form-control" id="exampleInputDespcription" placeholder="Enter project description" @bind-Value="pjCreate.ProjectDescription" />
+            <ValidationMessage For="() => pjCreate.ProjectDescription"></ValidationMessage>
+        </div>
+        <div class="col form-group w-25 p-1">
+            <label for="Status">Status</label>
+            <InputSelect class="form-control" @bind-Value="pjCreate.Status" id="Status">
+                <option>Select a status</option>
+                @foreach (var item in Enum.GetValues(typeof(Status)))
+                {
+                    <option value="@item">@item</option>
+                }
+            </InputSelect>
+            <small id="statusHelp" class="form-text text-muted">Please choose project status here.</small>
+        </div>
+        <div class="p-1">
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+    </div>
+
+</EditForm>
+
+
+@code {
+    [SupplyParameterFromForm]
+    private ResearchProjectCreateRequest pjCreate { get; set; } = new();
+
+    public async Task SubmitProject(EditContext context)
+    {
+        var result = await ResearchProjectApiClient.CreateResearchProject(pjCreate);
+        if(result)
+        {
+            toastService.ShowSuccess($"Project {pjCreate.ProjectName} has been created successfully.");
+            NavigationManager.NavigateTo("/main");
+        }
+        else
+        {
+            toastService.ShowError($"An error occurred in progress. Please contact to administrator.");
+        }
+    }
+}
