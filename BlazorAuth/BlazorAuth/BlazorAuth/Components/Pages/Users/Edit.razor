@@ -1,0 +1,129 @@
+﻿@page "/Users/Edit/{Id}"
+@using Models.User
+@using Models.Roles
+@inject HttpClient Http
+@inject NavigationManager navManager
+@rendermode InteractiveServer
+
+
+<div class="row">
+    <div class="col-lg-8">
+        <h1 class="mb-5">Edit User</h1>
+
+        @if (User == null)
+        {
+            <p><em>Loading ....</em></p>
+        }
+        else
+        {
+            <form @onsubmit="HandleSubmitChange">
+                <div class="row mb-3">
+                    <label class="col-md-4 col-form-label">First Name</label>
+                    <div class="col-md-8">
+                        <input class="form-control" @bind="UserData.FirstName" required />
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-md-4 col-form-label">Last Name</label>
+                    <div class="col-md-8">
+                        <input class="form-control" @bind="UserData.LastName" required />
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-md-4 col-form-label">Email</label>
+                    <div class="col-md-8">
+                        <input type="email" class="form-control" @bind="UserData.Email" required />
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-md-4 col-form-label">Address</label>
+                    <div class="col-md-8">
+                        <input class="form-control" @bind="UserData.Address" />
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-md-4 col-form-label">Phone Number</label>
+                    <div class="col-md-8">
+                        <input type="tel" class="form-control" @bind="UserData.PhoneNumber" />
+                    </div>
+                </div>
+                <div class="row mb-3"> 
+                     <label class="col-md-4 col-form-label">Role</label> 
+                     <div class="col-md-8"> 
+                       <select class="form-control" @bind="UserData.Role"> 
+                            <option value="">-- Select Role --</option> 
+                             @foreach (var role in Roles) 
+                             {
+                                <option id="@role.Id" value="@role.Name" selected="@((role.Name == User.Role) ? "selected" : null)">@role.Name</option>
+                            } 
+                        </select> 
+                     </div> 
+                 </div> 
+                <div class="row">
+                    <div class="offset-md-4 col-md-4 d-grid">
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                    <div class="col-md-4 d-grid">
+                        <a class="btn btn-outline-primary" href="/Users">Cancel</a>
+                    </div>
+                </div>
+            </form>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Id { set; get; }
+    public User? User = null;
+    public UserDto UserData { set; get; } = new();
+
+    private List<Roles> Roles = new List<Roles>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Lấy danh sách Role từ API
+        Roles = await Http.GetFromJsonAsync<List<Roles>>("http://localhost:5160/api/Roles");
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        try
+        {
+            User = await Http.GetFromJsonAsync<User>("http://localhost:5160/api/Users/" + Id);
+            UserData.FirstName = User?.FirstName ?? "";
+            UserData.LastName = User?.lastName ?? "";
+            UserData.Email = User?.Email ?? "";
+            UserData.PhoneNumber = User?.PhoneNumber ?? "";
+            UserData.Address = User?.Address ?? "";
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Exeption: " + e.Message);
+        }
+    }
+
+    private async Task HandleSubmitChange()
+    {
+        try
+        {
+            var response = await Http.PutAsJsonAsync($"http://localhost:5160/api/Users/{Id}", UserData);
+            Console.WriteLine("User id; " + Id);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Console.WriteLine("Data submitted successfully.");
+                navManager.NavigateTo("/Users");
+            }
+            else
+            {
+                var strResponse = await response.Content.ReadAsStringAsync();
+                Console.WriteLine("API Error Response: \n" + strResponse);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Exception: " + ex.Message);
+        }
+    }
+}

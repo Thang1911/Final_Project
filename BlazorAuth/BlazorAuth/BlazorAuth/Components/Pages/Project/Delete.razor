@@ -1,0 +1,20 @@
+﻿@page "/Projects/Delete/{Id}"
+@inject HttpClient Http
+@inject NavigationManager navManager
+@rendermode InteractiveServer
+
+<h1 class="mb-3">Delete Project</h1>
+<p>Are you sure you want to delete project with Id @Id?</p>
+<button class="btn btn-danger" @onclick="DeleteProject">Delete</button>
+<a class="btn btn-secondary" href="/Projects">Cancel</a>
+
+@code {
+    [Parameter]
+    public string Id { set; get; }
+
+    protected async Task DeleteProject()
+    {
+        var response = await Http.DeleteAsync($"http://localhost:5160/api/Projects/{Id}");
+        navManager.NavigateTo("/Projects");
+    }
+}

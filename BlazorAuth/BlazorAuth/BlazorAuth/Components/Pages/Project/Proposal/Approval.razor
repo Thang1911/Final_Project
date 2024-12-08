@@ -1,0 +1,41 @@
+﻿@page "/Proposals/Approval/{Id}"
+@inject HttpClient Http
+@inject NavigationManager navManager
+@rendermode InteractiveServer
+
+<h1 class="mb-3">Approval Proposal Project</h1>
+<p>Are you sure you want to approval proposal with Id @Id?</p>
+<button class="btn btn-primary" @onclick="ApprovalProposal">Approval</button>
+<a class="btn btn-danger" href="/Projects">Cancel</a>
+
+@code {
+    [Parameter]
+    public string Id { set; get; }
+
+    private string? ErrorMessage;
+
+    protected async Task ApprovalProposal()
+    {
+        try
+        {
+            var response = await Http.PutAsync($"http://localhost:5160/api/Proposals/approval/{Id}", null);
+
+            if (response.IsSuccessStatusCode)
+            {
+                // Navigate back to the projects page on success
+                navManager.NavigateTo("/Projects");
+            }
+            else
+            {
+                // Read the response message and display it as an error
+                var error = await response.Content.ReadAsStringAsync();
+                ErrorMessage = $"Approval failed: {error}";
+            }
+        }
+        catch (Exception ex)
+        {
+            // Handle any unexpected errors
+            ErrorMessage = $"An error occurred: {ex.Message}";
+        }
+    }
+}

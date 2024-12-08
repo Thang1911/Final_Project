@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35514.174
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorAuth", "BlazorAuth\BlazorAuth\BlazorAuth.csproj", "{AF7C845D-DB41-4DDC-A95E-9937420D9DEB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorAuth.Client", "BlazorAuth\BlazorAuth.Client\BlazorAuth.Client.csproj", "{54EBF052-C0E3-4D91-94E7-5FDD8250CE95}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorApi", "BlazorApi\BlazorApi.csproj", "{2653D3AA-C3FB-4FE2-9131-6E1A7F6645D6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AF7C845D-DB41-4DDC-A95E-9937420D9DEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF7C845D-DB41-4DDC-A95E-9937420D9DEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF7C845D-DB41-4DDC-A95E-9937420D9DEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF7C845D-DB41-4DDC-A95E-9937420D9DEB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{54EBF052-C0E3-4D91-94E7-5FDD8250CE95}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{54EBF052-C0E3-4D91-94E7-5FDD8250CE95}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{54EBF052-C0E3-4D91-94E7-5FDD8250CE95}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{54EBF052-C0E3-4D91-94E7-5FDD8250CE95}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2653D3AA-C3FB-4FE2-9131-6E1A7F6645D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2653D3AA-C3FB-4FE2-9131-6E1A7F6645D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2653D3AA-C3FB-4FE2-9131-6E1A7F6645D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2653D3AA-C3FB-4FE2-9131-6E1A7F6645D6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

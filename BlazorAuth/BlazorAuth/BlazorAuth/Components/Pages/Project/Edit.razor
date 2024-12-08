@@ -1,0 +1,122 @@
+﻿@page "/Projects/Edit/{Id}"
+@using Models.Project
+
+@inject HttpClient Http
+@inject NavigationManager navManager
+@rendermode InteractiveServer
+
+
+<div class="row">
+    <div class="col-lg-8">
+        <h1 class="mb-5">Edit Project</h1>
+
+        @if (project == null)
+        {
+            <p><em>Loading ....</em></p>
+        }
+        else
+        {
+            <form @onsubmit="HandleSubmitChange">
+                <div class="row mb-3">
+                    <label class="col-md-4 col-form-label">Title</label>
+                    <div class="col-md-8">
+                        <input class="form-control" @bind="ProjectData.Title" required />
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-md-4 col-form-label">Description</label>
+                    <div class="col-md-8">
+                        <input class="form-control" @bind="ProjectData.Description" required />
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-md-4 col-form-label">Budget</label>
+                    <div class="col-md-8">
+                        <input type="number" class="form-control" @bind="ProjectData.Budget" required />
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-md-4 col-form-label">Duration</label>
+                    <div class="col-md-8">
+                        <input type="number" class="form-control" @bind="ProjectData.Duration" />
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-md-4 col-form-label">End Date</label>
+                    <div class="col-md-8">
+                        <input type="datetime-local" class="form-control" @bind="ProjectData.EndDate" />
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-md-4 col-form-label">Status</label>
+                    <div class="col-md-8">
+                        <select class="form-control" @bind="ProjectData.Status">
+                            <option value="">-- Select Status --</option>
+                            <option value="Start">Start</option>
+                            <option value="Activate">Activate</option>
+                            <option value="Delay">Delay</option>
+                            <option value="Finish">Finish</option> 
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="offset-md-4 col-md-4 d-grid">
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                    <div class="col-md-4 d-grid">
+                        <a class="btn btn-outline-primary" href="/Projects">Cancel</a>
+                    </div>
+                </div>
+            </form>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Id { set; get; }
+    public Project? project = null;
+    public ProjectDto ProjectData { set; get; } = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        try
+        {
+            project = await Http.GetFromJsonAsync<Project>("http://localhost:5160/api/Projects/" + Id);
+            ProjectData.Title = project.Title;
+            ProjectData.Description = project.Description;
+            ProjectData.Budget = project.Budget;
+            ProjectData.Duration = project.Duration;
+            ProjectData.EndDate = project.EndDate;
+            ProjectData.Status = project.Status;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Exeption: " + e.Message);
+        }
+    }
+
+    private async Task HandleSubmitChange()
+    {
+        try
+        {
+            var response = await Http.PutAsJsonAsync($"http://localhost:5160/api/Projects/{Id}", ProjectData);
+            Console.WriteLine("Project id; " + Id);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Console.WriteLine("Data submitted successfully.");
+                navManager.NavigateTo("/Projects");
+            }
+            else
+            {
+                var strResponse = await response.Content.ReadAsStringAsync();
+                Console.WriteLine("API Error Response: \n" + strResponse);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Exception: " + ex.Message);
+        }
+    }
+}
