@@ -1,0 +1,93 @@
+﻿@page "/Proposals/Create"
+@using Models.Project
+
+@inject HttpClient Http
+@inject NavigationManager navManager
+@rendermode InteractiveServer
+
+
+<div class="row">
+    <div class="col-lg-8">
+        <h1 class="mb-5">Edit Project</h1>
+
+            <form @onsubmit="HandleSubmit">
+                <div class="row mb-3">
+                    <label class="col-md-4 col-form-label">Title</label>
+                    <div class="col-md-8">
+                        <input class="form-control" @bind="ProjectProposalData.Title" required />
+                    </div>
+                </div>
+                <div class="row mb-3">
+                <label class="col-md-4 col-form-label">Abstract</label>
+                    <div class="col-md-8">
+                        <input class="form-control" @bind="ProjectProposalData.Abstract" required />
+                    </div>
+                </div>
+            <div class="row mb-3">
+                <label class="col-md-4 col-form-label">Detail description</label>
+                <div class="col-md-8">
+                    <input class="form-control" @bind="ProjectProposalData.DetailedDescription" required />
+                </div>
+            </div>
+                <div class="row mb-3">
+                    <label class="col-md-4 col-form-label">Propose Budget</label>
+                    <div class="col-md-8">
+                        <input type="number" class="form-control" @bind="ProjectProposalData.ProposedBudget" required />
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-md-4 col-form-label">Propose Duration</label>
+                    <div class="col-md-8">
+                        <input type="number" class="form-control" @bind="ProjectProposalData.ProposedDuration" />
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label class="col-md-4 col-form-label">Submisson Date</label>
+                    <div class="col-md-8">
+                        <input type="datetime-local" class="form-control" @bind="ProjectProposalData.SubmissionDate" />
+                    </div>
+                </div>
+                @* <div class="row mb-3"> *@
+                @*     <label class="col-md-4 col-form-label">Status</label> *@
+                @*     <div class="col-md-8"> *@
+                @*         <select class="form-control" @bind="ProjectProposalData.Status"> *@
+                @*             <option value="">-- Select Status --</option> *@
+                @*             <option value="Start">Start</option> *@
+                @*             <option value="Activate">Activate</option> *@
+                @*             <option value="Delay">Delay</option> *@
+                @*             <option value="Finish">Finish</option> *@
+                @*         </select> *@
+                @*     </div> *@
+                @* </div> *@
+                <div class="row">
+                    <div class="offset-md-4 col-md-4 d-grid">
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                    <div class="col-md-4 d-grid">
+                        <a class="btn btn-outline-primary" href="/Projects">Cancel</a>
+                    </div>
+                </div>
+            </form>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public ProjectProposalDto ProjectProposalData { set; get; } = new();
+
+    private async Task HandleSubmit()
+    {
+        // Chặn hành động mặc định của form
+        var response = await Http.PostAsJsonAsync("http://localhost:5160/api/Proposals", ProjectProposalData);
+
+        if (response.IsSuccessStatusCode)
+        {
+            navManager.NavigateTo("/Proposals");
+        }
+        else
+        {
+            var strResponse = await response.Content.ReadAsStringAsync();
+            Console.WriteLine("Json Response: \n" + strResponse);
+        }
+    }
+}

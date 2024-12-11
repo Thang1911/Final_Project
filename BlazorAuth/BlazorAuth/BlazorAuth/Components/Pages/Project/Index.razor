@@ -5,7 +5,7 @@
 
 
 <h1 class="text-center mb-3">List of Projects</h1>
-@if (projects == null || proposals == null)
+@if (projects == null)
 {
     <p><em>Loading ...</em></p>
 }
@@ -43,66 +43,13 @@ else
             }
         </tbody>
     </table>
-    <div style="height: 60px;"></div>
-
-    <h1 class="text-center mb-3">List of Proposal Projects</h1>
-    <a class="btn btn-primary mb-3" href="/Proposals/Create">New Project Proposal</a>
-
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Title</th>
-                <th>Abstract</th>
-                <th>Proposed Budget</th>
-                <th>Proposed Duration</th>
-                <th>Status</th>
-                <th>Approval Date</th>
-                <th>Submission Date</th>
-                <th>Created Date</th>
-                <th>Updated Date</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var proposal in proposals)
-            {
-                <tr>
-                    <td>@proposal.ProposalId</td>
-                    <td>@proposal.Title</td>
-                    <td>@proposal.Abstract</td>
-                    <td>@proposal.ProposedBudget</td>
-                    <td>@proposal.ProposedDuration</td>
-                    <td>@proposal.Status</td>
-                    @if (proposal.ApprovalDate != null)
-                    {
-                        <td>@proposal.ApprovalDate.Value.ToShortDateString()</td>
-                    }
-                    else
-                    {
-                        <td>Not approval yet</td>
-                    }
-                    <td>@proposal.SubmissionDate.ToShortDateString()</td>
-                    <td>@proposal.CreatedAt.ToShortDateString()</td>
-                    <td>@proposal.UpdatedAt.ToShortDateString()</td>
-                    <td style="white-space:nowrap">
-                        <a class="btn btn-primary btn-sm" href="/Proposals/Approval/@proposal.ProposalId">Approval</a>
-                        <a class="btn btn-primary btn-sm" href="/Proposals/Edit/@proposal.ProposalId">Edit</a>
-                        <a class="btn btn-danger btn-sm" href="/Proposals/Delete/@proposal.ProposalId">Delete</a>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
 }
 
 @code {
     private List<Project>? projects;
-    private List<ProjectProposal>? proposals;
 
     protected override async Task OnInitializedAsync()
     {
         projects = await Http.GetFromJsonAsync<List<Project>>("http://localhost:5160/api/Projects");
-        proposals = await Http.GetFromJsonAsync<List<ProjectProposal>>("http://localhost:5160/api/Proposals");
     }
 }

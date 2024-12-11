@@ -73,6 +73,7 @@ namespace BlazorApi.Controllers
         {
             var project = new Project
             {
+                ProjectId = Guid.NewGuid().ToString(),
                 Title = projectDto.Title,
                 Description = projectDto.Description,
                 Budget = projectDto.Budget,
