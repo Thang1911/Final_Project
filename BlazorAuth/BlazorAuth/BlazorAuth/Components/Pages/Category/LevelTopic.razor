@@ -1,0 +1,293 @@
+﻿@page "/LevelTopics"
+@inject HttpClient Http
+@using BlazorAuth.Components.Common
+@using BlazorAuth.Models.Category
+@rendermode InteractiveServer
+
+<h1 class="text-center mb-3">List of Level Topics</h1>
+
+@if (_pagedLevelTopics == null)
+{
+    <p><em>Loading ...</em></p>
+}
+else
+{
+    <div>
+        <SearchComponent OnSearch="UpdateFilteredLevelTopics"></SearchComponent>
+
+        <button class="btn btn-primary" @onclick="ShowAddLevelTopicForm">Add Level Topic</button>
+    </div>
+
+    <table class="table mt-3">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Level Topic Name</th>
+                <th>Category</th>
+                <th>Created date</th>
+                <th>Updated date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var levelTopic in _pagedLevelTopics)
+            {
+                <tr>
+                    <td>@levelTopic.id</td>
+                    <td>@levelTopic.lvtopic_name</td>
+                    <td>@levelTopic.category</td>
+                    <td>@levelTopic.created_at.ToShortDateString()</td>
+                    <td>@levelTopic.updated_at.ToShortDateString()</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" @onclick="() => EditLevelTopic(levelTopic)">Edit</button>
+                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteLevelTopic(levelTopic.id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <Pagination TotalItems="@(_filteredLevelTopics?.Count ?? 0)" ItemsPerPage="15" OnPageChanged="LoadPageData" />
+
+    @if (isAddLevelTopicFormVisible)
+    {
+        <div class="modal show" style="display:block;">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Add New Level Topic</h5>
+                        <button type="button" class="close" @onclick="HideAddLevelTopicForm">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <EditForm Model="@newLevelTopic" OnValidSubmit="HandleAddLevelTopic">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
+
+                            <div class="form-group">
+                                <label for="levelTopicName">Level Topic Name</label>
+                                <InputText id="levelTopicName" class="form-control" @bind-Value="newLevelTopic.lvtopic_name" />
+                            </div>
+
+                            <div class="form-group">
+                                <label for="category">Category</label>
+                                <select id="category" class="form-control" @bind="newLevelTopic.category">
+                                    <option value="">Select category</option>
+                                    <option value="0">Topic</option>
+                                    <option value="1">Project</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Add Level Topic</button>
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (isEditLevelTopicFormVisible)
+    {
+        <div class="modal show" style="display:block;">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Level Topic</h5>
+                        <button type="button" class="close" @onclick="HideEditLevelTopicForm">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <EditForm Model="@levelTopicToEdit" OnValidSubmit="HandleEditLevelTopic">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
+
+                            <div class="form-group">
+                                <label for="levelTopicName">Level Topic Name</label>
+                                <InputText id="levelTopicName" class="form-control" @bind-Value="levelTopicToEdit.lvtopic_name" />
+                            </div>
+
+                            <div class="form-group">
+                                <label for="category">Category</label>
+                                <select id="category" class="form-control" @bind="levelTopicToEdit.category">
+                                    <option value="0">Topic</option>
+                                    <option value="1">Project</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (isDeleteConfirmationVisible)
+    {
+        <div class="modal show" style="display:block;">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Confirm Delete</h5>
+                        <button type="button" class="close" @onclick="HideDeleteConfirmationModal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to delete the level topic <strong>@levelTopicToDelete?.lvtopic_name</strong>?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="HideDeleteConfirmationModal">Cancel</button>
+                        <button type="button" class="btn btn-danger" @onclick="ConfirmDeleteLevelTopic">Delete</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private List<LevelTopics>? levelTopics;
+    private List<LevelTopics>? _filteredLevelTopics;
+    private List<LevelTopics>? _pagedLevelTopics;
+
+    private int itemsPerPage = 15;
+    private LevelTopics newLevelTopic = new LevelTopics();
+    private bool isAddLevelTopicFormVisible = false;
+
+    private bool isEditLevelTopicFormVisible = false;
+    private LevelTopics levelTopicToEdit = new LevelTopics();
+
+    private bool isDeleteConfirmationVisible = false;
+    private LevelTopics levelTopicToDelete;
+
+    protected override async Task OnInitializedAsync()
+    {
+        levelTopics = await Http.GetFromJsonAsync<List<LevelTopics>>("http://localhost:5160/api/LvTopics");
+        _filteredLevelTopics = levelTopics;
+        LoadPageData(1);
+    }
+
+    private void UpdateFilteredLevelTopics(string searchItem)
+    {
+        if (string.IsNullOrEmpty(searchItem))
+        {
+            _filteredLevelTopics = levelTopics.ToList();
+        }
+        else
+        {
+            _filteredLevelTopics = levelTopics
+                .Where(levelTopic => levelTopic.lvtopic_name.Contains(searchItem, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+
+        LoadPageData(1);
+    }
+
+    private void LoadPageData(int currentPage)
+    {
+        int startIndex = (currentPage - 1) * itemsPerPage;
+        _pagedLevelTopics = _filteredLevelTopics?.Skip(startIndex).Take(itemsPerPage).ToList();
+    }
+
+    private void ShowAddLevelTopicForm()
+    {
+        isAddLevelTopicFormVisible = true;
+    }
+
+    private void HideAddLevelTopicForm()
+    {
+        isAddLevelTopicFormVisible = false;
+    }
+
+    private async Task HandleAddLevelTopic()
+    {
+        if (!string.IsNullOrEmpty(newLevelTopic.lvtopic_name))
+        {
+            newLevelTopic.id = Guid.NewGuid().ToString();
+            newLevelTopic.created_at = DateTime.Now;
+            newLevelTopic.updated_at = DateTime.Now;
+
+            var response = await Http.PostAsJsonAsync("http://localhost:5160/api/LvTopics", newLevelTopic);
+
+            if (response.IsSuccessStatusCode)
+            {
+                levelTopics = await Http.GetFromJsonAsync<List<LevelTopics>>("http://localhost:5160/api/LvTopics");
+                _filteredLevelTopics = levelTopics;
+                LoadPageData(1);
+                HideAddLevelTopicForm();
+            }
+            else
+            {
+                Console.WriteLine("Add level topic failed");
+            }
+        }
+    }
+
+
+    private void EditLevelTopic(LevelTopics levelTopic)
+    {
+        levelTopicToEdit = new LevelTopics
+            {
+                id = levelTopic.id,
+                lvtopic_name = levelTopic.lvtopic_name,
+                category = levelTopic.category
+            };
+        isEditLevelTopicFormVisible = true;
+    }
+
+    private void HideEditLevelTopicForm()
+    {
+        isEditLevelTopicFormVisible = false;
+    }
+
+    private async Task HandleEditLevelTopic()
+    {
+        var updatedLevelTopic = new LevelTopics
+            {
+                id = levelTopicToEdit.id,
+                lvtopic_name = levelTopicToEdit.lvtopic_name,
+                category = levelTopicToEdit.category,  // category là kiểu int
+                created_at = levelTopicToEdit.created_at,
+                updated_at = DateTime.Now
+            };
+
+        var response = await Http.PutAsJsonAsync($"http://localhost:5160/api/LvTopics/{levelTopicToEdit.id}", updatedLevelTopic);
+
+        if (response.IsSuccessStatusCode)
+        {
+            levelTopics = await Http.GetFromJsonAsync<List<LevelTopics>>("http://localhost:5160/api/LvTopics");
+            _filteredLevelTopics = levelTopics;
+            LoadPageData(1);
+            HideEditLevelTopicForm();
+        }
+        else
+        {
+            Console.WriteLine("Edit level topic failed");
+        }
+    }
+
+
+    private void DeleteLevelTopic(string levelTopicId)
+    {
+        levelTopicToDelete = _pagedLevelTopics?.FirstOrDefault(levelTopic => levelTopic.id == levelTopicId);
+        isDeleteConfirmationVisible = true;
+    }
+
+    private void HideDeleteConfirmationModal()
+    {
+        isDeleteConfirmationVisible = false;
+    }
+
+    private async Task ConfirmDeleteLevelTopic()
+    {
+        var response = await Http.DeleteAsync($"http://localhost:5160/api/LvTopics/{levelTopicToDelete.id}");
+
+        if (response.IsSuccessStatusCode)
+        {
+            levelTopics = await Http.GetFromJsonAsync<List<LevelTopics>>("http://localhost:5160/api/LvTopics");
+            _filteredLevelTopics = levelTopics;
+            LoadPageData(1);
+        }
+        else
+        {
+            Console.WriteLine("Delete level topic failed");
+        }
+
+        HideDeleteConfirmationModal();
+    }
+}

@@ -1,0 +1,273 @@
+﻿@page "/Roles"
+@inject HttpClient Http
+@using BlazorAuth.Components.Common
+@using Models.Category
+@rendermode InteractiveServer
+
+<h1 class="text-center mb-3">List of roles</h1>
+
+@if (_pagedRoles == null)
+{
+    <p><em>Loading ...</em></p>
+}
+else
+{
+    <div>
+        <SearchComponent OnSearch="UpdateFilteredPosts"></SearchComponent>
+
+        <button class="btn btn-primary" @onclick="ShowAddRoleForm">Add Role</button>
+    </div>
+
+    <table class="table mt-3">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Role Name</th>
+                <th>Created date</th>
+                <th>Updated date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var role in _pagedRoles)
+            {
+                <tr>
+                    <td>@role.id</td>
+                    <td>@role.role_name</td>
+                    <td>@role.created_at.ToShortDateString()</td>
+                    <td>@role.updated_at.ToShortDateString()</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" @onclick="() => EditRole(role)">Edit</button>
+                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteRole(role.id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <Pagination TotalItems="@(_filteredRoles?.Count ?? 0)" ItemsPerPage="15" OnPageChanged="LoadPageData" />
+
+    @if (isAddRoleFormVisible)
+    {
+        <div class="modal show" style="display:block;">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Add New Role</h5>
+                        <button type="button" class="close" @onclick="HideAddRoleForm">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <EditForm Model="@newRole" OnValidSubmit="HandleAddRole">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
+
+                            <div class="form-group">
+                                <label for="roleName">Role Name</label>
+                                <InputText id="roleName" class="form-control" @bind-Value="newRole.role_name" />
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">Add Role</button>
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (isEditRoleFormVisible)
+    {
+        <div class="modal show" style="display:block;">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Role</h5>
+                        <button type="button" class="close" @onclick="HideEditRoleForm">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <EditForm Model="@roleToEdit" OnValidSubmit="HandleEditRole">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
+
+                            <div class="form-group">
+                                <label for="roleName">Role Name</label>
+                                <InputText id="roleName" class="form-control" @bind-Value="roleToEdit.role_name" />
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (isDeleteConfirmationVisible)
+    {
+        <div class="modal show" style="display:block;">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Confirm Delete</h5>
+                        <button type="button" class="close" @onclick="HideDeleteConfirmationModal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to delete the role <strong>@roleToDelete?.role_name</strong>?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="HideDeleteConfirmationModal">Cancel</button>
+                        <button type="button" class="btn btn-danger" @onclick="ConfirmDeleteRole">Delete</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private List<Role>? roles;
+    private List<Role>? _filteredRoles;
+    private List<Role>? _pagedRoles;
+
+    private int itemsPerPage = 15;
+    private Role newRole = new Role();
+    private bool isAddRoleFormVisible = false;
+
+    private bool isEditRoleFormVisible = false;
+    private Role roleToEdit = new Role();
+
+    private bool isDeleteConfirmationVisible = false;
+    private Role roleToDelete;
+
+    protected override async Task OnInitializedAsync()
+    {
+        roles = await Http.GetFromJsonAsync<List<Role>>("http://localhost:5160/api/Roles");
+        _filteredRoles = roles;
+        LoadPageData(1);
+    }
+
+    private void UpdateFilteredPosts(string searchItem)
+    {
+        if (string.IsNullOrEmpty(searchItem))
+        {
+            _filteredRoles = roles.ToList();
+        }
+        else
+        {
+            _filteredRoles = roles
+                .Where(post => post.role_name.Contains(searchItem, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+
+        LoadPageData(1);
+    }
+
+    private void LoadPageData(int currentPage)
+    {
+        int startIndex = (currentPage - 1) * itemsPerPage;
+        _pagedRoles = _filteredRoles?.Skip(startIndex).Take(itemsPerPage).ToList();
+    }
+
+    private void ShowAddRoleForm()
+    {
+        isAddRoleFormVisible = true;
+    }
+
+    private void HideAddRoleForm()
+    {
+        isAddRoleFormVisible = false;
+    }
+
+    private async Task HandleAddRole()
+    {
+        if (!string.IsNullOrEmpty(newRole.role_name))
+        {
+            newRole.id = Guid.NewGuid().ToString();
+            newRole.created_at = DateTime.Now;
+            newRole.updated_at = DateTime.Now;
+
+            var response = await Http.PostAsJsonAsync("http://localhost:5160/api/Roles", newRole);
+
+            if (response.IsSuccessStatusCode)
+            {
+                newRole.role_name = "";
+                roles = await Http.GetFromJsonAsync<List<Role>>("http://localhost:5160/api/Roles");
+                _filteredRoles = roles;
+                LoadPageData(1);
+                HideAddRoleForm();
+            }
+            else
+            {
+                Console.WriteLine("Add role failed.");
+            }
+        }
+    }
+
+    private void EditRole(Role role)
+    {
+        roleToEdit = new Role
+            {
+                id = role.id,
+                role_name = role.role_name
+            };
+        isEditRoleFormVisible = true;
+    }
+
+    private void HideEditRoleForm()
+    {
+        isEditRoleFormVisible = false;
+    }
+
+    private async Task HandleEditRole()
+    {
+        var updatedRole = new Role
+            {
+                id = roleToEdit.id,
+                role_name = roleToEdit.role_name,
+                created_at = roleToEdit.created_at,
+                updated_at = DateTime.Now
+            };
+
+        var response = await Http.PutAsJsonAsync($"http://localhost:5160/api/Roles/{roleToEdit.id}", updatedRole);
+
+        if (response.IsSuccessStatusCode)
+        {
+            roles = await Http.GetFromJsonAsync<List<Role>>("http://localhost:5160/api/Roles");
+            _filteredRoles = roles;
+            LoadPageData(1);
+            HideEditRoleForm();
+        }
+        else
+        {
+            Console.WriteLine("Sửa vai trò thất bại");
+        }
+    }
+
+    private void DeleteRole(string roleId)
+    {
+        roleToDelete = _pagedRoles?.FirstOrDefault(role => role.id == roleId);
+        isDeleteConfirmationVisible = true;
+    }
+
+    private void HideDeleteConfirmationModal()
+    {
+        isDeleteConfirmationVisible = false;
+    }
+
+    private async Task ConfirmDeleteRole()
+    {
+        var response = await Http.DeleteAsync($"http://localhost:5160/api/Roles/{roleToDelete.id}");
+
+        if (response.IsSuccessStatusCode)
+        {
+            roles = await Http.GetFromJsonAsync<List<Role>>("http://localhost:5160/api/Roles");
+            _filteredRoles = roles;
+            LoadPageData(1);
+        }
+        else
+        {
+            Console.WriteLine("Xóa vai trò thất bại");
+        }
+
+        HideDeleteConfirmationModal();
+    }
+}

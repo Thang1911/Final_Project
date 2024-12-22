@@ -1,0 +1,198 @@
+﻿@page "/Topics/Add"
+@using BlazorApi.Models.Offer
+@using BlazorApi.Enums
+@using BlazorAuth.Models.Topics
+@using BlazorAuth.Components.Common
+@using BlazorAuth.Models.Category
+@inject HttpClient Http
+@inject NavigationManager navManager
+@rendermode InteractiveServer
+
+<h1 class="text-center mb-3">List of Approved Offers</h1>
+
+<div class="d-flex justify-content-between gap-2">
+    <SearchComponent OnSearch="UpdateFilteredOffers"></SearchComponent>
+    <button class="btn btn-primary" @onclick="NavigateBackToTopic">Back</button>
+</div>
+
+@if (_pagedOffers != null)
+{
+    <div class="d-flex flex-column gap-2">
+        <table class="table mt-3">
+            <thead>
+                <tr>
+                    <th>Offer Name</th>
+                    <th>Year</th>
+                    <th>Propose Name</th>
+                    <th>Note</th>
+                    <th>Status</th>
+                    <th>Scientist Member</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var offer in _pagedOffers)
+                {
+                    <tr>
+                        <td>@offer.offer_name</td>
+                        <td>@offer.year</td>
+                        <td>@proposes.FirstOrDefault(p => p.id == @offer.propose_id)?.propose_name</td>
+                        <td>@offer.note</td>
+                        <td>@offer.status</td>
+                        <td></td>
+                        <td>
+                            <button class="btn btn-secondary" @onclick="() => ShowAddModal(offer)">Add</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <Pagination TotalItems="@(_filteredOffers?.Count ?? 0)" ItemsPerPage="15" OnPageChanged="LoadPageData" />
+    </div>
+}
+
+@if (isModalVisible)
+{
+    <div class="modal show d-block" tabindex="-1" style="display:block;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@modalTitle</h5>
+                    <button type="button" class="close" @onclick="HideModal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="@currentTopic" OnValidSubmit="HandleOfferSubmit">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        <div class="form-group">
+                            <label for="topic_name">Topic Name</label>
+                            <InputText id="topic_name" class="form-control" @bind-Value="currentTopic.topic_name" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="year">Start date</label>
+                            <InputDate id="year" class="form-control" @bind-Value="currentTopic.start_date" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="year">End date</label>
+                            <InputDate id="year" class="form-control" @bind-Value="currentTopic.end_date" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="propose">Propose</label>
+                            <select id="propose" class="form-control" @bind="currentTopic.lvtopic_id">
+                                <option>Select level topic</option>
+                                @foreach (var lvTopic in levelTopics)
+                                {
+                                    <option value="@lvTopic.id">@lvTopic.lvtopic_name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">Save</button>
+                            <button @onclick="HideModal" class="btn btn-secondary">Cancel</button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Offers> offers;
+    private List<Offers>? _filteredOffers;
+    private List<Offers>? _pagedOffers;
+    private List<Propose> proposes = new List<Propose>();
+    private List<LevelTopics> levelTopics = new List<LevelTopics>();
+
+    private bool isModalVisible = false;
+    private bool isApprovalModalVisible = false;
+    private bool isDeleteModalVisible = false;
+
+    private string modalTitle = "Add New Topic";
+    private Topic currentTopic = new Topic();
+
+    private int itemsPerPage = 15;
+
+    protected override async Task OnInitializedAsync()
+    {
+        offers = await Http.GetFromJsonAsync<List<Offers>>("http://localhost:5160/api/Offers");
+        proposes = await Http.GetFromJsonAsync<List<Propose>>("http://localhost:5160/api/Proposes");
+        levelTopics = await Http.GetFromJsonAsync<List<LevelTopics>>("http://localhost:5160/api/LvTopics");
+        _filteredOffers = offers;
+        LoadPageData(1);
+    }
+
+    private void UpdateFilteredOffers(string searchItem)
+    {
+        if (string.IsNullOrEmpty(searchItem))
+        {
+            _filteredOffers = offers.ToList();
+        }
+        else
+        {
+            Console.WriteLine(searchItem);
+            _filteredOffers = offers
+                .Where(offer => offer.offer_name.Contains(searchItem, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+
+        LoadPageData(1);
+    }
+
+    private void LoadPageData(int currentPage)
+    {
+        int startIndex = (currentPage - 1) * itemsPerPage;
+        _pagedOffers = _filteredOffers?.Skip(startIndex).Take(itemsPerPage).ToList();
+    }
+
+    private void ShowAddModal(Offers offer)
+    {
+        currentTopic.topic_name = offer.offer_name;
+        isModalVisible = true;
+    }
+
+
+    private void NavigateBackToTopic()
+    {
+        navManager.NavigateTo("/Topics");
+    }
+
+    private void HideModal()
+    {
+        isModalVisible = false;
+    }
+
+    private async Task HandleOfferSubmit()
+    {
+        if (!string.IsNullOrEmpty(currentTopic.topic_name))
+        {
+            var newTopic = new Topic
+                {
+                    id = Guid.NewGuid().ToString(),
+                    topic_name = currentTopic.topic_name,
+                    lvtopic_id = currentTopic.lvtopic_id,
+                    start_date = currentTopic.start_date,
+                    end_date = currentTopic.end_date,
+                    result = Result.Good,
+                    created_at = DateTime.Now,
+                    updated_at = DateTime.Now
+                };
+
+            await Http.PostAsJsonAsync("http://localhost:5160/api/Topics", newTopic);
+        }
+
+        // Refresh the list of offers
+        offers = await Http.GetFromJsonAsync<List<Offers>>("http://localhost:5160/api/Offers");
+        _filteredOffers = offers;
+        LoadPageData(1);
+        HideModal();
+    }
+}
+

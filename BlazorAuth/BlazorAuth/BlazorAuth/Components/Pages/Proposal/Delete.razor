@@ -1,20 +1,21 @@
-﻿@page "/Proposals/Delete/{Id}"
-@inject HttpClient Http
-@inject NavigationManager navManager
-@rendermode InteractiveServer
+﻿ @page "/Proposals/Delete/{Id}"
+@* @page "/Proposals/Delete/{Id}" *@
+@* @inject HttpClient Http *@
+@* @inject NavigationManager navManager *@
+@* @rendermode InteractiveServer *@
 
-<h1 class="mb-3">Delete Proposal</h1>
-<p>Are you sure you want to delete proposal with Id @Id?</p>
-<button class="btn btn-danger" @onclick="DeleteProposal">Delete</button>
-<a class="btn btn-secondary" href="/Projects">Cancel</a>
+@* <h1 class="mb-3">Delete Proposal</h1> *@
+@* <p>Are you sure you want to delete proposal with Id @Id?</p> *@
+@* <button class="btn btn-danger" @onclick="DeleteProposal">Delete</button> *@
+@* <a class="btn btn-secondary" href="/Projects">Cancel</a> *@
 
-@code {
-    [Parameter]
-    public string Id { set; get; }
+@* @code { *@
+@*     [Parameter] *@
+@*     public string Id { set; get; } *@
 
-    protected async Task DeleteProposal()
-    {
-        var response = await Http.DeleteAsync($"http://localhost:5160/api/Proposals/{Id}");
-        navManager.NavigateTo("/Proposals");
-    }
-}
+@*     protected async Task DeleteProposal() *@
+@*     { *@
+@*         var response = await Http.DeleteAsync($"http://localhost:5160/api/Proposals/{Id}"); *@
+@*         navManager.NavigateTo("/Proposals"); *@
+@*     } *@
+@* } *@

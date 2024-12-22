@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using BlazorApi.Models.Council;
+using System.ComponentModel.DataAnnotations;
 
 namespace BlazorApi.Models.Category
 {

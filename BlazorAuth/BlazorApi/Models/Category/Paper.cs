@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using BlazorApi.Models.Magazine;
 
 namespace BlazorApi.Models.Category
 {

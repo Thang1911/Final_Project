@@ -1,6 +1,6 @@
 ﻿namespace BlazorApi.Enums
 {
-    public enum Categories
+    public enum CategoryType
     {
         Topic, Project
     }

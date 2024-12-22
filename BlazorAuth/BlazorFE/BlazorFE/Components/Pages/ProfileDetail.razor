@@ -1,0 +1,222 @@
+﻿@page "/ProfileDetail"
+@rendermode InteractiveServer
+
+@using System.Security.Claims;
+@using BlazorFE.Models.Scientist
+@using BlazorFE.Services;
+@inject ProfileServices ProfileServices
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+
+<h3>Thông tin của @userName</h3>
+
+<div class="bg-white">
+    <div class="justify-content-center">
+        <div class="border-right">
+            <div class="">
+                @if (scientist != null)
+                {
+                <form>
+                    <div class="mt-2">
+                        <!-- Hàng đầu tiên -->
+                        <div class="auto-cols">
+                            <div>
+                                <label class="labels">Họ và Tên<span class="text-red">*</span></label>
+                                <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Họ và tên" @bind="@scientist.profile_name">
+                            </div>
+                            <div>
+                                <label class="labels">Ngày sinh<span class="text-red">*</span></label>
+                                <input readonly="@isReadOnly" type="date" class="form-control" @bind="@scientist.birthday">
+                            </div>
+                            <div>
+                                <label class="labels">Giới tính<span class="text-red">*</span></label>
+                                <input readonly="@isReadOnly" type="text" class="form-control" @bind="@scientist.gender">
+                            </div>
+                        </div>
+
+                        <!-- Hàng thứ hai -->
+                        <div class="auto-cols mt-2">
+                            <div>
+                                <label class="labels">Nơi sinh<span class="text-red">*</span></label>
+                                <input readonly="@isReadOnly" type="text" class="form-control" @bind="@scientist.birth_place">
+                            </div>
+                            <div>
+                                <label class="labels">Địa chỉ liên lạc</label>
+                                <input readonly="@isReadOnly" type="text" class="form-control" @bind="@scientist.address">
+                            </div>
+                        </div>
+
+                        <!-- Hàng thứ ba -->
+                        <div class="auto-cols mt-2">
+                            <div>
+                                <label class="labels">Điện thoại di động<span class="text-red">*</span></label>
+                                <input readonly="@isReadOnly" type="number" class="form-control" placeholder="Điện thoại di động" @bind="@scientist.phone">
+                            </div>
+                            <div>
+                                <label class="labels">Điện thoại nhà riêng</label>
+                                <input readonly="@isReadOnly" type="number" class="form-control" placeholder="Điện thoại nhà riêng"  @bind="@scientist.house_phone">
+                            </div>
+                            <div>
+                                <label class="labels">Điện thoại cơ quan</label>
+                                <input readonly="@isReadOnly" type="number" class="form-control" placeholder="Điện thoại cơ quan" @bind="@scientist.office_phone">
+                            </div>
+                            <div>
+                                <label class="labels">Email<span class="text-red">*</span></label>
+                                <input readonly="@isReadOnly" type="email" class="form-control" placeholder="Email" @bind="@scientist.email">
+                            </div>
+                        </div>
+
+                        <!-- Hàng thứ tư -->
+                        <div class="auto-cols mt-2">
+                            <div>
+                                <label class="labels">Học vị<span class="text-red">*</span></label>
+                                <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Học vị" @bind="@scientist.degree_Id">
+                            </div>
+                            <div>
+                                <label class="labels">Năm phong</label>
+                                <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Năm phong" @bind="@scientist.nvestiture">
+                            </div>
+                            <div>
+                                <label class="labels">Chức danh khoa học</label>
+                                <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Chức danh khoa học" @bind="@scientist.scientific_title">
+                            </div>
+                        </div>
+
+                        <!-- Hàng thứ năm -->
+                        <div class="auto-cols mt-2">
+                            <div>
+                                <label class="labels">Chức danh nghiên cứu</label>
+                                <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Chức danh nghiên cứu" @bind="@scientist.research_title">
+                            </div>
+                            <div>
+                                <label class="labels">Chức vụ nghiên cứu</label>
+                                <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Chức vụ nghiên cứu" @bind="@scientist.research_position">
+                            </div>
+                            <div>
+                                <label class="labels">Tên tổ chức<span class="text-red">*</span></label>
+                                <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Tên tổ chức" @bind="@scientist.office_id">
+                            </div>
+                        </div>
+
+                        <div class="mt-2">
+                            <label class="labels">Địa chỉ tổ chức<span class="text-red">*</span></label>
+                            <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Địa chỉ tổ chức" @bind="@scientist.address_office">
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-1 mt-2">
+                        <div class="mt-5 text-center">
+                            <button class="btn btn-primary" type="button">Quay về trang chủ</button>
+                        </div>
+                        @if (!isReadOnly)
+                        {
+                            <div class="mt-5 text-center">
+                                <button class="btn btn-success" type="submit">Lưu</button>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="mt-5 text-center">
+                                <button class="btn btn-warning" type="button" @onclick="EditProfile">Chỉnh sửa</button>
+                            </div>
+                        }
+                    </div>
+                </form>
+                }
+             
+           </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .auto-cols {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    gap: 16px;
+    justify-content: space-between;
+    }
+
+    .auto-cols > div {
+    flex: 1; 
+    min-width: 200px;
+    }
+
+    .d-flex {
+    display: flex;
+    flex-direction: row;
+    justify-content: right;
+    }
+
+    .text-red {
+    color: red;
+    }
+</style>
+
+@code {
+    private bool isReadOnly = true;
+    private string userName = "";
+    private string userid = "";
+    private Scientist scientist { get; set; }
+
+    private void EditProfile()
+    {
+        isReadOnly = !isReadOnly;
+    }
+
+    private async Task SaveProfile()
+    {
+        if (scientist != null)
+        {
+            scientist.id = Guid.NewGuid().ToString();
+            scientist.user_id = userid;
+            scientist.profile_id = Guid.NewGuid().ToString();
+            scientist.created_at = DateTime.Now;
+            scientist.updated_at = DateTime.Now;
+            try
+            {
+                await ProfileServices.AddProfileAsync(scientist);
+                NavigationManager.NavigateTo("/ProfileDetail");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error saving profile: " + ex.Message);
+            }
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var principal = authState.User;
+        if (principal.Identity?.IsAuthenticated == true)
+        {
+            userid = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value.ToString();
+            userName = principal.Identity.Name;   
+
+
+            if (userid != null && userName != null)
+            {
+                var response = await ProfileServices.GetProfileAsync(userid);
+                if (response != null)
+                {
+                    scientist = response;
+                }
+                else
+                {
+                    scientist = new Scientist();
+                    scientist.email = userName;
+                }
+            }
+            else
+            {
+                NavigationManager.NavigateTo("Account/Login");
+            }
+        }
+        else
+        {
+            NavigationManager.NavigateTo("Account/Login");
+        }
+    }
+}

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BlazorApi.Models.Category
 {
@@ -6,9 +7,13 @@ namespace BlazorApi.Models.Category
     {
         [Key]
         public string id { get; set; }
+        [ForeignKey(nameof(Role))]
         public string role_id { get; set; }
+
         public string category_name { get; set; }
         public string type { get; set; }
+
+        [ForeignKey(nameof(Training))]
         public string training_id { get; set; }
         public int research_number { get; set; }
         public DateTime created_at { get; set; }

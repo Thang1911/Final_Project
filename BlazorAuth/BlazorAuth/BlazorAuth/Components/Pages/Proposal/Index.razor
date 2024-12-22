@@ -1,70 +1,305 @@
-﻿@page "/Proposals"
-
+﻿@page "/Offers"
+@using BlazorApi.Models.Offer
+@using BlazorAuth.Components.Common
+@using BlazorAuth.Models.Category
 @inject HttpClient Http
-@using Models.Project;
+@rendermode InteractiveServer
 
+<h1 class="text-center mb-3">List of Offers</h1>
 
-<h1 class="text-center mb-3">List of Proposal Projects</h1>
-@if (proposals == null)
+<div class="flex-column d-flex gap-2">
+    <SearchComponent OnSearch="UpdateFilteredOffers"></SearchComponent>
+    <button class="btn btn-primary w-25" @onclick="ShowAddModal">Add New Offer</button>
+</div>
+
+@if (_pagedOffers != null)
 {
-    <p><em>Loading ...</em></p>
-}
-else
-{
-    <a class="btn btn-primary mb-3" href="/Proposals/Create">New Project Proposal</a>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Title</th>
-                <th>Abstract</th>
-                <th>Proposed Budget</th>
-                <th>Proposed Duration</th>
-                <th>Status</th>
-                <th>Approval Date</th>
-                <th>Submission Date</th>
-                <th>Created Date</th>
-                <th>Updated Date</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var proposal in proposals)
-            {
+    <div class="d-flex flex-column gap-2">
+        <table class="table mt-3">
+            <thead>
                 <tr>
-                    <td>@proposal.ProposalId</td>
-                    <td>@proposal.Title</td>
-                    <td>@proposal.Abstract</td>
-                    <td>@proposal.ProposedBudget</td>
-                    <td>@proposal.ProposedDuration</td>
-                    <td>@proposal.Status</td>
-                    @if (proposal.ApprovalDate != null)
-                    {
-                        <td>@proposal.ApprovalDate.Value.ToShortDateString()</td>
-                    }
-                    else
-                    {
-                        <td>Not approval yet</td>
-                    }
-                    <td>@proposal.SubmissionDate.ToShortDateString()</td>
-                    <td>@proposal.CreatedAt.ToShortDateString()</td>
-                    <td>@proposal.UpdatedAt.ToShortDateString()</td>
-                    <td style="white-space:nowrap">
-                        <a class="btn btn-primary btn-sm" href="/Proposals/Approval/@proposal.ProposalId">Approval</a>
-                        <a class="btn btn-primary btn-sm" href="/Proposals/Edit/@proposal.ProposalId">Edit</a>
-                        <a class="btn btn-danger btn-sm" href="/Proposals/Delete/@proposal.ProposalId">Delete</a>
-                    </td>
+                    <th>Offer Name</th>
+                    <th>Year</th>
+                    <th>Propose Name</th>
+                    <th>Note</th>
+                    <th>Status</th>
+                    <th>Scientist Member</th>
+                    <th>Action</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var offer in _pagedOffers)
+                {
+                    <tr>
+                        <td>@offer.offer_name</td>
+                        <td>@offer.year</td>
+                        <td>@proposes.FirstOrDefault(p => p.id == @offer.propose_id)?.propose_name</td>
+                        <td>@offer.note</td>
+                        <td>@offer.status</td>
+                        <td></td>
+                        <td>
+                            <button class="btn btn-info" @onclick="() => ShowApproveModal(offer)">Approval</button>
+                            <button class="btn btn-warning" @onclick="() => ShowEditModal(offer)">Edit</button>
+                            <button class="btn btn-danger" @onclick="() => ShowDeleteModal(offer)">Delete</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <Pagination TotalItems="@(_filteredOffers?.Count ?? 0)" ItemsPerPage="15" OnPageChanged="LoadPageData" />
+    </div>
+}
+
+@if (isModalVisible)
+{
+    <div class="modal show d-block" tabindex="-1" style="display:block;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@modalTitle</h5>
+                    <button type="button" class="close" @onclick="HideModal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="@currentOffer" OnValidSubmit="HandleOfferSubmit">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        <div class="form-group">
+                            <label for="offer_name">Offer Name</label>
+                            <InputText id="offer_name" class="form-control" @bind-Value="currentOffer.offer_name" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="year">Year</label>
+                            <InputNumber id="year" class="form-control" @bind-Value="currentOffer.year" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="propose">Propose</label>
+                            <select id="propose" class="form-control" @bind="currentOffer.propose_id">
+                                <option>Select Propose</option>
+                                @foreach (var propose in proposes)
+                                {
+                                    <option value="@propose.id">@propose.propose_name</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="note">Note</label>
+                            <InputText id="note" class="form-control" @bind-Value="currentOffer.note" />
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Approval Modal -->
+@if (isApprovalModalVisible)
+{
+    <div class="modal show d-block" tabindex="-1" style="display:block;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Approve Offer</h5>
+                    <button type="button" class="close" @onclick="HideApprovalModal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to approve this offer?</p>
+                    <button class="btn btn-success" @onclick="ApproveOfferConfirmed">Yes</button>
+                    <button class="btn btn-secondary" @onclick="HideApprovalModal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Delete Modal -->
+@if (isDeleteModalVisible)
+{
+    <div class="modal show d-block" tabindex="-1" style="display:block;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Delete Offer</h5>
+                    <button type="button" class="close" @onclick="HideDeleteModal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete this offer?</p>
+                    <button class="btn btn-danger" @onclick="DeleteOfferConfirmed">Yes</button>
+                    <button class="btn btn-secondary" @onclick="HideDeleteModal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
 }
 
 @code {
-    private List<ProjectProposal>? proposals;
+    private List<Offers> offers;
+    private List<Offers>? _filteredOffers;
+    private List<Offers>? _pagedOffers;
+    private List<Propose> proposes = new List<Propose>();
+    private Propose tempPropose = new Propose();
+
+    private bool isModalVisible = false;
+    private bool isApprovalModalVisible = false;
+    private bool isDeleteModalVisible = false;
+
+    private string modalTitle = "Add New Offer";
+    private Offers currentOffer = new Offers();
+    private Offers offerToApprove;
+    private Offers offerToDelete;
+
+    private int itemsPerPage = 15;
 
     protected override async Task OnInitializedAsync()
     {
-        proposals = await Http.GetFromJsonAsync<List<ProjectProposal>>("http://localhost:5160/api/Proposals");
+        offers = await Http.GetFromJsonAsync<List<Offers>>("http://localhost:5160/api/Offers");
+        proposes = await Http.GetFromJsonAsync<List<Propose>>("http://localhost:5160/api/Proposes");
+        _filteredOffers = offers;
+        LoadPageData(1);
+    }
+
+    private void UpdateFilteredOffers(string searchItem)
+    {
+        if (string.IsNullOrEmpty(searchItem))
+        {
+            _filteredOffers = offers.ToList();
+        }
+        else
+        {
+            Console.WriteLine(searchItem);
+            _filteredOffers = offers
+                .Where(offer => offer.offer_name.Contains(searchItem, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+
+        LoadPageData(1);
+    }
+
+    private void LoadPageData(int currentPage)
+    {
+        int startIndex = (currentPage - 1) * itemsPerPage;
+        _pagedOffers = _filteredOffers?.Skip(startIndex).Take(itemsPerPage).ToList();
+    }
+
+    private void ShowAddModal()
+    {
+        modalTitle = "Add New Offer";
+        currentOffer = new Offers();
+        isModalVisible = true;
+    }
+
+    private void ShowEditModal(Offers offer)
+    {
+        modalTitle = "Edit Offer";
+        currentOffer = offer;
+        isModalVisible = true;
+    }
+
+    private void HideModal()
+    {
+        isModalVisible = false;
+    }
+
+    private void ShowApproveModal(Offers offer)
+    {
+        offerToApprove = offer;
+        isApprovalModalVisible = true;
+    }
+
+    private void HideApprovalModal()
+    {
+        isApprovalModalVisible = false;
+    }
+
+    private void ShowDeleteModal(Offers offer)
+    {
+        offerToDelete = offer;
+        isDeleteModalVisible = true;
+    }
+
+    private void HideDeleteModal()
+    {
+        isDeleteModalVisible = false;
+    }
+
+    private async Task HandleOfferSubmit()
+    {
+        if (currentOffer.id != null && proposes != null)
+        {
+            // Update existing offer
+            var updatedOffer = new Offers
+                {
+                    id = currentOffer.id,
+                    offer_name = currentOffer.offer_name,
+                    propose_id = currentOffer.propose_id,
+                    note = currentOffer.note,
+                    created_at = currentOffer.created_at,
+                    updated_at = DateTime.Now
+                };
+
+            currentOffer.updated_at = DateTime.Now;
+            await Http.PutAsJsonAsync($"http://localhost:5160/api/Offers/{currentOffer.id}", updatedOffer);
+        }
+        else
+        {
+            // Add new offer
+            currentOffer.id = Guid.NewGuid().ToString();
+            currentOffer.created_at = DateTime.Now;
+            currentOffer.updated_at = DateTime.Now;
+            currentOffer.status = "Not approve";
+
+            var result = await Http.PostAsJsonAsync("http://localhost:5160/api/Offers", currentOffer);
+
+            if (result.IsSuccessStatusCode)
+            {
+                Console.WriteLine("Request was successful.");
+                var responseContent = await result.Content.ReadAsStringAsync();
+                Console.WriteLine(responseContent);  // Log the response body
+            }
+            else
+            {
+                Console.WriteLine("Request failed with status code: " + result.StatusCode);
+                var errorContent = await result.Content.ReadAsStringAsync();
+                Console.WriteLine(errorContent);  // Log the error message from the response
+            }
+        }
+
+        // Refresh the list of offers
+        offers = await Http.GetFromJsonAsync<List<Offers>>("http://localhost:5160/api/Offers");
+        _filteredOffers = offers;
+        LoadPageData(1);
+        HideModal();
+    }
+
+    private async Task ApproveOfferConfirmed()
+    {
+        offerToApprove.status = "Approved";
+        await Http.PutAsJsonAsync($"http://localhost:5160/api/Offers/{offerToApprove.id}", offerToApprove);
+        offers = await Http.GetFromJsonAsync<List<Offers>>("http://localhost:5160/api/Offers");
+        _filteredOffers = offers;
+        LoadPageData(1);
+        HideApprovalModal();
+    }
+
+    private async Task DeleteOfferConfirmed()
+    {
+        await Http.DeleteAsync($"http://localhost:5160/api/offers/{offerToDelete.id}");
+        offers = await Http.GetFromJsonAsync<List<Offers>>("http://localhost:5160/api/Offers");
+        _filteredOffers = offers;
+        LoadPageData(1);
+        HideDeleteModal();
     }
 }

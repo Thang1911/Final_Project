@@ -1,14 +1,15 @@
-﻿using Microsoft.AspNetCore.Identity;
-
-namespace BlazorAuth.Models.User
+﻿namespace BlazorAuth.Models.User
 {
-    public class User : IdentityUser
+    public class Users
     {
-        public string FirstName { get; set; } = "";
-        public string lastName { get; set; } = "";
-        public string Address { get; set; } = "";
-        public string? Role { get; set; }
-        public string Status { get; set; } = "";
-        public DateTime CreatedDate { get; set; }
+        public string id { get; set; }
+        public string name { get; set; }
+        public string email { get; set; }
+        public string password { get; set; }
+        public bool isAdmin { get; set; }
+        public string remember_token { get; set; }
+        public DateTime created_at { get; set; }
+        public DateTime updated_at { get; set; }
+        public string google_id { get; set; }
     }
 }

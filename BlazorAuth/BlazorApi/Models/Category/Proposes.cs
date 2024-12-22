@@ -2,7 +2,7 @@
 
 namespace BlazorApi.Models.Category
 {
-    public class Proposes
+    public class Propose
     {
         [Key]
         public string id { get; set; }

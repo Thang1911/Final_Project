@@ -19,59 +19,115 @@
         </div>
 
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/Users">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Users
+            <NavLink class="nav-link" href="/Mock">
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Mock
             </NavLink>
         </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/Projects">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Projects
-            </NavLink>
-        </div>
-
-         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/Proposals">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Proposals
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="auth">
-                <span class="bi bi-lock-nav-menu" aria-hidden="true"></span> Auth Required
-            </NavLink>
-        </div>
-
-        <AuthorizeView>
+        <AuthorizeView Roles="Admin">
             <Authorized>
                 <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Account/Manage">
-                        <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> @context.User.Identity?.Name
+                    <NavLink class="nav-link" href="/Users">
+                        <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Users
                     </NavLink>
                 </div>
+
                 <div class="nav-item px-3">
-                    <form action="Account/Logout" method="post">
-                        <AntiforgeryToken />
-                        <input type="hidden" name="ReturnUrl" value="@currentUrl" />
-                        <button type="submit" class="nav-link">
-                            <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
-                        </button>
-                    </form>
+                    <NavLink class="nav-link" href="/Offers">
+                        <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Offers
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="/Topics">
+                        <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Topics
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="/Curriculums">
+                        <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Curriculums
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="/Proposes">
+                        <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Proposes
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="/Magazines">
+                        <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Magazines
+                    </NavLink>
                 </div>
             </Authorized>
-            <NotAuthorized>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Account/Register">
-                        <span class="bi bi-person-nav-menu" aria-hidden="true"></span> Register
-                    </NavLink>
-                </div>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Account/Login">
-                        <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Login
-                    </NavLink>
-                </div>
-            </NotAuthorized>
         </AuthorizeView>
+
+       
+        
+        @*Category*@
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/Roles">
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Roles
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/LevelTopics">
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Level Topics
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/Papers">
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Papers
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/Trainings">
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Trainings
+            </NavLink>
+        </div>
+
+        @* <div class="nav-item px-3"> *@
+        @*     <NavLink class="nav-link" href="auth"> *@
+        @*         <span class="bi bi-lock-nav-menu" aria-hidden="true"></span> Auth Required *@
+        @*     </NavLink> *@
+        @* </div> *@
+
+        @* <AuthorizeView> *@
+        @*     <Authorized> *@
+        @*         <div class="nav-item px-3"> *@
+        @*             <NavLink class="nav-link" href="Account/Manage"> *@
+        @*                 <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> @context.User.Identity?.Name *@
+        @*             </NavLink> *@
+        @*         </div> *@
+        @*         <div class="nav-item px-3"> *@
+        @*             <form action="Account/Logout" method="post"> *@
+        @*                 <AntiforgeryToken /> *@
+        @*                 <input type="hidden" name="ReturnUrl" value="@currentUrl" /> *@
+        @*                 <button type="submit" class="nav-link"> *@
+        @*                     <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout *@
+        @*                 </button> *@
+        @*             </form> *@
+        @*         </div> *@
+        @*     </Authorized> *@
+        @*     <NotAuthorized> *@
+        @*         <div class="nav-item px-3"> *@
+        @*             <NavLink class="nav-link" href="Account/Register"> *@
+        @*                 <span class="bi bi-person-nav-menu" aria-hidden="true"></span> Register *@
+        @*             </NavLink> *@
+        @*         </div> *@
+        @*         <div class="nav-item px-3"> *@
+        @*             <NavLink class="nav-link" href="Account/Login"> *@
+        @*                 <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Login *@
+        @*             </NavLink> *@
+        @*         </div> *@
+        @*     </NotAuthorized> *@
+        @* </AuthorizeView> *@
     </nav>
 </div>
 

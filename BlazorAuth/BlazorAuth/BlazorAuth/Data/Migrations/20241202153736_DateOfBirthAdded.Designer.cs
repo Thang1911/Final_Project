@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace BlazorAuth.Migrations
 {
-    [DbContext(typeof(ApplicationDbContext))]
+    [DbContext(typeof(ApplicationDbContexts))]
     [Migration("20241202153736_DateOfBirthAdded")]
     partial class DateOfBirthAdded
     {

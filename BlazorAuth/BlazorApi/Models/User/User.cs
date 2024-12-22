@@ -2,7 +2,7 @@
 
 namespace BlazorApi.Models.User
 {
-    public class User
+    public class Users
     {
         [Key]
         public string id { get; set; }
