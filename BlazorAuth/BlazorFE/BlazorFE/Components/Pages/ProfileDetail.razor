@@ -38,7 +38,12 @@
                             </div>
                             <div>
                                 <label class="labels">Giới tính<span class="text-red">*</span></label>
-                                <input readonly="@isReadOnly" type="text" class="form-control" @bind="@scientist.gender">
+                                <select disabled="@isReadOnly" type="text" class="form-control" @bind="@scientist.gender">
+                                    <option value="">Chọn giới tính</option>
+                                    <option value="Nam">Nam</option>
+                                    <option value="Nữ">Nữ</option>
+                                    <option value="Khác">Khác</option>
+                                </select>
                                 @if (showError && string.IsNullOrWhiteSpace(scientist.gender))
                                 {
                                     <span class="text-danger">Vui lòng nhập giới tính.</span>
@@ -105,6 +110,22 @@
                                 <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Năm phong" @bind="@scientist.nvestiture">
                             </div>
                             <div>
+                                <label class="labels">Chức danh khoa học</label>
+                                <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Chức danh khoa học" @bind="@scientist.scientific_title">
+                            </div>
+                        </div>
+
+                        <!-- Hàng thứ năm -->
+                        <div class="auto-cols mt-2">
+                            <div>
+                                <label class="labels">Chức danh nghiên cứu</label>
+                                <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Chức danh nghiên cứu" @bind="@scientist.research_title">
+                            </div>
+                            <div>
+                                <label class="labels">Chức vụ nghiên cứu</label>
+                                <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Chức vụ nghiên cứu" @bind="@scientist.research_position">
+                            </div>
+                            <div>
                                 <label class="labels">Tên tổ chức<span class="text-red">*</span></label>
                                 <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Tên tổ chức" @bind="@scientist.office_id">
                                 @if (showError && string.IsNullOrWhiteSpace(scientist.office_id))
@@ -126,12 +147,12 @@
 
                     <div class="d-flex gap-1 mt-2">
                         <div class="mt-5 text-center">
-                            <button class="btn btn-primary" type="button">Quay về trang chủ</button>
+                                <button class="btn btn-primary" type="button" @onclick="NavigateToHome">Quay về trang chủ</button>
                         </div>
                         @if (!isReadOnly)
                         {
                             <div class="mt-5 text-center">
-                                <button class="btn btn-success" type="submit" @onclick="ValidateAndSave">Lưu</button>
+                                    <button class="btn btn-success" type="submit" @onclick="ValidateAndSave" @onclick:preventDefault>Lưu</button>
                             </div>
                         }
                         else
@@ -177,6 +198,7 @@
 @code {
     private bool isReadOnly = true;
     private bool showError = false;
+    private bool isUpdate = false;
     private string userName = "";
     private string userid = "";
     private Scientist scientist { get; set; }
@@ -186,11 +208,25 @@
         isReadOnly = !isReadOnly;
     }
 
+    private void NavigateToHome()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+
     private async Task ValidateAndSave()
     {
         if (IsValid())
         {
-            await SaveProfile();
+            if (isUpdate)
+            {
+                await UpdateProfile();
+                isReadOnly = true;
+            }
+            else
+            {
+                await SaveProfile();
+                isReadOnly = true;
+            }
         }
         else
         {
@@ -231,6 +267,23 @@
         }
     }
 
+    private async Task UpdateProfile()
+    {
+        if (scientist != null)
+        {
+            scientist.updated_at = DateTime.Now;
+            try
+            {
+                await ProfileServices.UpdateProfileAsync(scientist);
+                NavigationManager.NavigateTo("/ProfileDetail");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error updating profile: " + ex.Message);
+            }
+        }
+    }
+
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -247,11 +300,13 @@
                 if (response != null)
                 {
                     scientist = response;
+                    isUpdate = true;
                 }
                 else
                 {
                     scientist = new Scientist();
                     scientist.email = userName;
+                    isUpdate = false;
                 }
             }
             else
