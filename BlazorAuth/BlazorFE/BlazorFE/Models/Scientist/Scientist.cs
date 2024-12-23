@@ -1,6 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using BlazorFE.Enums;
 
 namespace BlazorFE.Models.Scientist
 {
@@ -12,7 +10,7 @@ namespace BlazorFE.Models.Scientist
         public string profile_id { get; set; }
         public string profile_name { get; set; }
         public DateTime? birthday { get; set; }
-        public Gender? gender { get; set; }
+        public string? gender { get; set; }
         public string? birth_place { get; set; }
         public string? address { get; set; }
         public string? office_phone {  get; set; }

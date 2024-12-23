@@ -1,7 +1,46 @@
 ﻿@page "/"
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
 
 <PageTitle>Home</PageTitle>
 
 <h1>Hello, world!</h1>
 
 Welcome to your new app.
+
+@code {
+    private string userid { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var principal = authState.User;
+        if (principal.Identity?.IsAuthenticated == true)
+        {
+            userid = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value.ToString();
+            userName = principal.Identity.Name;
+
+
+            if (userid != null && userName != null)
+            {
+                var response = await ProfileServices.GetProfileAsync(userid);
+                if (response != null)
+                {
+                    scientist = response;
+                }
+                else
+                {
+                    scientist = new Scientist();
+                    scientist.email = userName;
+                }
+            }
+            else
+            {
+                NavigationManager.NavigateTo("Account/Login");
+            }
+        }
+        else
+        {
+            NavigationManager.NavigateTo("Account/Login");
+        }
+    }
+}

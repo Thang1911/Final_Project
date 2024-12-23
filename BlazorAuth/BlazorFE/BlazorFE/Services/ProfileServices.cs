@@ -28,8 +28,16 @@ namespace BlazorFE.Services
 
         public async Task AddProfileAsync(Scientist newProfile)
         {
-            _context.Scientists.Add(newProfile);
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.Scientists.Add(newProfile);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex)
+            {
+                Console.WriteLine($"Database update error: {ex.Message}");
+                throw new Exception("An error occurred while adding the profile. Please try again later.", ex);
+            }
         }
     }
 }
