@@ -88,7 +88,7 @@ namespace BlazorFE.Components.Account
             {
                 var userId = principal.FindFirst(options.ClaimsIdentity.UserIdClaimType)?.Value;
                 var email = principal.FindFirst(options.ClaimsIdentity.EmailClaimType)?.Value;
-                var role = principal.FindFirst(options.ClaimsIdentity.RoleClaimType)?.Value;
+                var role = principal.FindFirst(options.ClaimsIdentity.RoleClaimType)?.Value ?? "User";
 
                 if (userId != null && email != null)
                 {

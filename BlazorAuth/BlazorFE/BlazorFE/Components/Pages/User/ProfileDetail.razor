@@ -8,7 +8,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 
-<h3>Thông tin của @userName</h3>
+<h3>Thông tin của @role</h3>
 
 <div class="bg-white">
     <div class="justify-content-center">
@@ -201,6 +201,7 @@
     private bool isUpdate = false;
     private string userName = "";
     private string userid = "";
+    private string role = "";
     private Scientist scientist { get; set; }
 
     private void EditProfile()
@@ -291,7 +292,8 @@
         if (principal.Identity?.IsAuthenticated == true)
         {
             userid = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value.ToString();
-            userName = principal.Identity.Name;   
+            userName = principal.Identity.Name;
+            role = principal.FindFirst(ClaimTypes.Role)?.Value.ToString();
 
 
             if (userid != null && userName != null)

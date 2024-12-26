@@ -2,6 +2,6 @@
 {
     public enum CategoryType
     {
-        Topic, Project
+        Topic = 0, Project = 1
     }
 }

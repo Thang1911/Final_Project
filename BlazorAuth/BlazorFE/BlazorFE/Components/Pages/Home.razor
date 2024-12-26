@@ -1,6 +1,11 @@
 ﻿@page "/"
 @using System.Security.Claims;
+@using BlazorFE.Data;
 @using BlazorFE.Services;
+@using Microsoft.AspNetCore.Authorization;
+@using Microsoft.AspNetCore.Identity;
+@inject UserManager<ApplicationUser> _UserManager
+@inject RoleManager<IdentityRole> _RoleManager
 @inject ProfileServices ProfileServices
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
@@ -13,17 +18,23 @@
     private string userid { get; set; }
     private string userName { get; set; }
 
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    private const string ADMINISTRATION_ROLE = "Administrators";
+    private const string USER_ROLE = "User";
+    private ClaimsPrincipal CurrentUser;
+
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var principal = authState.User;
+
         if (principal.Identity?.IsAuthenticated == true)
         {
-            userid = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value.ToString();
+            userid = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             userName = principal.Identity.Name;
 
-
-            if (userid != null && userName != null)
+            if (!string.IsNullOrEmpty(userid) && !string.IsNullOrEmpty(userName))
             {
                 var response = await ProfileServices.GetProfileAsync(userid);
                 if (response == null)
@@ -39,6 +50,41 @@
         else
         {
             NavigationManager.NavigateTo("Account/Login");
+        }
+
+        await EnsureRoleExists(ADMINISTRATION_ROLE);
+        await EnsureRoleExists(USER_ROLE);
+
+        var user = await _UserManager.FindByNameAsync(userName);
+        if (user != null)
+        {
+            if (userName.ToLower() == "admin@gmail.com")
+            {
+                await EnsureUserInRole(user, ADMINISTRATION_ROLE);
+            }
+            else
+            {
+                await EnsureUserInRole(user, USER_ROLE);
+            }
+        }
+        CurrentUser = (await authenticationStateTask).User;
+    }
+
+    private async Task EnsureRoleExists(string roleName)
+    {
+        var roleExists = await _RoleManager.RoleExistsAsync(roleName);
+        if (!roleExists)
+        {
+            await _RoleManager.CreateAsync(new IdentityRole(roleName));
+        }
+    }
+
+    private async Task EnsureUserInRole(ApplicationUser user, string roleName)
+    {
+        var isInRole = await _UserManager.IsInRoleAsync(user, roleName);
+        if (!isInRole)
+        {
+            await _UserManager.AddToRoleAsync(user, roleName);
         }
     }
 }
