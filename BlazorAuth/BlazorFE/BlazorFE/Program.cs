@@ -20,6 +20,8 @@ builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, PersistingRevalidatingAuthenticationStateProvider>();
 
 builder.Services.AddScoped<ProfileServices>();
+builder.Services.AddScoped<TopicServices>();
+builder.Services.AddScoped<RoleServices>();
 
 builder.Services.AddAuthentication(options =>
     {
@@ -44,6 +46,12 @@ builder.Services.AddAuthentication(options =>
         options.ClientId = builder.Configuration["GoogleKey:ClientId"];
         options.ClientSecret = builder.Configuration["GoogleKey:ClientSecret"];
     });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("Administrators", policy =>
+        policy.RequireRole("Administrators"));
+});
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
