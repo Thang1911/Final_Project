@@ -11,7 +11,7 @@ namespace BlazorFE.Models.Topic
         [Key]
         public string id { get; set; }
         public string topic_name { get; set; }
-        public Result result {  get; set; }
+        public string result {  get; set; }
         [ForeignKey(nameof(LvTopics))]
         public string lvtopic_id { get; set; }
         public DateTime start_date { get; set; }

@@ -5,15 +5,15 @@ namespace BlazorFE.Enums
     public enum Result
     {
         [Display(Name = "Chưa kết thúc")]
-        Chưa_kết_thúc = 4,
+        Chưa_kết_thúc,
 
         [Display(Name = "Khá")]
-        Khá = 1,
+        Khá,
 
         [Display(Name = "Giỏi")]
-        Giỏi = 2,
+        Giỏi,
 
         [Display(Name = "Xuất sắc")]
-        Xuất_sắc = 3
+        Xuất_sắc
     }
 }

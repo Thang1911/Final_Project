@@ -22,6 +22,7 @@ builder.Services.AddScoped<AuthenticationStateProvider, PersistingRevalidatingAu
 builder.Services.AddScoped<ProfileServices>();
 builder.Services.AddScoped<TopicServices>();
 builder.Services.AddScoped<RoleServices>();
+builder.Services.AddScoped<MagazineServices>();
 
 builder.Services.AddAuthentication(options =>
     {

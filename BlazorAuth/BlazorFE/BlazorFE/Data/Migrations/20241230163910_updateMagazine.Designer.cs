@@ -4,6 +4,7 @@ using BlazorFE.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BlazorFE.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241230163910_updateMagazine")]
+    partial class updateMagazine
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -646,7 +649,7 @@ namespace BlazorFE.Migrations
 
                     b.Property<string>("paper_id")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("updated_at")
                         .HasColumnType("datetime2");
@@ -655,8 +658,6 @@ namespace BlazorFE.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("id");
-
-                    b.HasIndex("paper_id");
 
                     b.ToTable("Magazines");
                 });
@@ -1080,17 +1081,6 @@ namespace BlazorFE.Migrations
                         .HasForeignKey("tpcouncilid");
 
                     b.Navigation("tpcouncil");
-                });
-
-            modelBuilder.Entity("BlazorFE.Models.Magazine.Magazines", b =>
-                {
-                    b.HasOne("BlazorFE.Models.Category.Paper", "Paper")
-                        .WithMany()
-                        .HasForeignKey("paper_id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Paper");
                 });
 
             modelBuilder.Entity("BlazorFE.Models.Scientist.ScientistMagazineRole", b =>
