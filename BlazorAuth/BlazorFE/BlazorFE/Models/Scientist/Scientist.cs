@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using BlazorFE.Models.Category;
+using System.ComponentModel.DataAnnotations;
 
 namespace BlazorFE.Models.Scientist
 {
@@ -24,6 +25,7 @@ namespace BlazorFE.Models.Scientist
         public string? research_title { get; set; }
         public string? research_position { get; set; }
         public string? office_id { get; set; }
+        public virtual Office? Office { get; set; }
         public string? address_office { get; set; }
         public DateTime created_at { get; set; }
         public DateTime updated_at { get; set; }

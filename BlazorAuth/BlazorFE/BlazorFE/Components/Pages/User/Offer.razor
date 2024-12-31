@@ -6,8 +6,7 @@
 @using BlazorFE.Services;
 @using BlazorFE.Enums;
 @using System.ComponentModel.DataAnnotations;
-@inject ProfileServices ProfileServices
-@inject TopicServices TopicServices
+@inject ScientistServices ProfileServices
 @inject OfferServices OfferServices
 @inject RoleServices RoleServices
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -18,10 +17,10 @@
 {
     <h3>Danh sách đề xuất của @scientist.profile_name</h3>
 
-    <div class="bg-white">
+    <div class="bg-white mt-3">
         <div class="justify-content-center">
             <div class="border-right">
-                <div class="">
+                <div class="flex-column gap-2">
                     <button class="btn btn-success" @onclick="ToggleOffer">Thêm đề xuất</button>
                     @if (scientist != null && isAdd)
                     {
@@ -38,7 +37,7 @@
                                         }
                                     </div>
                                     <div>
-                                        <label class="labels">Ghi chú <span class="text-red">(Tùy chọn)</span></label>
+                                        <label class="labels">Ghi chú <span class="text-gray">(Tùy chọn)</span></label>
                                         <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Ghi chú" @bind="@offer.note">
                                     </div>
                                 </div>
@@ -96,7 +95,7 @@
                     }
 
                 </div>
-                <table class="table table-striped table-hover">
+                <table class="table table-striped table-hover mt-3">
                     <thead>
                         <tr>
                             <th scope="col">#</th>
@@ -165,6 +164,11 @@
 
     .text-red {
         color: red;
+    }
+
+    .text-gray {
+        color: #ccc;
+        opacity: 0.8;
     }
 </style>
 

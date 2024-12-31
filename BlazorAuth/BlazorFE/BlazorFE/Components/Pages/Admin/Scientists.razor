@@ -1,26 +1,28 @@
-﻿@page "/User/Curriculums"
+﻿@page "/Admin/Scientist"
 @rendermode InteractiveServer
 
 @using System.Security.Claims;
-@using BlazorFE.Models.Scientist
+@using BlazorFE.Models.Scientist;
 @using BlazorFE.Services;
 @using BlazorFE.Enums;
 @using System.ComponentModel.DataAnnotations;
 @inject ScientistServices ProfileServices
-@inject CurriculumServices CurriculumServices
+@inject OfferServices OfferServices
+@inject ScientistServices ScientistServices
 @inject RoleServices RoleServices
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 
-@if (scientist != null) {
-    <h3>Danh sách giáo trình, sách tham khảo của @scientist.profile_name</h3>
+@if (scientist != null)
+{
+    <h3>Danh sách đề xuất của @scientist.profile_name</h3>
 
-    <div class="bg-white">
+    <div class="bg-white mt-3">
         <div class="justify-content-center">
             <div class="border-right">
-                <div class="">
-                    <button class="btn btn-success" @onclick="ToggleCurriculum">Thêm giáo trình, sách tham khảo</button>
+                <div class="flex-column gap-2">
+                    <button class="btn btn-success" @onclick="ToggleOffer">Thêm đề xuất</button>
                     @if (scientist != null && isAdd)
                     {
                         <form>
@@ -28,66 +30,51 @@
                                 <!-- Hàng đầu tiên -->
                                 <div class="auto-cols">
                                     <div>
-                                        <label class="labels">Tên giáo trình<span class="text-red">*</span></label>
-                                        <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Tên giáo trình" @bind="@curriculum.name">
+                                        <label class="labels">Tên đề xuất<span class="text-red">*</span></label>
+                                        <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Tên đề xuất" @bind="@offer.offer_name">
                                         @if (showError && string.IsNullOrWhiteSpace(curriculum.name))
                                         {
-                                            <span class="text-danger">Vui lòng nhập tên giáo trình</span>
+                                            <span class="text-danger">Vui lòng nhập tên đề xuất</span>
                                         }
                                     </div>
                                     <div>
-                                        <label class="labels">Tên nhà xuất bản<span class="text-red">*</span></label>
-                                        <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Tên nhà xuất bản" @bind="@curriculum.publisher">
-                                        @if (showError && string.IsNullOrWhiteSpace(curriculum.publisher))
-                                        {
-                                            <span class="text-danger">Vui lòng nhập tên nhà xuất bản</span>
-                                        }
-                                    </div>
-                                    <div>
-                                        <label class="labels">Năm xuất bản<span class="text-red">*</span></label>
-                                        <select disabled="@isReadOnly" type="text" class="form-control" @bind="@curriculum.year">
-                                            <option value="0" selected>Chọn năm</option>
-                                            @for (int year = DateTime.Now.Year; year >= 1900; year--)
-                                            {
-                                                <option value="@year">@year</option>
-                                            }
-                                        </select>
-                                        @if (showError && curriculum.year == 0)
-                                        {
-                                            <span class="text-danger">Vui lòng chọn năm xuất bản.</span>
-                                        }
+                                        <label class="labels">Ghi chú <span class="text-gray">(Tùy chọn)</span></label>
+                                        <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Ghi chú" @bind="@offer.note">
                                     </div>
                                 </div>
 
                                 <!-- Hàng thứ hai -->
                                 <div class="auto-cols mt-2">
                                     <div>
-                                        <label class="labels">Loại sách<span class="text-red">*</span></label>
-                                        <select disabled="@isReadOnly" type="text" class="form-control" @bind="@curriculum.book_id">
-                                            <option value="">Chọn loại sách</option>
-                                            <option value="E3B6DF7E-CE0E-4E85-95F4-BA28FCE782FB">Sách giáo trình</option>
+                                        <label class="labels">Năm<span class="text-red">*</span></label>
+                                        <select disabled="@isReadOnly" type="text" class="form-control" @bind="@offer.year">
+                                            <option value="0" selected>Chọn năm</option>
+                                            @for (int year = DateTime.Now.Year; year >= 1900; year--)
+                                            {
+                                                <option value="@year">@year</option>
+                                            }
                                         </select>
-                                        @if (showError && string.IsNullOrWhiteSpace(curriculum.book_id))
+                                        @if (showError && offer.year == 0)
                                         {
-                                            <span class="text-danger">Vui lòng chọn loại bài báo.</span>
+                                            <span class="text-danger">Vui lòng chọn năm.</span>
                                         }
                                     </div>
                                     <div>
-                                        <label class="labels">Trình độ đào tạo<span class="text-red">*</span></label>
-                                        <select disabled="@isReadOnly" type="text" class="form-control" @bind="@curriculum.training_id">
-                                            <option value="">Chọn loại bài báo</option>
-                                            <option value="1530188C-0550-413E-8AA3-3C1560A516FE">Đại học</option>
+                                        <label class="labels">Loại đề xuất<span class="text-red">*</span></label>
+                                        <select disabled="@isReadOnly" type="text" class="form-control" @bind="@offer.propose_id">
+                                            <option value="">Chọn loại đề xuất</option>
+                                            <option value="340AAA45-A780-4AF3-8FD5-C85605E8F3F0">Ðể tài cấp cơ sở phân cấp</option>
                                         </select>
                                         @if (showError && string.IsNullOrWhiteSpace(curriculum.training_id))
                                         {
-                                            <span class="text-danger">Vui lòng chọn loại bài báo.</span>
+                                            <span class="text-danger">Vui lòng chọn loại đề xuất.</span>
                                         }
                                     </div>
                                     <div>
                                         <label class="labels">Vai trò<span class="text-red">*</span></label>
                                         <select disabled="@isReadOnly" type="text" class="form-control" @bind="@roleId">
                                             <option value="">Chọn vai trò</option>
-                                            <option value="F4609032-EFFE-4073-BCF0-414FB057E277">Tác giả</option>
+                                            <option value="B9166D33-14BA-4938-AAE9-84BC004F9A99">Chủ nhiệm dự án</option>
                                         </select>
                                         @if (showError && string.IsNullOrWhiteSpace(roleId))
                                         {
@@ -99,48 +86,46 @@
 
                             <div class="d-flex gap-1 mt-2">
                                 <div class="mt-5 text-center">
-                                    <button class="btn btn-primary" type="button" @onclick="ToggleCurriculum">Hủy</button>
+                                    <button class="btn btn-primary" type="button" @onclick="ToggleOffer">Hủy</button>
                                 </div>
                                 <div class="mt-5 text-center">
-                                    <button class="btn btn-success" type="submit" @onclick="SaveMagazine" @onclick:preventDefault>Lưu</button>
+                                    <button class="btn btn-success" type="submit" @onclick="SaveOffer" @onclick:preventDefault>Lưu</button>
                                 </div>
                             </div>
                         </form>
                     }
 
                 </div>
-                <table class="table table-striped table-hover">
+                <table class="table table-striped table-hover mt-3">
                     <thead>
                         <tr>
                             <th scope="col">#</th>
-                            <th scope="col">Tên giáo trình</th>
-                            <th scope="col">Năm xuất bản</th>
-                            <th scope="col">Nhà xuất bản</th>
-                            <th scope="col">Loại sách</th>
-                            <th scope="col">Trình độ đào tạo</th>
+                            <th scope="col">Tên đề xuất</th>
+                            <th scope="col">Năm</th>
+                            <th scope="col">Loại đề xuất</th>
+                            <th scope="col">Ghi chú</th>
+                            <th scope="col">Trạng thái</th>
                             <th scope="col">Vai trò</th>
-                            <th scope="col">Tệp đính kèm</th>
                             <th scope="col">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @if (curriculums != null && curriculums.Count > 0)
+                        @if (offers != null && offers.Count > 0)
                         {
                             int i = 1;
-                            foreach (var item in curriculums)
+                            foreach (var item in offers)
                             {
                                 <tr>
                                     <th scope="row">@i</th>
-                                    <td>@item?.Curriculums?.name</td>
-                                    <td>@item?.Curriculums?.year</td>
-                                    <td>@item?.Curriculums?.publisher</td>
-                                    <td>@item?.Curriculums?.Book?.book_name</td>
-                                    <td>@item?.Curriculums?.Training?.training_name</td>
+                                    <td>@item?.Offer?.offer_name</td>
+                                    <td>@item?.Offer?.year</td>
+                                    <td>@item?.Offer?.Propose?.propose_name</td>
+                                    <td>@item?.Offer?.note</td>
+                                    <td>@item?.Offer?.status</td>
                                     <td>@item?.Role?.role_name</td>
-                                    <td></td>
                                     <td>
-                                        <button class="btn btn-warning" @onclick="() => EditCurriculum(item.Curriculums)">Chỉnh sửa</button>
-                                        <button class="btn btn-danger" @onclick="() => DeleteCuriculum(item.Curriculums)">Xóa</button>
+                                        <button class="btn btn-warning" @onclick="() => EditOffer(item.Offer)">Chỉnh sửa</button>
+                                        <button class="btn btn-danger" @onclick="() => DeleteOffer(item.Offer)">Xóa</button>
                                     </td>
                                 </tr>
                                 i++;
@@ -181,6 +166,11 @@
     .text-red {
         color: red;
     }
+
+    .text-gray {
+        color: #ccc;
+        opacity: 0.8;
+    }
 </style>
 
 @code {
@@ -193,33 +183,36 @@
     private string roleId = "";
     private List<Models.Category.Role> roles { get; set; }
     private Scientist scientist { get; set; }
+    private List<Scientist> scientists { get; set; }
     private Models.Curriculum.Curriculums curriculum { get; set; }
     private List<ScientistCurriculumRole> curriculums { get; set; }
+    private Models.Offer.Offers offer { get; set; }
+    private List<ScientistOfferRole> offers { get; set; }
 
-    private void EditCurriculum(Models.Curriculum.Curriculums editCurriculum)
+    private void EditOffer(Models.Offer.Offers editOffer)
     {
         isAdd = true;
         isReadOnly = false;
-        curriculum = editCurriculum;
+        offer = editOffer;
         isUpdate = true;
     }
 
-    private void ToggleCurriculum()
+    private void ToggleOffer()
     {
         isAdd = !isAdd;
         isReadOnly = !isReadOnly;
-        curriculum = new Models.Curriculum.Curriculums();
+        offer = new Models.Offer.Offers();
     }
 
-    private async Task SaveMagazine()
+    private async Task SaveOffer()
     {
         if (isUpdate)
         {
-            await UpdateCurriculum();
+            await UpdateOffer();
         }
         else
         {
-            await AddNewScientistCurriculum();
+            await AddNewScientistOffer();
         }
     }
 
@@ -238,7 +231,7 @@
                 if (response != null)
                 {
                     scientist = response;
-                    curriculums = await CurriculumServices.GetCurriculumsByScientistIdAsync(scientist.id);
+                    offers = await OfferServices.GetOffersByScientistIdAsync(scientist.id);
                 }
             }
             else
@@ -252,11 +245,11 @@
         }
     }
 
-    private async Task AddNewScientistCurriculum()
+    private async Task AddNewScientistOffer()
     {
         try
         {
-            if (curriculum == null || string.IsNullOrWhiteSpace(curriculum.name))
+            if (offer == null || string.IsNullOrWhiteSpace(offer.offer_name))
             {
                 showError = true;
                 return;
@@ -269,19 +262,20 @@
                 throw new InvalidOperationException("Scientist or role information is missing.");
             }
 
-            curriculum.id = Guid.NewGuid().ToString();
-            curriculum.created_at = DateTime.Now;
-            curriculum.updated_at = DateTime.Now;
+            offer.id = Guid.NewGuid().ToString();
+            offer.status = "Chưa duyệt";
+            offer.created_at = DateTime.Now;
+            offer.updated_at = DateTime.Now;
 
-            var result = await CurriculumServices.AddCurriculumAndLinkToScientistAsync(curriculum, scientist.id, roleId);
+            var result = await OfferServices.AddOfferAndLinkToScientistAsync(offer, scientist.id, roleId);
             if (result)
             {
-                curriculums = await CurriculumServices.GetCurriculumsByScientistIdAsync(scientist.id);
+                offers = await OfferServices.GetOffersByScientistIdAsync(scientist.id);
             }
 
             isAdd = false;
             isReadOnly = true;
-            curriculum = null;
+            offer = new Models.Offer.Offers();
         }
         catch (Exception ex)
         {
@@ -289,11 +283,11 @@
         }
     }
 
-    private async Task UpdateCurriculum()
+    private async Task UpdateOffer()
     {
         try
         {
-            if (curriculum == null || string.IsNullOrWhiteSpace(curriculum.name))
+            if (offer == null || string.IsNullOrWhiteSpace(offer.offer_name))
             {
                 showError = true;
                 return;
@@ -306,15 +300,15 @@
                 throw new InvalidOperationException("Scientist or role information is missing.");
             }
 
-            var result = await CurriculumServices.UpdateCurriculumAndLinkToScientistAsync(curriculum.id, curriculum, scientist.id, roleId);
+            var result = await OfferServices.UpdateOfferAndLinkToScientistAsync(offer.id, offer, scientist.id, roleId);
             if (result)
             {
-                curriculums = await CurriculumServices.GetCurriculumsByScientistIdAsync(scientist.id);
+                offers = await OfferServices.GetOffersByScientistIdAsync(scientist.id);
             }
 
             isAdd = false;
             isReadOnly = true;
-            curriculum = null;
+            offer = new Models.Offer.Offers();
         }
         catch (Exception ex)
         {
@@ -322,18 +316,18 @@
         }
     }
 
-    private async Task DeleteCuriculum(Models.Curriculum.Curriculums deleteCurriculum)
+    private async Task DeleteOffer(Models.Offer.Offers deleteOffer)
     {
         try
         {
-            var confirm = await JSRuntime.InvokeAsync<bool>("confirm", new object[] { "Bạn có chắc muốn xóa giáo trình này?" });
+            var confirm = await JSRuntime.InvokeAsync<bool>("confirm", new object[] { "Bạn có chắc muốn xóa đề xuất này?" });
 
             if (confirm)
             {
-                var result = await CurriculumServices.DeleteCurriculumAndLinkFromScientistAsync(deleteCurriculum.id, scientist.id);
+                var result = await OfferServices.DeleteOfferAndLinkFromScientistAsync(deleteOffer.id, scientist.id);
                 if (result)
                 {
-                    curriculums = await CurriculumServices.GetCurriculumsByScientistIdAsync(scientist.id);
+                    offers = await OfferServices.GetOffersByScientistIdAsync(scientist.id);
                 }
             }
         }
@@ -343,4 +337,5 @@
         }
     }
 }
+
 

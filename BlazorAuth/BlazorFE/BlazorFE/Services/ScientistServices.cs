@@ -4,13 +4,22 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BlazorFE.Services
 {
-    public class ProfileServices
+    public class ScientistServices
     {
         private readonly ApplicationDbContext _context;
 
-        public ProfileServices(ApplicationDbContext context)
+        public ScientistServices(ApplicationDbContext context)
         {
             _context = context;
+        }
+
+        public async Task<List<Scientist>> GetAllScientistIdAsync()
+        {
+            var allScientist = await _context.Set<Scientist>()
+                .Include(sct => sct.Office)
+                .ToListAsync();
+
+            return allScientist;
         }
 
         public async Task<Scientist> GetProfileAsync(string userId)
