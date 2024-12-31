@@ -23,6 +23,7 @@ namespace BlazorFE.Services
             var scientistMagazines = await _context.Set<ScientistMagazineRole>()
                 .Where(smr => smr.scientist_id == scientistId)
                 .Include(smr => smr.Magazines)
+                    .ThenInclude(m => m.Paper)
                 .Include(smr => smr.Role)
                 .ToListAsync();
 

@@ -23,6 +23,8 @@ builder.Services.AddScoped<ProfileServices>();
 builder.Services.AddScoped<TopicServices>();
 builder.Services.AddScoped<RoleServices>();
 builder.Services.AddScoped<MagazineServices>();
+builder.Services.AddScoped<CurriculumServices>();
+builder.Services.AddScoped<OfferServices>();
 
 builder.Services.AddAuthentication(options =>
     {

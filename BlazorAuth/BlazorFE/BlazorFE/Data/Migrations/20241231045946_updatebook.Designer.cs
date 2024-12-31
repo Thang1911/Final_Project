@@ -4,6 +4,7 @@ using BlazorFE.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BlazorFE.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241231045946_updatebook")]
+    partial class updatebook
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -584,6 +587,9 @@ namespace BlazorFE.Migrations
 
                     b.Property<string>("book_id")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("bookid")
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime>("created_at")
@@ -599,6 +605,9 @@ namespace BlazorFE.Migrations
 
                     b.Property<string>("training_id")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("trainingid")
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime>("updated_at")
@@ -609,9 +618,9 @@ namespace BlazorFE.Migrations
 
                     b.HasKey("id");
 
-                    b.HasIndex("book_id");
+                    b.HasIndex("bookid");
 
-                    b.HasIndex("training_id");
+                    b.HasIndex("trainingid");
 
                     b.ToTable("Curriculums");
                 });
@@ -694,6 +703,7 @@ namespace BlazorFE.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("note")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("offer_name")
@@ -702,7 +712,7 @@ namespace BlazorFE.Migrations
 
                     b.Property<string>("propose_id")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("status")
                         .IsRequired()
@@ -715,8 +725,6 @@ namespace BlazorFE.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("id");
-
-                    b.HasIndex("propose_id");
 
                     b.ToTable("Offers");
                 });
@@ -806,6 +814,9 @@ namespace BlazorFE.Migrations
 
                     b.Property<string>("curriculum_id")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("curriculumsid")
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("role_id")
@@ -814,6 +825,9 @@ namespace BlazorFE.Migrations
 
                     b.Property<string>("scientist_id")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("scientistid")
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime>("updated_at")
@@ -821,11 +835,11 @@ namespace BlazorFE.Migrations
 
                     b.HasKey("id");
 
-                    b.HasIndex("curriculum_id");
+                    b.HasIndex("curriculumsid");
 
                     b.HasIndex("role_id");
 
-                    b.HasIndex("scientist_id");
+                    b.HasIndex("scientistid");
 
                     b.ToTable("ScientistCurriculumRoles");
                 });
@@ -874,26 +888,20 @@ namespace BlazorFE.Migrations
 
                     b.Property<string>("offer_id")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("role_id")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("scientist_id")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("updated_at")
                         .HasColumnType("datetime2");
 
                     b.HasKey("id");
-
-                    b.HasIndex("offer_id");
-
-                    b.HasIndex("role_id");
-
-                    b.HasIndex("scientist_id");
 
                     b.ToTable("ScientistOfferRoles");
                 });
@@ -1121,21 +1129,17 @@ namespace BlazorFE.Migrations
 
             modelBuilder.Entity("BlazorFE.Models.Curriculum.Curriculums", b =>
                 {
-                    b.HasOne("BlazorFE.Models.Category.Book", "Book")
+                    b.HasOne("BlazorFE.Models.Category.Book", "book")
                         .WithMany()
-                        .HasForeignKey("book_id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("bookid");
 
-                    b.HasOne("BlazorFE.Models.Category.Training", "Training")
+                    b.HasOne("BlazorFE.Models.Category.Training", "training")
                         .WithMany()
-                        .HasForeignKey("training_id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("trainingid");
 
-                    b.Navigation("Book");
+                    b.Navigation("book");
 
-                    b.Navigation("Training");
+                    b.Navigation("training");
                 });
 
             modelBuilder.Entity("BlazorFE.Models.Magazine.Magazines", b =>
@@ -1149,24 +1153,11 @@ namespace BlazorFE.Migrations
                     b.Navigation("Paper");
                 });
 
-            modelBuilder.Entity("BlazorFE.Models.Offer.Offers", b =>
-                {
-                    b.HasOne("BlazorFE.Models.Category.Propose", "Propose")
-                        .WithMany()
-                        .HasForeignKey("propose_id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Propose");
-                });
-
             modelBuilder.Entity("BlazorFE.Models.Scientist.ScientistCurriculumRole", b =>
                 {
-                    b.HasOne("BlazorFE.Models.Curriculum.Curriculums", "Curriculums")
+                    b.HasOne("BlazorFE.Models.Curriculum.Curriculums", "curriculums")
                         .WithMany()
-                        .HasForeignKey("curriculum_id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("curriculumsid");
 
                     b.HasOne("BlazorFE.Models.Category.Role", "Role")
                         .WithMany()
@@ -1174,17 +1165,15 @@ namespace BlazorFE.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("BlazorFE.Models.Scientist.Scientist", "Scientist")
+                    b.HasOne("BlazorFE.Models.Scientist.Scientist", "scientist")
                         .WithMany()
-                        .HasForeignKey("scientist_id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Curriculums");
+                        .HasForeignKey("scientistid");
 
                     b.Navigation("Role");
 
-                    b.Navigation("Scientist");
+                    b.Navigation("curriculums");
+
+                    b.Navigation("scientist");
                 });
 
             modelBuilder.Entity("BlazorFE.Models.Scientist.ScientistMagazineRole", b =>
@@ -1208,33 +1197,6 @@ namespace BlazorFE.Migrations
                         .IsRequired();
 
                     b.Navigation("Magazines");
-
-                    b.Navigation("Role");
-
-                    b.Navigation("Scientist");
-                });
-
-            modelBuilder.Entity("BlazorFE.Models.Scientist.ScientistOfferRole", b =>
-                {
-                    b.HasOne("BlazorFE.Models.Offer.Offers", "Offer")
-                        .WithMany()
-                        .HasForeignKey("offer_id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("BlazorFE.Models.Category.Role", "Role")
-                        .WithMany()
-                        .HasForeignKey("role_id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("BlazorFE.Models.Scientist.Scientist", "Scientist")
-                        .WithMany()
-                        .HasForeignKey("scientist_id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Offer");
 
                     b.Navigation("Role");
 

@@ -39,8 +39,6 @@
                                     <label class="labels">Cấp độ đề tài<span class="text-red">*</span></label>
                                     <select disabled="@isReadOnly" type="text" class="form-control" @bind="@topics.lvtopic_id">
                                         <option value="">Chọn cấp độ đề tài</option>
-                                        <option value="Nam">Nam</option>
-                                        <option value="Nữ">Nữ</option>
                                         <option value="C0EEF34C-37CE-41CF-9C9A-D6C100321FCF">Khác</option>
                                     </select>
                                     @if (showError && string.IsNullOrWhiteSpace(topics.lvtopic_id))
@@ -52,8 +50,6 @@
                                     <label class="labels">Vai trò<span class="text-red">*</span></label>
                                     <select disabled="@isReadOnly" type="text" class="form-control" @bind="@roleId">
                                         <option value="">Chọn vai trò</option>
-                                        <option value="Nam">Nam</option>
-                                        <option value="Nữ">Nữ</option>
                                         <option value="3919374C-D7DB-45A6-B41E-FB30E2E1ED0F">Khác</option>
                                     </select>
                                     @if (showError && string.IsNullOrWhiteSpace(roleId))

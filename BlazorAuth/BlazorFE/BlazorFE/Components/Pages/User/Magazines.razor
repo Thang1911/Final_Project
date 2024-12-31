@@ -7,20 +7,20 @@
 @using BlazorFE.Enums;
 @using System.ComponentModel.DataAnnotations;
 @inject ProfileServices ProfileServices
-@inject TopicServices TopicServices
+@inject MagazineServices MagazineServices
 @inject RoleServices RoleServices
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 
 
-<h3>Danh sách đề tài của </h3>
+<h3>Danh sách bài báo của </h3>
 
 <div class="bg-white">
     <div class="justify-content-center">
         <div class="border-right">
             <div class="">
-                <button class="btn btn-primary" @onclick="ToggleTopics">Thêm đề tài</button>
+                <button class="btn btn-success" @onclick="ToggleMagazine">Thêm bài báo</button>
                 @if (scientist != null && isAdd)
                 {
                     <form>
@@ -28,54 +28,19 @@
                             <!-- Hàng đầu tiên -->
                             <div class="auto-cols">
                                 <div>
-                                    <label class="labels">Tên đề tài<span class="text-red">*</span></label>
-                                    <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Tên đề tài" @bind="@topics.topic_name">
-                                    @if (showError && string.IsNullOrWhiteSpace(scientist.profile_name))
+                                    <label class="labels">Tên bài báo<span class="text-red">*</span></label>
+                                    <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Tên bài báo" @bind="@magazine.magazine_name">
+                                    @if (showError && string.IsNullOrWhiteSpace(magazine.magazine_name))
                                     {
-                                        <span class="text-danger">Vui lòng nhập tên đề tài</span>
+                                        <span class="text-danger">Vui lòng nhập tên bài báo</span>
                                     }
                                 </div>
                                 <div>
-                                    <label class="labels">Cấp độ đề tài<span class="text-red">*</span></label>
-                                    <select disabled="@isReadOnly" type="text" class="form-control" @bind="@topics.lvtopic_id">
-                                        <option value="">Chọn cấp độ đề tài</option>
-                                        <option value="Nam">Nam</option>
-                                        <option value="Nữ">Nữ</option>
-                                        <option value="C0EEF34C-37CE-41CF-9C9A-D6C100321FCF">Khác</option>
-                                    </select>
-                                    @if (showError && string.IsNullOrWhiteSpace(topics.lvtopic_id))
+                                    <label class="labels">Tên tạp chí<span class="text-red">*</span></label>
+                                    <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Tên bài báo" @bind="@magazine.journal">
+                                    @if (showError && string.IsNullOrWhiteSpace(magazine.journal))
                                     {
-                                        <span class="text-danger">Vui lòng chọn cấp độ đề tài.</span>
-                                    }
-                                </div>
-                                <div>
-                                    <label class="labels">Vai trò<span class="text-red">*</span></label>
-                                    <select disabled="@isReadOnly" type="text" class="form-control" @bind="@roleId">
-                                        <option value="">Chọn vai trò</option>
-                                        <option value="Nam">Nam</option>
-                                        <option value="Nữ">Nữ</option>
-                                        <option value="3919374C-D7DB-45A6-B41E-FB30E2E1ED0F">Khác</option>
-                                    </select>
-                                    @if (showError && string.IsNullOrWhiteSpace(roleId))
-                                    {
-                                        <span class="text-danger">Vui lòng chọn vai tró.</span>
-                                    }
-                                </div>
-                                <div>
-                                    <label class="labels">Kết quả đánh giá<span class="text-red">*</span></label>
-                                    <select disabled="@isReadOnly" type="text" class="form-control" @bind="topics.result" aria-label="Default select example">
-                                        <option value="0">Chọn kết quả</option>
-                                        @foreach (var option in Enum.GetValues<Result>())
-                                        {
-                                            <option value="@(option)">
-                                                @GetEnumDisplayName(option)
-                                            </option>
-                                        }
-                                    </select>
-
-                                    @if (showError && topics.result == "")
-                                    {
-                                        <span class="text-danger">Vui lòng chọn kết quả.</span>
+                                        <span class="text-danger">Vui lòng nhập tên tạp chí</span>
                                     }
                                 </div>
                             </div>
@@ -83,19 +48,39 @@
                             <!-- Hàng thứ hai -->
                             <div class="auto-cols mt-2">
                                 <div>
-                                    <label class="labels">Ngày bắt đầu<span class="text-red">*</span></label>
-                                    <input readonly="@isReadOnly" type="date" class="form-control" @bind="@topics.start_date">
-                                    @if (showError && topics.start_date == null)
+                                    <label class="labels">Năm công bố<span class="text-red">*</span></label>
+                                    <select disabled="@isReadOnly" class="form-control" @bind="magazine.year">
+                                        <option value="0" selected>Chọn năm</option>
+                                        @for (int year = DateTime.Now.Year; year >= 1900; year--)
+                                        {
+                                            <option value="@year">@year</option>
+                                        }
+                                    </select>
+                                    @if (showError && magazine.year == 0)
                                     {
-                                        <span class="text-danger">Vui lòng nhập ngày bắt đầu.</span>
+                                        <span class="text-danger">Vui lòng chọn năm công bố.</span>
                                     }
                                 </div>
                                 <div>
-                                    <label class="labels">Ngày kết thúc<span class="text-red">*</span></label>
-                                    <input readonly="@isReadOnly" type="date" class="form-control" @bind="@topics.end_date">
-                                    @if (showError && topics.end_date == null)
+                                    <label class="labels">Loại bài báo<span class="text-red">*</span></label>
+                                    <select disabled="@isReadOnly" type="text" class="form-control" @bind="@magazine.paper_id">
+                                        <option value="">Chọn loại bài báo</option>
+                                        <option value="48F104E3-9A87-4058-B3C6-EB7A0D8F6677">Bài báo nghiên cứu</option>
+                                    </select>
+                                    @if (showError && string.IsNullOrWhiteSpace(magazine.paper_id))
                                     {
-                                        <span class="text-danger">Vui lòng nhập ngày kết thúc.</span>
+                                        <span class="text-danger">Vui lòng chọn loại bài báo.</span>
+                                    }
+                                </div>
+                                <div>
+                                    <label class="labels">Vai trò<span class="text-red">*</span></label>
+                                    <select disabled="@isReadOnly" type="text" class="form-control" @bind="@roleId">
+                                        <option value="">Chọn vai trò</option>
+                                        <option value="3FD85DFE-33A1-4179-8AD5-77BED12FEEC4">Nhà báo</option>
+                                    </select>
+                                    @if (showError && string.IsNullOrWhiteSpace(roleId))
+                                    {
+                                        <span class="text-danger">Vui lòng chọn vai tró.</span>
                                     }
                                 </div>
                             </div>
@@ -103,10 +88,10 @@
 
                         <div class="d-flex gap-1 mt-2">
                             <div class="mt-5 text-center">
-                                <button class="btn btn-primary" type="button" @onclick="ToggleTopics">Hủy</button>
+                                <button class="btn btn-primary" type="button" @onclick="ToggleMagazine">Hủy</button>
                             </div>
                             <div class="mt-5 text-center">
-                                <button class="btn btn-success" type="submit" @onclick="SaveTopic" @onclick:preventDefault>Lưu</button>
+                                <button class="btn btn-success" type="submit" @onclick="SaveMagazine" @onclick:preventDefault>Lưu</button>
                             </div>
                         </div>
                     </form>
@@ -117,40 +102,30 @@
                 <thead>
                     <tr>
                         <th scope="col">#</th>
-                        <th scope="col">Tên đề tài</th>
-                        <th scope="col">Loại đề tài</th>
-                        <th scope="col">Kết quả</th>
+                        <th scope="col">Tên bài báo</th>
+                        <th scope="col">Năm công bố</th>
+                        <th scope="col">Tên tạp chí</th>
+                        <th scope="col">Loại bài báo</th>
                         <th scope="col">Vai trò</th>
-                        <th scope="col">Ngày bắt đầu</th>
-                        <th scope="col">Ngày kết thúc</th>
                         <th scope="col">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @if (ListTopics != null && ListTopics.Count > 0)
+                    @if (magazines != null && magazines.Count > 0)
                     {
                         int i = 1;
-                        foreach (var item in ListTopics)
+                        foreach (var item in magazines)
                         {
                             <tr>
                                 <th scope="row">@i</th>
-                                <td>@item?.Topics?.topic_name</td>
-                                <td>@item?.Topics?.lvtopic_id</td>
-                                <td>
-                                    @{
-                                        Result enumValue;
-                                        string displayName = Enum.TryParse(@item?.Topics?.result, out enumValue)
-                                        ? GetEnumDisplayName(enumValue)
-                                        : "Không xác định";
-                                    }
-                                    @displayName
-                                </td>
+                                <td>@item?.Magazines?.magazine_name</td>
+                                <td>@item?.Magazines?.year</td>
+                                <td>@item?.Magazines?.journal</td>
+                                <td>@item?.Magazines?.Paper?.paper_name</td>
                                 <td>@item?.Role?.role_name</td>
-                                <td>@item?.Topics?.start_date.ToShortDateString()</td>
-                                <td>@item?.Topics?.end_date.ToShortDateString()</td>
                                 <td>
-                                    <button class="btn btn-warning" @onclick="() => EditTopic(item.Topics)">Chỉnh sửa</button>
-                                    <button class="btn btn-danger" @onclick="() => DeleteTopic(item.Topics)">Xóa</button>
+                                    <button class="btn btn-warning" @onclick="() => EditMagazine(item.Magazines)">Chỉnh sửa</button>
+                                    <button class="btn btn-danger" @onclick="() => DeleteMagazine(item.Magazines)">Xóa</button>
                                 </td>
                             </tr>
                             i++;
@@ -203,45 +178,34 @@
     private string roleId = "";
     private List<Models.Category.Role> roles { get; set; }
     private Scientist scientist { get; set; }
-    private Models.Topic.Topics topics { get; set; } = new Models.Topic.Topics
-        {
-            result = ""
-        };
-    private List<scientist_topic_role> ListTopics { get; set; }
+    private Models.Magazine.Magazines magazine { get; set; }
+    private List<ScientistMagazineRole> magazines { get; set; }
 
-    private void EditTopic(Models.Topic.Topics editTopic)
+    private void EditMagazine(Models.Magazine.Magazines editMagazine)
     {
         isAdd = true;
         isReadOnly = false;
-        topics = editTopic;
+        magazine = editMagazine;
         isUpdate = true;
     }
 
-    private void ToggleTopics()
+    private void ToggleMagazine()
     {
         isAdd = !isAdd;
         isReadOnly = !isReadOnly;
-        topics = new Models.Topic.Topics();
+        magazine = new Models.Magazine.Magazines();
     }
 
-    private async Task SaveTopic()
+    private async Task SaveMagazine()
     {
         if (isUpdate)
         {
-            await UpdateTopic();
+            await UpdateMagazine();
         }
         else
         {
-            await AddNewScientistTopic();
+            await AddNewScientistMagazine();
         }
-    }
-
-    private string GetEnumDisplayName(Result result)
-    {
-        var fieldInfo = result.GetType().GetField(result.ToString());
-        var displayAttribute = fieldInfo?.GetCustomAttributes(typeof(DisplayAttribute), false)
-            .FirstOrDefault() as DisplayAttribute;
-        return displayAttribute?.Name ?? result.ToString();
     }
 
     protected override async Task OnInitializedAsync()
@@ -259,8 +223,7 @@
                 if (response != null)
                 {
                     scientist = response;
-                    ListTopics = await TopicServices.GetTopicsByScientistIdAsync(scientist.id);
-                    // roles = await RoleServices.GetListRole();
+                    magazines = await MagazineServices.GetMagazinesByScientistIdAsync(scientist.id);
                 }
             }
             else
@@ -274,11 +237,11 @@
         }
     }
 
-    private async Task AddNewScientistTopic()
+    private async Task AddNewScientistMagazine()
     {
         try
         {
-            if (topics == null || string.IsNullOrWhiteSpace(topics.topic_name))
+            if (magazine == null || string.IsNullOrWhiteSpace(magazine.magazine_name))
             {
                 showError = true;
                 return;
@@ -291,19 +254,19 @@
                 throw new InvalidOperationException("Scientist or role information is missing.");
             }
 
-            topics.id = Guid.NewGuid().ToString();
-            topics.created_at = DateTime.Now;
-            topics.updated_at = DateTime.Now;
+            magazine.id = Guid.NewGuid().ToString();
+            magazine.created_at = DateTime.Now;
+            magazine.updated_at = DateTime.Now;
 
-            var result = await TopicServices.AddTopicAndLinkToScientistAsync(topics, scientist.id, roleId);
+            var result = await MagazineServices.AddMagazineAndLinkToScientistAsync(magazine, scientist.id, roleId);
             if (result)
             {
-                ListTopics = await TopicServices.GetTopicsByScientistIdAsync(scientist.id);
+                magazines = await MagazineServices.GetMagazinesByScientistIdAsync(scientist.id);
             }
 
             isAdd = false;
             isReadOnly = true;
-            topics = null;
+            magazine = null;
         }
         catch (Exception ex)
         {
@@ -311,11 +274,11 @@
         }
     }
 
-    private async Task UpdateTopic()
+    private async Task UpdateMagazine()
     {
         try
         {
-            if (topics == null || string.IsNullOrWhiteSpace(topics.topic_name))
+            if (magazine == null || string.IsNullOrWhiteSpace(magazine.magazine_name))
             {
                 showError = true;
                 return;
@@ -328,15 +291,15 @@
                 throw new InvalidOperationException("Scientist or role information is missing.");
             }
 
-            var result = await TopicServices.UpdateTopicAndLinkToScientistAsync(topics.id, topics, scientist.id, roleId);
+            var result = await MagazineServices.UpdateMagazineAndLinkToScientistAsync(magazine.id, magazine, scientist.id, roleId);
             if (result)
             {
-                ListTopics = await TopicServices.GetTopicsByScientistIdAsync(scientist.id);
+                magazines = await MagazineServices.GetMagazinesByScientistIdAsync(scientist.id);
             }
 
             isAdd = false;
             isReadOnly = true;
-            topics = null;
+            magazine = null;
         }
         catch (Exception ex)
         {
@@ -344,18 +307,18 @@
         }
     }
 
-    private async Task DeleteTopic(Models.Topic.Topics topic)
+    private async Task DeleteMagazine(Models.Magazine.Magazines magazine)
     {
         try
         {
-            var confirm = await JSRuntime.InvokeAsync<bool>("confirm", new object[] { "Bạn có chắc muốn xóa đề tài này?" });
+            var confirm = await JSRuntime.InvokeAsync<bool>("confirm", new object[] { "Bạn có chắc muốn xóa bài báo này?" });
 
             if (confirm)
             {
-                var result = await TopicServices.DeleteTopicAndLinkFromScientistAsync(topic.id, scientist.id);
+                var result = await MagazineServices.DeleteMagazineAndLinkFromScientistAsync(magazine.id, scientist.id);
                 if (result)
                 {
-                    ListTopics = await TopicServices.GetTopicsByScientistIdAsync(scientist.id);
+                    magazines = await MagazineServices.GetMagazinesByScientistIdAsync(scientist.id);
                 }
             }
         }
