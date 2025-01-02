@@ -2,7 +2,6 @@
 using BlazorFE.Models.Topic;
 using BlazorFE.Models.Scientist;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace BlazorFE.Services
 {
@@ -15,21 +14,37 @@ namespace BlazorFE.Services
             _context = context;
         }
 
-        public async Task<List<scientist_topic_role>> GetTopicsByScientistIdAsync(string scientistId)
+        public async Task<List<scientist_topic_role>> GetTopicsByScientistIdAsync(string scientistId, bool isJoining)
         {
             if (string.IsNullOrEmpty(scientistId))
                 throw new ArgumentException("Scientist ID cannot be null or empty", nameof(scientistId));
 
             var scientistTopics = await _context.Set<scientist_topic_role>()
-                .Where(str => str.scientist_id == scientistId)
+                .Where(str => isJoining ? str.scientist_id != scientistId && str.requestStatus == "Chờ duyệt" : str.scientist_id == scientistId)
                 .Include(str => str.Topics)
                 .Include(str => str.Role)
+                .Include(str => str.Scientist)
                 .ToListAsync();
 
             return scientistTopics;
         }
 
-        public async Task<Boolean> AddTopicAndLinkToScientistAsync(Topics newTopic, string scientistId, string roleId)
+        public async Task<List<scientist_topic_role>> GetRequestTopicAsync(string scientistId, bool isJoining)
+        {
+            if (string.IsNullOrEmpty(scientistId))
+                throw new ArgumentException("Scientist ID cannot be null or empty", nameof(scientistId));
+
+            var scientistTopics = await _context.Set<scientist_topic_role>()
+                .Where(str => isJoining ? str.scientist_id != scientistId : str.scientist_id == scientistId)
+                .Include(str => str.Topics)
+                .Include(str => str.Role)
+                .Include(str => str.Scientist)
+                .ToListAsync();
+
+            return scientistTopics;
+        }
+
+        public async Task<Boolean> AddTopicAndLinkToScientistAsync(Topics newTopic, string scientistId, string roleId, bool isJoining)
         {
             if (newTopic == null) throw new ArgumentNullException(nameof(newTopic));
             if (string.IsNullOrEmpty(scientistId)) throw new ArgumentException("Scientist ID cannot be null or empty", nameof(scientistId));
@@ -38,15 +53,18 @@ namespace BlazorFE.Services
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                await _context.Set<Topics>().AddAsync(newTopic);
-                await _context.SaveChangesAsync();
-
+                if(!isJoining) { 
+                    await _context.Set<Topics>().AddAsync(newTopic);
+                    await _context.SaveChangesAsync();
+                }
                 var scientistTopicRole = new scientist_topic_role
                 {
                     id = Guid.NewGuid().ToString(),
                     scientist_id = scientistId,
                     topic_id = newTopic.id,
                     role_id = roleId,
+                    status = false,
+                    requestStatus = isJoining ? "Chờ duyệt" : "Đã tham gia",
                     created_at = DateTime.UtcNow,
                     updated_at = DateTime.UtcNow
                 };
@@ -65,7 +83,7 @@ namespace BlazorFE.Services
             }
         }
 
-        public async Task<Boolean> UpdateTopicAndLinkToScientistAsync(string topicId, Topics updatedTopic, string scientistId, string roleId)
+        public async Task<Boolean> UpdateTopicAndLinkToScientistAsync(string topicId, Topics updatedTopic, string scientistId, string roleId, string? requestStatus, bool isUpdateRequest)
         {
             if (updatedTopic == null) throw new ArgumentNullException(nameof(updatedTopic));
             if (string.IsNullOrEmpty(topicId)) throw new ArgumentException("Topic ID cannot be null or empty", nameof(topicId));
@@ -95,6 +113,9 @@ namespace BlazorFE.Services
                 {
                     scientistTopicRole.role_id = roleId;
                     scientistTopicRole.updated_at = DateTime.UtcNow;
+                    if(isUpdateRequest) { 
+                        scientistTopicRole.requestStatus = requestStatus;
+                    }
                     _context.Set<scientist_topic_role>().Update(scientistTopicRole);
                     await _context.SaveChangesAsync();
                 }

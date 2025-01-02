@@ -4,18 +4,18 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BlazorFE.Services
 {
-    public class RoleServices
+    public class LvTopicServices
     {
         private readonly ApplicationDbContext _context;
 
-        public RoleServices(ApplicationDbContext context)
+        public LvTopicServices(ApplicationDbContext context)
         {
             _context = context;
         }
 
-        public async Task<List<Role>> GetListRole(string roleType)
+        public async Task<List<LvTopics>> GetListLvTopic()
         {
-            return await _context.Roles.Where(role => role.role_type == roleType).ToListAsync();
+            return await _context.LvTopics.ToListAsync();
         }
     }
 }

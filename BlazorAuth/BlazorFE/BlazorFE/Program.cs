@@ -22,6 +22,7 @@ builder.Services.AddScoped<AuthenticationStateProvider, PersistingRevalidatingAu
 builder.Services.AddScoped<ScientistServices>();
 builder.Services.AddScoped<TopicServices>();
 builder.Services.AddScoped<RoleServices>();
+builder.Services.AddScoped<LvTopicServices>();
 builder.Services.AddScoped<MagazineServices>();
 builder.Services.AddScoped<CurriculumServices>();
 builder.Services.AddScoped<OfferServices>();

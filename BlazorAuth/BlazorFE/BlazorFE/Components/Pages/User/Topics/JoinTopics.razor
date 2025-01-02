@@ -1,0 +1,324 @@
+﻿@page "/User/JoinTopics"
+@rendermode InteractiveServer
+
+@using System.Security.Claims;
+@using BlazorFE.Models.Scientist
+@using BlazorFE.Services;
+@using BlazorFE.Enums;
+@using System.ComponentModel.DataAnnotations;
+@inject ScientistServices ProfileServices
+@inject TopicServices TopicServices
+@inject RoleServices RoleServices
+@inject LvTopicServices LvTopicServices
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+@if(scientist != null) {
+    <h3>Danh sách yêu cầu tham gia của @scientist.profile_name</h3>
+
+    <div class="bg-white">
+        <div class="justify-content-center">
+            <div class="border-right">
+                <div class="">
+                    <div class="d-flex flex-row gap-2">
+                        <button class="btn btn-warning" @onclick="Return">Quay lại</button>
+                    </div>
+                    @if (isJoining && roles != null)
+                    {
+                        <form>
+                            <div class="mt-2">
+                                <!-- Hàng đầu tiên -->
+                                <div class="auto-cols">
+                                    <div>
+                                        <label class="labels">Tên đề tài<span class="text-red">*</span></label>
+                                        <input readonly="true" type="text" class="form-control" placeholder="Tên đề tài" @bind="@topics.topic_name">
+                                        @if (showError && string.IsNullOrWhiteSpace(scientist.profile_name))
+                                        {
+                                            <span class="text-danger">Vui lòng nhập tên đề tài</span>
+                                        }
+                                    </div>
+                                    <div>
+                                        <label class="labels">Cấp độ đề tài<span class="text-red">*</span></label>
+                                        <select disabled="true" type="text" class="form-control" @bind="@topics.lvtopic_id">
+                                            <option value="">Chọn cấp độ đề tài</option>
+                                            @foreach (var item in lvTopics)
+                                            {
+                                                <option value="@item.id">@item.lvtopic_name</option>
+                                            }
+                                        </select>
+                                        @if (showError && string.IsNullOrWhiteSpace(topics.lvtopic_id))
+                                        {
+                                            <span class="text-danger">Vui lòng chọn cấp độ đề tài.</span>
+                                        }
+                                    </div>
+                                    <div>
+                                        <label class="labels">Vai trò<span class="text-red">*</span></label>
+                                        <select disabled="@isReadOnly" type="text" class="form-control" @bind="@roleId">
+                                            <option value="">Chọn vai trò</option>
+                                            @foreach (var item in roles)
+                                            {
+                                                <option value="@item.id">@item.role_name</option>
+                                            }
+                                        </select>
+                                        @if (showError && string.IsNullOrWhiteSpace(roleId))
+                                        {
+                                            <span class="text-danger">Vui lòng chọn vai tró.</span>
+                                        }
+                                    </div>
+                                    <div>
+                                        <label class="labels">Kết quả đánh giá<span class="text-red">*</span></label>
+                                        <select disabled="true" type="text" class="form-control" @bind="topics.result" aria-label="Default select example">
+                                            <option value="0">Chọn kết quả</option>
+                                            @foreach (var option in Enum.GetValues<Result>())
+                                            {
+                                                <option value="@(option)">
+                                                    @GetEnumDisplayName(option)
+                                                </option>
+                                            }
+                                        </select>
+
+                                        @if (showError && topics.result == "")
+                                        {
+                                            <span class="text-danger">Vui lòng chọn kết quả.</span>
+                                        }
+                                    </div>
+                                </div>
+
+                                <!-- Hàng thứ hai -->
+                                <div class="auto-cols mt-2">
+                                    <div>
+                                        <label class="labels">Ngày bắt đầu<span class="text-red">*</span></label>
+                                        <input readonly="true" type="date" class="form-control" @bind="@topics.start_date">
+                                        @if (showError && topics.start_date == null)
+                                        {
+                                            <span class="text-danger">Vui lòng nhập ngày bắt đầu.</span>
+                                        }
+                                    </div>
+                                    <div>
+                                        <label class="labels">Ngày kết thúc<span class="text-red">*</span></label>
+                                        <input readonly="true" type="date" class="form-control" @bind="@topics.end_date">
+                                        @if (showError && topics.end_date == null)
+                                        {
+                                            <span class="text-danger">Vui lòng nhập ngày kết thúc.</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-1 mt-2">
+                                <div class="mt-5 text-center">
+                                    <button class="btn btn-primary" type="button" >Hủy</button>
+                                </div>
+                                <div class="mt-5 text-center">
+                                    <button class="btn btn-success" type="submit" @onclick="SaveTopic" @onclick:preventDefault>Lưu</button>
+                                </div>
+                            </div>
+                        </form>
+                    }
+
+                </div>
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Tên đề tài</th>
+                            <th scope="col">Loại đề tài</th>
+                            <th scope="col">Kết quả</th>
+                            <th scope="col">Chủ nhiệm dự án</th>
+                            <th scope="col">Ngày bắt đầu</th>
+                            <th scope="col">Ngày kết thúc</th>
+                            <th scope="col">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (ListTopics != null && ListTopics.Count > 0)
+                        {
+                            int i = 1;
+                            foreach (var item in ListTopics)
+                            {
+                                <tr class="">
+                                    <th scope="row">@i</th>
+                                    <td>@item?.Topics?.topic_name</td>
+                                    <td>@item?.Topics?.LvTopics?.lvtopic_name</td>
+                                    <td>
+                                        @{
+                                            Result enumValue;
+                                            string displayName = Enum.TryParse(@item?.Topics?.result, out enumValue)
+                                            ? GetEnumDisplayName(enumValue)
+                                            : "Không xác định";
+                                        }
+                                        @displayName
+                                    </td>
+                                    <td>@item?.Scientist?.profile_name</td>
+                                    <td>@item?.Topics?.start_date.ToShortDateString()</td>
+                                    <td>@item?.Topics?.end_date.ToShortDateString()</td>
+                                    <td>
+                                        @if (MyTopics.Any(myTopic => myTopic.Topics?.id == item.Topics?.id))
+                                        {
+                                            <button class="btn btn-secondary" disabled>
+                                                @item?.requestStatus
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-primary" @onclick="() => JoiningTopic(item.Topics)">Tham gia</button>
+                                        }
+                                    </td>
+                                </tr>
+                                i++;
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="8" class="text-center">Không có dữ liệu</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .auto-cols {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    gap: 16px;
+    justify-content: space-between;
+    }
+
+    .auto-cols > div {
+    flex: 1;
+    min-width: 200px;
+    }
+
+    .d-flex {
+    display: flex;
+    flex-direction: row;
+    justify-content: right;
+    }
+
+    .text-red {
+    color: red;
+    }
+</style>
+
+@code {
+    private bool isReadOnly = true;
+    private bool showError = false;
+    private bool isJoining = false;
+    private string userName = "";
+    private string userid = "";
+    private string roleId = "";
+    private List<Models.Category.Role> roles { get; set; }
+    private List<Models.Category.LvTopics> lvTopics { get; set; }
+    private Scientist scientist { get; set; }
+    private Models.Topic.Topics topics { get; set; } = new Models.Topic.Topics
+        {
+            result = ""
+        };
+    private List<scientist_topic_role> ListTopics { get; set; }
+    private List<scientist_topic_role> MyTopics { get; set; }
+
+    private void JoiningTopic(Models.Topic.Topics joinTopic)
+    {
+        isJoining = true;
+        isReadOnly = false;
+        topics = joinTopic;
+    }
+
+    private void Cancle()
+    {
+        isJoining = !isJoining;
+        isReadOnly = false;
+        topics = new Models.Topic.Topics();
+    }
+
+    private void Return()
+    {
+        NavigationManager.NavigateTo("/User/Topics");
+    }
+
+    private async Task SaveTopic()
+    {
+        await AddNewScientistTopic();
+    }
+
+    private string GetEnumDisplayName(Result result)
+    {
+        var fieldInfo = result.GetType().GetField(result.ToString());
+        var displayAttribute = fieldInfo?.GetCustomAttributes(typeof(DisplayAttribute), false)
+            .FirstOrDefault() as DisplayAttribute;
+        return displayAttribute?.Name ?? result.ToString();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var principal = authState.User;
+        if (principal.Identity?.IsAuthenticated == true)
+        {
+            userid = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value.ToString();
+            userName = principal.Identity.Name;
+
+            if (userid != null && userName != null)
+            {
+                var response = await ProfileServices.GetProfileAsync(userid);
+                if (response != null)
+                {
+                    scientist = response;
+                    MyTopics = await TopicServices.GetTopicsByScientistIdAsync(scientist.id, false);
+                    ListTopics = await TopicServices.GetRequestTopicAsync(scientist.id, true);
+                    lvTopics = await LvTopicServices.GetListLvTopic();
+                    var result = await RoleServices.GetListRole(RoleType.topic.ToString());
+                    roles = result.Where(role => role.role_name != "Chủ nhiệm dự án").ToList();
+                }
+            }
+            else
+            {
+                NavigationManager.NavigateTo("Account/Login");
+            }
+        }
+        else
+        {
+            NavigationManager.NavigateTo("Account/Login");
+        }
+    }
+
+    private async Task AddNewScientistTopic()
+    {
+        try
+        {
+            if (topics == null || string.IsNullOrWhiteSpace(topics.topic_name))
+            {
+                showError = true;
+                return;
+            }
+
+            showError = false;
+
+            if (scientist == null || string.IsNullOrEmpty(scientist.id) || string.IsNullOrEmpty(roleId))
+            {
+                throw new InvalidOperationException("Scientist or role information is missing.");
+            }
+
+            var result = await TopicServices.AddTopicAndLinkToScientistAsync(topics, scientist.id, roleId, true);
+            if (result)
+            {
+                ListTopics = await TopicServices.GetRequestTopicAsync(scientist.id, false);
+            }
+
+            isJoining  = false;
+            isReadOnly = true;
+            topics = new Models.Topic.Topics();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"An error occurred: {ex.Message}");
+        }
+    }
+}
