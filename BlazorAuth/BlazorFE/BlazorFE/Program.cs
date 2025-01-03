@@ -26,6 +26,7 @@ builder.Services.AddScoped<LvTopicServices>();
 builder.Services.AddScoped<MagazineServices>();
 builder.Services.AddScoped<CurriculumServices>();
 builder.Services.AddScoped<OfferServices>();
+builder.Services.AddScoped<OfficeServices>();
 
 builder.Services.AddAuthentication(options =>
     {

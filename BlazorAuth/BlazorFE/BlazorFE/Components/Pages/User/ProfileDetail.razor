@@ -4,7 +4,9 @@
 @using System.Security.Claims;
 @using BlazorFE.Models.Scientist
 @using BlazorFE.Services;
+@using BlazorFE.Models;
 @inject ScientistServices ProfileServices
+@inject OfficeServices OfficeServices
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 
@@ -127,17 +129,26 @@
                             </div>
                             <div>
                                 <label class="labels">Tên tổ chức<span class="text-red">*</span></label>
-                                <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Tên tổ chức" @bind="@scientist.office_id">
+                                    <select class="form-control" @bind="@scientist.office_id" @bind:event="oninput" @onchange="UpdateAddress" disabled="@isReadOnly">
+                                    <option value="">Chọn tổ chức</option>
+                                    @if (Offices != null)
+                                    {
+                                        @foreach (var office in Offices)
+                                        {
+                                            <option value="@office.office_id">@office.office_name</option>
+                                        }
+                                    }
+                                </select>
                                 @if (showError && string.IsNullOrWhiteSpace(scientist.office_id))
                                 {
-                                    <span class="text-danger">Vui lòng nhập tên tổ chức.</span>
+                                    <span class="text-danger">Vui lòng chọn tổ chức.</span>
                                 }
                             </div>
                         </div>
 
-                        <div class="mt-2">
+                        <div>
                             <label class="labels">Địa chỉ tổ chức<span class="text-red">*</span></label>
-                            <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Địa chỉ tổ chức" @bind="@scientist.address_office">
+                            <input readonly="true" type="text" class="form-control" placeholder="Địa chỉ tổ chức" @bind="@scientist.address_office">
                             @if (showError && string.IsNullOrWhiteSpace(scientist.address_office))
                             {
                                 <span class="text-danger">Vui lòng nhập địa chỉ tổ chức.</span>
@@ -203,6 +214,7 @@
     private string userid = "";
     private string role = "";
     private Scientist scientist { get; set; }
+    private List<Models.Category.Office> Offices { get; set; }
 
     private void EditProfile()
     {
@@ -294,7 +306,7 @@
             userid = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value.ToString();
             userName = principal.Identity.Name;
             role = principal.FindFirst(ClaimTypes.Role)?.Value.ToString();
-
+            Offices = await OfficeServices.GetListOffice();
 
             if (userid != null && userName != null)
             {
@@ -319,6 +331,16 @@
         else
         {
             NavigationManager.NavigateTo("Account/Login");
+        }
+    }
+
+    private async Task UpdateAddress(ChangeEventArgs e)
+    {
+        var selectedOfficeId = e.Value?.ToString();
+        var selectedOffice = Offices?.FirstOrDefault(o => o.office_id == selectedOfficeId);
+        if (selectedOffice != null)
+        {
+            scientist.address_office = selectedOffice.address;
         }
     }
 }

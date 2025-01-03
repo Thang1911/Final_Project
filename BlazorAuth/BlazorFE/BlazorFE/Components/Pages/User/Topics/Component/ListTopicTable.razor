@@ -1,0 +1,63 @@
+﻿@using Helpers
+@using BlazorFE.Enums
+@using BlazorFE.Models.Scientist
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Tên đề tài</th>
+            <th scope="col">Loại đề tài</th>
+            <th scope="col">Kết quả</th>
+            <th scope="col">Vai trò</th>
+            <th scope="col">Ngày bắt đầu</th>
+            <th scope="col">Ngày kết thúc</th>
+            <th scope="col">Yêu cầu</th>
+            <th scope="col">Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (TopicsList != null && TopicsList.Count > 0)
+        {
+            int i = 1;
+            foreach (var item in TopicsList)
+            {
+                <tr>
+                    <th scope="row">@i</th>
+                    <td>@item?.Topics?.topic_name</td>
+                    <td>@item?.Topics?.LvTopics?.lvtopic_name</td>
+                    <td>
+                        @{
+                            Result enumValue;
+                            string displayName = Enum.TryParse(@item?.Topics?.result, out enumValue)
+                            ? Helpers.EnumHelper.GetEnumDisplayName(enumValue)
+                            : "Không xác định";
+                        }
+                        @displayName
+                    </td>
+                    <td>@item?.Role?.role_name</td>
+                    <td>@item?.Topics?.start_date.ToShortDateString()</td>
+                    <td>@item?.Topics?.end_date.ToShortDateString()</td>
+                    <td>@item?.requestStatus</td>
+                    <td>
+                        <button class="btn btn-warning" @onclick="() => OnEdit.InvokeAsync(item.Topics)">Chỉnh sửa</button>
+                        <button class="btn btn-danger" @onclick="() => OnDelete.InvokeAsync(item.Topics)">Xóa</button>
+                    </td>
+                </tr>
+                i++;
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="8" class="text-center">Không có dữ liệu</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    [Parameter] public List<scientist_topic_role> TopicsList { get; set; }
+    [Parameter] public EventCallback<Models.Topic.Topics> OnEdit { get; set; }
+    [Parameter] public EventCallback<Models.Topic.Topics> OnDelete { get; set; }
+}

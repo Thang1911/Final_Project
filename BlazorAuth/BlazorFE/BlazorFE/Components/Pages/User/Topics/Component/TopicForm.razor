@@ -1,0 +1,103 @@
+﻿@using Helpers
+@using BlazorFE.Enums
+
+<form>
+    <div class="mt-2">
+        <!-- Hàng đầu tiên -->
+        <div class="auto-cols">
+            <div>
+                <label class="labels">Tên đề tài<span class="text-red">*</span></label>
+                <input readonly="@IsReadOnly" type="text" class="form-control" placeholder="Tên đề tài" @bind="@Topics.topic_name">
+                @if (ShowError && string.IsNullOrWhiteSpace(Topics.topic_name))
+                {
+                    <span class="text-danger">Vui lòng nhập tên đề tài</span>
+                }
+            </div>
+            <div>
+                <label class="labels">Cấp độ đề tài<span class="text-red">*</span></label>
+                <select disabled="@IsReadOnly" type="text" class="form-control" @bind="@Topics.lvtopic_id">
+                    <option value="" class="text-gray">Chọn cấp độ đề tài</option>
+                    @foreach (var item in LvTopics)
+                    {
+                        <option value="@item.id">@item.lvtopic_name</option>
+                    }
+                </select>
+                @if (ShowError && string.IsNullOrWhiteSpace(Topics.lvtopic_id))
+                {
+                    <span class="text-danger">Vui lòng chọn cấp độ đề tài.</span>
+                }
+            </div>
+            <div>
+                <label class="labels">Vai trò<span class="text-red">*</span></label>
+                <select disabled="@IsReadOnly" type="text" class="form-control" @bind="@RoleId">
+                    <option value="">Chọn vai trò</option>
+                    @foreach (var item in Roles)
+                    {
+                        <option value="@item.id">@item.role_name</option>
+                    }
+                </select>
+                @if (ShowError && string.IsNullOrWhiteSpace(RoleId))
+                {
+                    <span class="text-danger">Vui lòng chọn vai tró.</span>
+                }
+            </div>
+            <div>
+                <label class="labels">Kết quả đánh giá<span class="text-red">*</span></label>
+                <select disabled="@IsReadOnly" type="text" class="form-control" @bind="Topics.result" aria-label="Default select example">
+                    <option value="0">Chọn kết quả</option>
+                    @foreach (var option in Enum.GetValues<Result>())
+                    {
+                        <option value="@(option)">
+                            @Helpers.EnumHelper.GetEnumDisplayName(option)
+                        </option>
+                    }
+                </select>
+
+                @if (ShowError && Topics.result == "")
+                {
+                    <span class="text-danger">Vui lòng chọn kết quả.</span>
+                }
+            </div>
+        </div>
+
+        <!-- Hàng thứ hai -->
+        <div class="auto-cols mt-2">
+            <div>
+                <label class="labels">Ngày bắt đầu<span class="text-red">*</span></label>
+                <input readonly="@IsReadOnly" type="date" class="form-control" @bind="@Topics.start_date">
+                @if (ShowError && Topics.start_date == null)
+                {
+                    <span class="text-danger">Vui lòng nhập ngày bắt đầu.</span>
+                }
+            </div>
+            <div>
+                <label class="labels">Ngày kết thúc<span class="text-red">*</span></label>
+                <input readonly="@IsReadOnly" type="date" class="form-control" @bind="@Topics.end_date">
+                @if (ShowError && Topics.end_date == null)
+                {
+                    <span class="text-danger">Vui lòng nhập ngày kết thúc.</span>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-1 mt-2">
+        <div class="mt-5 text-center">
+            <button class="btn btn-primary" type="button" @onclick="OnCancel">Hủy</button>
+        </div>
+        <div class="mt-5 text-center">
+            <button class="btn btn-success" type="submit" @onclick="OnSave" @onclick:preventDefault>Lưu</button>
+        </div>
+    </div>
+</form>
+
+@code {
+    [Parameter] public Models.Topic.Topics Topics { get; set; }
+    [Parameter] public string RoleId { get; set; }
+    [Parameter] public bool IsReadOnly { get; set; }
+    [Parameter] public bool ShowError { get; set; }
+    [Parameter] public List<Models.Category.Role> Roles { get; set; }
+    [Parameter] public List<Models.Category.LvTopics> LvTopics { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public EventCallback OnSave { get; set; }
+}
