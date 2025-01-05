@@ -1,10 +1,11 @@
 ﻿@page "/ProfileDetail"
 @rendermode InteractiveServer
 
-@using System.Security.Claims;
-@using BlazorFE.Models.Scientist
-@using BlazorFE.Services;
-@using BlazorFE.Models;
+@    using System.Security.Claims;
+@    using BlazorFE.Models.Scientist
+@    using BlazorFE.Services;
+@    using BlazorFE.Models;
+    using BlazorFE.Services.Category;
 @inject ScientistServices ProfileServices
 @inject OfficeServices OfficeServices
 @inject AuthenticationStateProvider AuthenticationStateProvider

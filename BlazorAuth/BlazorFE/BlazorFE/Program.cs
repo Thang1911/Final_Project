@@ -3,6 +3,7 @@ using BlazorFE.Components;
 using BlazorFE.Components.Account;
 using BlazorFE.Data;
 using BlazorFE.Services;
+using BlazorFE.Services.Category;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;

@@ -6,6 +6,7 @@
 @using BlazorFE.Services;
 @using BlazorFE.Enums;
 @using System.ComponentModel.DataAnnotations;
+@using BlazorFE.Services.Category;
 @inject ScientistServices ProfileServices
 @inject TopicServices TopicServices
 @inject RoleServices RoleServices
@@ -271,7 +272,7 @@
                 if (response != null)
                 {
                     scientist = response;
-                    MyTopics = await TopicServices.GetTopicsByScientistIdAsync(scientist.id, false);
+                    MyTopics = await TopicServices.GetProjectsByScientistIdAsync(scientist.id);
                     ListTopics = await TopicServices.GetRequestTopicAsync(scientist.id, true);
                     lvTopics = await LvTopicServices.GetListLvTopic();
                     var result = await RoleServices.GetListRole(RoleType.topic.ToString());

@@ -2,7 +2,7 @@
 using BlazorFE.Models.Category;
 using Microsoft.EntityFrameworkCore;
 
-namespace BlazorFE.Services
+namespace BlazorFE.Services.Category
 {
     public class LvTopicServices
     {

@@ -14,13 +14,13 @@ namespace BlazorFE.Services
             _context = context;
         }
 
-        public async Task<List<scientist_topic_role>> GetTopicsByScientistIdAsync(string scientistId, bool isJoining)
+        public async Task<List<scientist_topic_role>> GetProjectsByScientistIdAsync(string scientistId)
         {
             if (string.IsNullOrEmpty(scientistId))
                 throw new ArgumentException("Scientist ID cannot be null or empty", nameof(scientistId));
 
             var scientistTopics = await _context.Set<scientist_topic_role>()
-                .Where(str => isJoining ? str.scientist_id != scientistId && str.requestStatus == "Chờ duyệt" : str.scientist_id == scientistId)
+                .Where(str => str.scientist_id == scientistId)
                 .Include(str => str.Topics)
                 .Include(str => str.Role)
                 .Include(str => str.Scientist)
@@ -29,13 +29,48 @@ namespace BlazorFE.Services
             return scientistTopics;
         }
 
+        public async Task<List<scientist_topic_role>> GetJoinRequestsByScientistIdAsync(string scientistId, List<string> topicIds)
+        {
+            if (string.IsNullOrEmpty(scientistId))
+                throw new ArgumentException("Scientist ID cannot be null or empty", nameof(scientistId));
+
+            if (topicIds == null || !topicIds.Any())
+                throw new ArgumentException("Topic IDs cannot be null or empty", nameof(topicIds));
+
+            var joinRequests = await _context.Set<scientist_topic_role>()
+                .Where(str => str.scientist_id != scientistId
+                    && str.requestStatus == "Chờ duyệt"
+                    && topicIds.Contains(str.topic_id))
+                .Include(str => str.Topics)
+                .Include(str => str.Role)
+                .Include(str => str.Scientist)
+                .ToListAsync();
+
+            return joinRequests;
+        }
+
+
         public async Task<List<scientist_topic_role>> GetRequestTopicAsync(string scientistId, bool isJoining)
         {
             if (string.IsNullOrEmpty(scientistId))
                 throw new ArgumentException("Scientist ID cannot be null or empty", nameof(scientistId));
 
-            var scientistTopics = await _context.Set<scientist_topic_role>()
-                .Where(str => isJoining ? str.scientist_id != scientistId : str.scientist_id == scientistId)
+            const string ProjectLeaderRole = "Chủ nhiệm dự án";
+
+            var query = _context.Set<scientist_topic_role>().AsQueryable();
+
+            if (isJoining)
+            {
+                query = query.Where(str => str.scientist_id != scientistId
+                                           && str.Role != null
+                                           && str.Role.role_name == ProjectLeaderRole);
+            }
+            else
+            {
+                query = query.Where(str => str.scientist_id == scientistId);
+            }
+
+            var scientistTopics = await query
                 .Include(str => str.Topics)
                 .Include(str => str.Role)
                 .Include(str => str.Scientist)
