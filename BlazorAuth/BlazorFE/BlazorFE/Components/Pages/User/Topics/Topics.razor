@@ -154,6 +154,7 @@
         isAdd = !isAdd;
         isReadOnly = !isReadOnly;
         topics = new Models.Topic.Topics();
+        topics.result = "Chưa_kết_thúc";
     }
 
     private void JoinTopics()
@@ -197,14 +198,26 @@
                 {
                     scientist = response;
                     ListTopics = await TopicServices.GetProjectsByScientistIdAsync(scientist.id);
-                    var ListTopicIds = ListTopics
-                        .Where(topic => topic.Role != null && topic.Role.role_name == "Chủ nhiệm dự án")
-                        .Select(topic => topic.topic_id)
-                        .ToList();
-                    RequestTopics = await TopicServices.GetJoinRequestsByScientistIdAsync(scientist.id, ListTopicIds);
+                    if (ListTopics != null && ListTopics.Any())
+                    {
+                        ListTopicIds = ListTopics
+                            .Where(topic => topic.Role != null && topic.Role.role_name == "Chủ nhiệm dự án")
+                            .Select(topic => topic.topic_id)
+                            .ToList();
+                        RequestTopics = await TopicServices.GetJoinRequestsByScientistIdAsync(scientist.id, ListTopicIds);
+                    }
                     lvTopics = await LvTopicServices.GetListLvTopic();
-                    var result = await RoleServices.GetListRole(RoleType.topic.ToString());
-                    roles = result.Where(role => role.role_name == "Chủ nhiệm dự án").ToList();
+                    roles = await RoleServices.GetListRole(RoleType.topic.ToString());
+                    var role = roles.FirstOrDefault(role => role.role_name == "Chủ nhiệm dự án" && role.role_type == RoleType.topic.ToString());
+
+                    if (role != null)
+                    {
+                        roleId = role.id;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Role not found");
+                    }
                 }
             }
             else
@@ -232,6 +245,7 @@
 
             if (scientist == null || string.IsNullOrEmpty(scientist.id) || string.IsNullOrEmpty(roleId))
             {
+                Console.WriteLine($"RoleId: {roleId}");
                 throw new InvalidOperationException("Scientist or role information is missing.");
             }
 

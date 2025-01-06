@@ -29,7 +29,7 @@
             </div>
             <div>
                 <label class="labels">Vai trò<span class="text-red">*</span></label>
-                <select disabled="@IsReadOnly" type="text" class="form-control" @bind="@RoleId">
+                <select disabled="true" type="text" class="form-control" @bind="@RoleId">
                     <option value="">Chọn vai trò</option>
                     @foreach (var item in Roles)
                     {
@@ -43,7 +43,7 @@
             </div>
             <div>
                 <label class="labels">Kết quả đánh giá<span class="text-red">*</span></label>
-                <select disabled="@IsReadOnly" type="text" class="form-control" @bind="Topics.result" aria-label="Default select example">
+                <select disabled="true" type="text" class="form-control" @bind="Topics.result" aria-label="Default select example">
                     <option value="0">Chọn kết quả</option>
                     @foreach (var option in Enum.GetValues<Result>())
                     {
@@ -59,29 +59,9 @@
                 }
             </div>
         </div>
-
-        <!-- Hàng thứ hai -->
-        <div class="auto-cols mt-2">
-            <div>
-                <label class="labels">Ngày bắt đầu<span class="text-red">*</span></label>
-                <input readonly="@IsReadOnly" type="date" class="form-control" @bind="@Topics.start_date">
-                @if (ShowError && Topics.start_date == null)
-                {
-                    <span class="text-danger">Vui lòng nhập ngày bắt đầu.</span>
-                }
-            </div>
-            <div>
-                <label class="labels">Ngày kết thúc<span class="text-red">*</span></label>
-                <input readonly="@IsReadOnly" type="date" class="form-control" @bind="@Topics.end_date">
-                @if (ShowError && Topics.end_date == null)
-                {
-                    <span class="text-danger">Vui lòng nhập ngày kết thúc.</span>
-                }
-            </div>
-        </div>
     </div>
 
-    <div class="d-flex gap-1 mt-2">
+    <div class="d-flex gap-1">
         <div class="mt-5 text-center">
             <button class="btn btn-primary" type="button" @onclick="OnCancel">Hủy</button>
         </div>

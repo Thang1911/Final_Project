@@ -35,7 +35,7 @@ namespace BlazorFE.Services
                 throw new ArgumentException("Scientist ID cannot be null or empty", nameof(scientistId));
 
             if (topicIds == null || !topicIds.Any())
-                throw new ArgumentException("Topic IDs cannot be null or empty", nameof(topicIds));
+                return null;
 
             var joinRequests = await _context.Set<scientist_topic_role>()
                 .Where(str => str.scientist_id != scientistId
@@ -48,7 +48,6 @@ namespace BlazorFE.Services
 
             return joinRequests;
         }
-
 
         public async Task<List<scientist_topic_role>> GetRequestTopicAsync(string scientistId, bool isJoining)
         {
@@ -79,7 +78,7 @@ namespace BlazorFE.Services
             return scientistTopics;
         }
 
-        public async Task<Boolean> AddTopicAndLinkToScientistAsync(Topics newTopic, string scientistId, string roleId, bool isJoining)
+        public async Task<bool> AddTopicAndLinkToScientistAsync(Topics newTopic, string scientistId, string roleId, bool isJoining)
         {
             if (newTopic == null) throw new ArgumentNullException(nameof(newTopic));
             if (string.IsNullOrEmpty(scientistId)) throw new ArgumentException("Scientist ID cannot be null or empty", nameof(scientistId));
@@ -118,7 +117,7 @@ namespace BlazorFE.Services
             }
         }
 
-        public async Task<Boolean> UpdateTopicAndLinkToScientistAsync(string topicId, Topics updatedTopic, string scientistId, string roleId, string? requestStatus, bool isUpdateRequest)
+        public async Task<bool> UpdateTopicAndLinkToScientistAsync(string topicId, Topics updatedTopic, string scientistId, string roleId, string? requestStatus, bool isUpdateRequest)
         {
             if (updatedTopic == null) throw new ArgumentNullException(nameof(updatedTopic));
             if (string.IsNullOrEmpty(topicId)) throw new ArgumentException("Topic ID cannot be null or empty", nameof(topicId));
@@ -166,7 +165,7 @@ namespace BlazorFE.Services
             }
         }
 
-        public async Task<Boolean> DeleteTopicAndLinkFromScientistAsync(string topicId, string scientistId)
+        public async Task<bool> DeleteTopicAndLinkFromScientistAsync(string topicId, string scientistId)
         {
             if (string.IsNullOrEmpty(topicId)) throw new ArgumentException("Topic ID cannot be null or empty", nameof(topicId));
             if (string.IsNullOrEmpty(scientistId)) throw new ArgumentException("Scientist ID cannot be null or empty", nameof(scientistId));

@@ -1,0 +1,104 @@
+﻿<form>
+    <div class="mt-2">
+        <!-- Hàng đầu tiên -->
+        <div class="auto-cols">
+            <div>
+                <label class="labels">Tên giáo trình<span class="text-red">*</span></label>
+                <input readonly="@IsReadOnly" type="text" class="form-control" placeholder="Tên giáo trình" @bind="@NewCurriculum.name">
+                @if (showError && string.IsNullOrWhiteSpace(NewCurriculum.name))
+                {
+                    <span class="text-danger">Vui lòng nhập tên giáo trình</span>
+                }
+            </div>
+            <div>
+                <label class="labels">Tên nhà xuất bản<span class="text-red">*</span></label>
+                <input readonly="@IsReadOnly" type="text" class="form-control" placeholder="Tên nhà xuất bản" @bind="@NewCurriculum.publisher">
+                @if (showError && string.IsNullOrWhiteSpace(NewCurriculum.publisher))
+                {
+                    <span class="text-danger">Vui lòng nhập tên nhà xuất bản</span>
+                }
+            </div>
+            <div>
+                <label class="labels">Năm xuất bản<span class="text-red">*</span></label>
+                <select disabled="@IsReadOnly" class="form-control" @bind="@NewCurriculum.year">
+                    <option value="0" selected>Chọn năm</option>
+                    @for (int year = DateTime.Now.Year; year >= 1900; year--)
+                    {
+                        <option value="@year">@year</option>
+                    }
+                </select>
+                @if (showError && NewCurriculum.year == 0)
+                {
+                    <span class="text-danger">Vui lòng chọn năm xuất bản.</span>
+                }
+            </div>
+        </div>
+
+        <!-- Hàng thứ hai -->
+        <div class="auto-cols mt-2">
+            <div>
+                <label class="labels">Loại sách<span class="text-red">*</span></label>
+                <select disabled="@IsReadOnly" class="form-control" @bind="@NewCurriculum.book_id">
+                    <option value="">Chọn loại sách</option>
+                    @foreach (var item in ListBooks)
+                    {
+                        <option value="@item.id">@item.book_name</option>
+                    }
+                </select>
+                @if (showError && string.IsNullOrWhiteSpace(NewCurriculum.book_id))
+                {
+                    <span class="text-danger">Vui lòng chọn loại bài báo.</span>
+                }
+            </div>
+            <div>
+                <label class="labels">Trình độ đào tạo<span class="text-red">*</span></label>
+                <select disabled="@IsReadOnly" class="form-control" @bind="@NewCurriculum.training_id">
+                    <option value="">Chọn trình độ đào tạo</option>
+                    @foreach (var item in ListTrainings)
+                    {
+                        <option value="@item.id">@item.training_name</option>
+                    }
+                </select>
+                @if (showError && string.IsNullOrWhiteSpace(NewCurriculum.training_id))
+                {
+                    <span class="text-danger">Vui lòng chọn trình độ đào tạo.</span>
+                }
+            </div>
+            <div>
+                <label class="labels">Vai trò<span class="text-red">*</span></label>
+                <select disabled="true" class="form-control" @bind="@RoleId">
+                    <option value="">Chọn vai trò</option>
+                    @foreach (var item in Roles)
+                    {
+                        <option value="@item.id">@item.role_name</option>
+                    }
+                </select>
+                @if (showError && string.IsNullOrWhiteSpace(RoleId))
+                {
+                    <span class="text-danger">Vui lòng chọn vai trò.</span>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-1 mt-2">
+        <div class="mt-5 text-center">
+            <button class="btn btn-primary" type="button" @onclick="OnCancel">Hủy</button>
+        </div>
+        <div class="mt-5 text-center">
+            <button class="btn btn-success" type="submit" @onclick="OnSave" @onclick:preventDefault>Lưu</button>
+        </div>
+    </div>
+</form>
+
+@code {
+    [Parameter] public Models.Curriculum.Curriculums NewCurriculum { get; set; }
+    [Parameter] public string RoleId { get; set; }
+    [Parameter] public List<Models.Category.Book> ListBooks { get; set; }
+    [Parameter] public List<Models.Category.Training> ListTrainings { get; set; }
+    [Parameter] public List<Models.Category.Role> Roles { get; set; }
+    [Parameter] public bool IsReadOnly { get; set; }
+    [Parameter] public bool showError { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public EventCallback OnSave { get; set; }
+}

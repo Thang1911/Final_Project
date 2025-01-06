@@ -1,0 +1,55 @@
+﻿@using BlazorFE.Models.Scientist
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Tên giáo trình</th>
+            <th scope="col">Năm xuất bản</th>
+            <th scope="col">Nhà xuất bản</th>
+            <th scope="col">Loại sách</th>
+            <th scope="col">Trình độ đào tạo</th>
+            <th scope="col">Vai trò</th>
+            <th scope="col">Trạng thái</th>
+            <th scope="col">Tệp đính kèm</th>
+            <th scope="col">Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (ListCurriculums != null && ListCurriculums.Count > 0)
+        {
+            int i = 1;
+            foreach (var item in ListCurriculums)
+            {
+                <tr>
+                    <th scope="row">@i</th>
+                    <td>@item?.Curriculums?.name</td>
+                    <td>@item?.Curriculums?.year</td>
+                    <td>@item?.Curriculums?.publisher</td>
+                    <td>@item?.Curriculums?.Book?.book_name</td>
+                    <td>@item?.Curriculums?.Training?.training_name</td>
+                    <td>@item?.requestStatus</td>
+                    <td>@item?.Role?.role_name</td>
+                    <td></td>
+                    <td>
+                        <button class="btn btn-warning" @onclick="() => OnEdit.InvokeAsync(item.Curriculums)">Chỉnh sửa</button>
+                        <button class="btn btn-danger" @onclick="() => OnDelete.InvokeAsync(item.Curriculums)">Xóa</button>
+                    </td>
+                </tr>
+                i++;
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="8" class="text-center">Không có dữ liệu</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    [Parameter] public List<ScientistCurriculumRole> ListCurriculums { get; set; }
+    [Parameter] public EventCallback<Models.Curriculum.Curriculums> OnEdit { get; set; }
+    [Parameter] public EventCallback<Models.Curriculum.Curriculums> OnDelete { get; set; }
+}

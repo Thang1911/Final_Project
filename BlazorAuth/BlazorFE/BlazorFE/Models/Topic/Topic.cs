@@ -13,8 +13,8 @@ namespace BlazorFE.Models.Topic
         [ForeignKey(nameof(LvTopics))]
         public string lvtopic_id { get; set; }
         public virtual LvTopics? LvTopics { get; set; }
-        public DateTime start_date { get; set; }
-        public DateTime end_date { get; set; }
+        public DateTime? start_date { get; set; }
+        public DateTime? end_date { get; set; }
         public DateTime created_at { get; set; }
         public DateTime updated_at { get; set; }
     }

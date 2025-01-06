@@ -152,8 +152,8 @@
                                         @displayName
                                     </td>
                                     <td>@item?.Scientist?.profile_name</td>
-                                    <td>@item?.Topics?.start_date.ToShortDateString()</td>
-                                    <td>@item?.Topics?.end_date.ToShortDateString()</td>
+                                    <td>@item?.Topics?.start_date?.ToShortDateString()</td>
+                                    <td>@item?.Topics?.end_date?.ToShortDateString()</td>
                                     <td>
                                         @if (MyTopics.Any(myTopic => myTopic.Topics?.id == item.Topics?.id))
                                         {
@@ -276,7 +276,7 @@
                     ListTopics = await TopicServices.GetRequestTopicAsync(scientist.id, true);
                     lvTopics = await LvTopicServices.GetListLvTopic();
                     var result = await RoleServices.GetListRole(RoleType.topic.ToString());
-                    roles = result.Where(role => role.role_name != "Chủ nhiệm dự án").ToList();
+                    roles = result.Where(role => role.role_name != "Chủ nhiệm dự án" && role.role_type == RoleType.topic.ToString()).ToList();
                 }
             }
             else

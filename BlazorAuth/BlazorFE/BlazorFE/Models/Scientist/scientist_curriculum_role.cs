@@ -21,6 +21,8 @@ namespace BlazorFE.Models.Scientist
         [ForeignKey("Role")]
         public string role_id { get; set; }
         public virtual Role? Role { get; set; }
+        public bool? status { get; set; }
+        public string? requestStatus { get; set; }
         public DateTime created_at { get; set; }
         public DateTime updated_at { get; set; }
     }
