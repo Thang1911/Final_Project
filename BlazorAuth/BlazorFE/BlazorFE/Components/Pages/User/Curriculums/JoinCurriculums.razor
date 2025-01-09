@@ -113,14 +113,14 @@
                                 </div>
                             </div>
 
-                            <div class="d-flex gap-1 mt-2">
+                            <div class="d-flex gap-1">
                                 <div class="mt-5 text-center">
+                                    <button class="btn btn-warning" type="button" @onclick="Cancle">Hủy</button>
                                     <button class="btn btn-primary" type="button" @onclick="SaveRequest">Tham gia</button>
                                 </div>
                             </div>
                         </form>
                     }
-
                 </div>
                 <table class="table table-striped table-hover">
                     <thead>
@@ -148,7 +148,7 @@
                                     <td>@item?.Scientist?.profile_name</td>
                                     <td>@item?.Curriculums?.year</td>
                                     <td>
-                                        @if (MyCurriculums.Any(myCurriculum => myCurriculum.Curriculums?.id == item.Curriculums?.id))
+                                        @if (MyCurriculums.Any(myCurriculum => myCurriculum?.Curriculums?.id == item?.Curriculums?.id))
                                         {
                                             <button class="btn btn-secondary" disabled>
                                                 @item?.requestStatus
@@ -166,7 +166,7 @@
                         else
                         {
                             <tr>
-                                <td colspan="8" class="text-center">Không có dữ liệu</td>
+                                <td colspan="7" class="text-center">Không có dữ liệu</td>
                             </tr>
                         }
                     </tbody>
@@ -259,7 +259,7 @@
                     ListCurriculums = await CurriculumServices.GetRequestCurriculumAsync(scientist.id, true);
                     ListBooks = await BookServices.GetListBook();
                     ListTrainings = await TrainingServices.GetListTraining();
-                    var result = await RoleServices.GetListRole(RoleType.topic.ToString());
+                    var result = await RoleServices.GetListRole(RoleType.curriculum.ToString());
                     roles = result.Where(role => role.role_name != "Tác giả" && role.role_type == RoleType.curriculum.ToString()).ToList();
                 }
             }
@@ -294,7 +294,8 @@
             var result = await CurriculumServices.AddCurriculumAndLinkToScientistAsync(NewCurriculum, scientist.id, roleId, true);
             if (result)
             {
-                ListCurriculums = await CurriculumServices.GetRequestCurriculumAsync(scientist.id, false);
+                MyCurriculums = await CurriculumServices.GetCurriculumsByScientistIdAsync(scientist.id);
+                ListCurriculums = await CurriculumServices.GetRequestCurriculumAsync(scientist.id, true);
             }
 
             isJoining = false;

@@ -24,14 +24,17 @@
         <div class="justify-content-center">
             <div class="border-right d-flex flex-column gap-4">
                 <div class="">
-                    <button class="btn btn-success" @onclick="ToggleCurriculum">Thêm giáo trình, sách tham khảo</button>
+                    <div class="d-flex flex-row gap-2">
+                        <button class="btn btn-success" @onclick="ToggleCurriculum">Thêm giáo trình, sách tham khảo</button>
+                        <button class="btn btn-primary" @onclick="JoinCurriculum">Tham gia</button>
+                    </div>
                     @if (scientist != null && isAdd)
                     {
-                        <CurriculumForm NewCurriculum="@curriculum" RoleId="@roleId" ListBooks="@books" ListTrainings="@trainings" IsReadOnly="@isReadOnly" showError="@showError" OnCancel="ToggleCurriculum" OnSave="SaveCurriculum" />
+                        <CurriculumForm NewCurriculum="@curriculum" RoleId="@roleId" Roles="@roles" ListBooks="@books" ListTrainings="@trainings" IsReadOnly="@isReadOnly" showError="@showError" OnCancel="ToggleCurriculum" OnSave="SaveCurriculum" />
                     }
 
                 </div>
-                <TableCurriculum ListCurriculums="@curriculums" OnEdit="UpdateCurriculum" OnDelete="DeleteCurriculum" />
+                <TableCurriculum AuthorRoleId="@roleId" ListCurriculums="@curriculums" OnEdit="EditCurriculum" OnDelete="DeleteCurriculum" />
                 <div>
                     <h3>Danh sách yêu cầu tham gia:</h3>
                     <table class="table table-striped table-hover">
@@ -68,7 +71,7 @@
                             else
                             {
                                 <tr>
-                                    <td colspan="8" class="text-center">Không có yêu cầu tham gia</td>
+                                    <td colspan="6" class="text-center">Không có yêu cầu tham gia</td>
                                 </tr>
                             }
                         </tbody>
@@ -171,8 +174,8 @@
                     if (curriculums != null && curriculums.Any())
                     {
                         ListCurriculumIds = curriculums
-                            .Where(topic => topic.Role != null && topic.Role.role_name == "Tác giả")
-                            .Select(curriculum => curriculum.id)
+                            .Where(curriculum => curriculum.Role != null && curriculum.Role.role_name == "Tác giả")
+                            .Select(curriculum => curriculum.curriculum_id)
                             .ToList();
                         RequestCurriculums = await CurriculumServices.GetJoinRequestsByScientistIdAsync(scientist.id, ListCurriculumIds);
                     }
@@ -301,7 +304,7 @@
 
             if (confirm && !string.IsNullOrWhiteSpace(requestCurriculum?.Curriculums?.id) && !string.IsNullOrWhiteSpace(requestCurriculum?.Scientist?.id) && !string.IsNullOrWhiteSpace(requestCurriculum?.Role?.id))
             {
-                var result = await CurriculumServices.UpdateCurriculumAndLinkToScientistAsync(requestCurriculum.Curriculums.id, requestCurriculum.Curriculums, requestCurriculum.Scientist.id, requestCurriculum.Role.id, isAccept ? "Đã tham gia" : "Từ chối", true);
+                var result = await CurriculumServices.UpdateCurriculumAndLinkToScientistAsync(requestCurriculum.Curriculums.id, requestCurriculum.Curriculums, requestCurriculum.Scientist.id, requestCurriculum.Role.id, isAccept ? "Đã tham gia" : "Bị từ chối", true);
                 if (result)
                 {
                     ListCurriculumIds = curriculums.Select(curriculum => curriculum.id).ToList();

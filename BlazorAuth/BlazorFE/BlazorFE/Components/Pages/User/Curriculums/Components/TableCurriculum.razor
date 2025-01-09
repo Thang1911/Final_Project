@@ -28,12 +28,20 @@
                     <td>@item?.Curriculums?.publisher</td>
                     <td>@item?.Curriculums?.Book?.book_name</td>
                     <td>@item?.Curriculums?.Training?.training_name</td>
-                    <td>@item?.requestStatus</td>
                     <td>@item?.Role?.role_name</td>
+                    <td>@item?.requestStatus</td>
                     <td></td>
                     <td>
-                        <button class="btn btn-warning" @onclick="() => OnEdit.InvokeAsync(item.Curriculums)">Chỉnh sửa</button>
-                        <button class="btn btn-danger" @onclick="() => OnDelete.InvokeAsync(item.Curriculums)">Xóa</button>
+                        <button class="btn btn-warning"
+                                @onclick="() => OnEdit.InvokeAsync(item?.Curriculums)"
+                                disabled="@((item?.Role?.id != AuthorRoleId))">
+                            Chỉnh sửa
+                        </button>
+                        <button class="btn btn-danger"
+                                @onclick="() => OnDelete.InvokeAsync(item?.Curriculums)"
+                                disabled="@((item?.Role?.id != AuthorRoleId))">
+                            Xóa
+                        </button>
                     </td>
                 </tr>
                 i++;
@@ -42,7 +50,7 @@
         else
         {
             <tr>
-                <td colspan="8" class="text-center">Không có dữ liệu</td>
+                <td colspan="10" class="text-center">Không có dữ liệu</td>
             </tr>
         }
     </tbody>
@@ -50,6 +58,7 @@
 
 @code {
     [Parameter] public List<ScientistCurriculumRole> ListCurriculums { get; set; }
+    [Parameter] public string AuthorRoleId { get; set; }
     [Parameter] public EventCallback<Models.Curriculum.Curriculums> OnEdit { get; set; }
     [Parameter] public EventCallback<Models.Curriculum.Curriculums> OnDelete { get; set; }
 }

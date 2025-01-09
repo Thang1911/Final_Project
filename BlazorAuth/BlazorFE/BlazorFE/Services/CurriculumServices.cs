@@ -36,14 +36,13 @@ namespace BlazorFE.Services
         {
             if (string.IsNullOrEmpty(scientistId))
                 throw new ArgumentException("Scientist ID cannot be null or empty", nameof(scientistId));
-
             if (curriculumIds == null || !curriculumIds.Any())
                 return null;
 
             var joinRequests = await _context.Set<ScientistCurriculumRole>()
                 .Where(str => str.scientist_id != scientistId
                     && str.requestStatus == "Chờ duyệt"
-                    && curriculumIds.Contains(str.id))
+                    && curriculumIds.Contains(str.curriculum_id))
                 .Include(scr => scr.Curriculums)
                     .ThenInclude(c => c.Book)
                 .Include(scr => scr.Curriculums)
@@ -75,7 +74,7 @@ namespace BlazorFE.Services
                 query = query.Where(str => str.scientist_id == scientistId);
             }
 
-            var scientistTopics = await query
+            var scientistCurriculum = await query
                 .Include(scr => scr.Curriculums)
                     .ThenInclude(c => c.Book)
                 .Include(scr => scr.Curriculums)
@@ -84,7 +83,7 @@ namespace BlazorFE.Services
                 .Include(str => str.Scientist)
                 .ToListAsync();
 
-            return scientistTopics;
+            return scientistCurriculum;
         }
 
         // Add a Curriculum and Link to Scientist
