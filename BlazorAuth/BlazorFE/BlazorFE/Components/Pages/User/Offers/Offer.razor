@@ -3,13 +3,16 @@
 
 @using System.Security.Claims;
 @using BlazorFE.Models.Scientist;
+@using BlazorFE.Components.Pages.User.Offers.Components
 @using BlazorFE.Services;
 @using BlazorFE.Enums;
 @using System.ComponentModel.DataAnnotations;
 @using BlazorFE.Services.Category;
+
 @inject ScientistServices ProfileServices
 @inject OfferServices OfferServices
 @inject RoleServices RoleServices
+@inject ProposeServices ProposeServices
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
@@ -20,125 +23,61 @@
 
     <div class="bg-white mt-3">
         <div class="justify-content-center">
-            <div class="border-right">
-                <div class="flex-column gap-2">
-                    <button class="btn btn-success" @onclick="ToggleOffer">Thêm đề xuất</button>
+            <div class="border-right d-flex flex-column gap-4">
+                <div>
+                    <div class="d-flex flex-row gap-2">
+                        <button class="btn btn-success" @onclick="ToggleOffer">Thêm đề xuất</button>
+                        <button class="btn btn-primary" @onclick="JoinOffer">Tham gia</button>
+                    </div>
                     @if (scientist != null && isAdd)
                     {
-                        <form>
-                            <div class="mt-2">
-                                <!-- Hàng đầu tiên -->
-                                <div class="auto-cols">
-                                    <div>
-                                        <label class="labels">Tên đề xuất<span class="text-red">*</span></label>
-                                        <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Tên đề xuất" @bind="@offer.offer_name">
-                                        @if (showError && string.IsNullOrWhiteSpace(curriculum.name))
-                                        {
-                                            <span class="text-danger">Vui lòng nhập tên đề xuất</span>
-                                        }
-                                    </div>
-                                    <div>
-                                        <label class="labels">Ghi chú <span class="text-gray">(Tùy chọn)</span></label>
-                                        <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Ghi chú" @bind="@offer.note">
-                                    </div>
-                                </div>
-
-                                <!-- Hàng thứ hai -->
-                                <div class="auto-cols mt-2">
-                                    <div>
-                                        <label class="labels">Năm<span class="text-red">*</span></label>
-                                        <select disabled="@isReadOnly" type="text" class="form-control" @bind="@offer.year">
-                                            <option value="0" selected>Chọn năm</option>
-                                            @for (int year = DateTime.Now.Year; year >= 1900; year--)
-                                            {
-                                                <option value="@year">@year</option>
-                                            }
-                                        </select>
-                                        @if (showError && offer.year == 0)
-                                        {
-                                            <span class="text-danger">Vui lòng chọn năm.</span>
-                                        }
-                                    </div>
-                                    <div>
-                                        <label class="labels">Loại đề xuất<span class="text-red">*</span></label>
-                                        <select disabled="@isReadOnly" type="text" class="form-control" @bind="@offer.propose_id">
-                                            <option value="">Chọn loại đề xuất</option>
-                                            <option value="340AAA45-A780-4AF3-8FD5-C85605E8F3F0">Ðể tài cấp cơ sở phân cấp</option>
-                                        </select>
-                                        @if (showError && string.IsNullOrWhiteSpace(curriculum.training_id))
-                                        {
-                                            <span class="text-danger">Vui lòng chọn loại đề xuất.</span>
-                                        }
-                                    </div>
-                                    <div>
-                                        <label class="labels">Vai trò<span class="text-red">*</span></label>
-                                        <select disabled="@isReadOnly" type="text" class="form-control" @bind="@roleId">
-                                            <option value="">Chọn vai trò</option>
-                                            <option value="B9166D33-14BA-4938-AAE9-84BC004F9A99">Chủ nhiệm dự án</option>
-                                        </select>
-                                        @if (showError && string.IsNullOrWhiteSpace(roleId))
-                                        {
-                                            <span class="text-danger">Vui lòng chọn vai tró.</span>
-                                        }
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="d-flex gap-1 mt-2">
-                                <div class="mt-5 text-center">
-                                    <button class="btn btn-primary" type="button" @onclick="ToggleOffer">Hủy</button>
-                                </div>
-                                <div class="mt-5 text-center">
-                                    <button class="btn btn-success" type="submit" @onclick="SaveOffer" @onclick:preventDefault>Lưu</button>
-                                </div>
-                            </div>
-                        </form>
+                        <OfferForm NewOffer="@offer" RoleId="@roleId" Roles="@roles" ListProposes="@proposes" IsReadOnly="@isReadOnly" showError="@showError" OnCancel="ToggleOffer" OnSave="SaveOffer" />
                     }
 
                 </div>
-                <table class="table table-striped table-hover mt-3">
-                    <thead>
-                        <tr>
-                            <th scope="col">#</th>
-                            <th scope="col">Tên đề xuất</th>
-                            <th scope="col">Năm</th>
-                            <th scope="col">Loại đề xuất</th>
-                            <th scope="col">Ghi chú</th>
-                            <th scope="col">Trạng thái</th>
-                            <th scope="col">Vai trò</th>
-                            <th scope="col">Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (offers != null && offers.Count > 0)
-                        {
-                            int i = 1;
-                            foreach (var item in offers)
+                <ListOffersTable ListOffers="@offers" OnDelete="DeleteOffer" OnEdit="EditOffer" />
+                <div>
+                    <h3>Danh sách yêu cầu tham gia:</h3>
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Tên đề xuất</th>
+                                <th scope="col">Loại đề xuất</th>
+                                <th scope="col">Người yêu cầu</th>
+                                <th scope="col">Vai trò</th>
+                                <th scope="col">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (RequestOffers != null && RequestOffers.Count > 0)
+                            {
+                                int i = 1;
+                                foreach (var item in RequestOffers)
+                                {
+                                    <tr>
+                                        <th scope="row">@i</th>
+                                        <td>@item?.Offer?.offer_name</td>
+                                        <td>@item?.Offer?.Propose?.propose_name</td>
+                                        <td>@item?.Scientist?.profile_name</td>
+                                        <td>@item?.Role?.role_name</td>
+                                        <td>
+                                            <button class="btn btn-warning" @onclick="() => UpdateRequest(item, true)">Duyệt</button>
+                                            <button class="btn btn-danger" @onclick="() => UpdateRequest(item, false)">Từ chối</button>
+                                        </td>
+                                    </tr>
+                                    i++;
+                                }
+                            }
+                            else
                             {
                                 <tr>
-                                    <th scope="row">@i</th>
-                                    <td>@item?.Offer?.offer_name</td>
-                                    <td>@item?.Offer?.year</td>
-                                    <td>@item?.Offer?.Propose?.propose_name</td>
-                                    <td>@item?.Offer?.note</td>
-                                    <td>@item?.Offer?.status</td>
-                                    <td>@item?.Role?.role_name</td>
-                                    <td>
-                                        <button class="btn btn-warning" @onclick="() => EditOffer(item.Offer)">Chỉnh sửa</button>
-                                        <button class="btn btn-danger" @onclick="() => DeleteOffer(item.Offer)">Xóa</button>
-                                    </td>
+                                    <td colspan="6" class="text-center">Không có yêu cầu tham gia</td>
                                 </tr>
-                                i++;
                             }
-                        }
-                        else
-                        {
-                            <tr>
-                                <td colspan="8" class="text-center">Không có dữ liệu</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -183,10 +122,11 @@
     private string roleId = "";
     private List<Models.Category.Role> roles { get; set; }
     private Scientist scientist { get; set; }
-    private Models.Curriculum.Curriculums curriculum { get; set; }
-    private List<ScientistCurriculumRole> curriculums { get; set; }
     private Models.Offer.Offers offer { get; set; }
     private List<ScientistOfferRole> offers { get; set; }
+    private List<ScientistOfferRole> RequestOffers { get; set; }
+    private List<string> ListOfferIds { get; set; }
+    private List<Models.Category.Propose> proposes { get; set; }
 
     private void EditOffer(Models.Offer.Offers editOffer)
     {
@@ -201,6 +141,11 @@
         isAdd = !isAdd;
         isReadOnly = !isReadOnly;
         offer = new Models.Offer.Offers();
+    }
+
+    private void JoinOffer()
+    {
+        NavigationManager.NavigateTo("/User/JoinOffers");
     }
 
     private async Task SaveOffer()
@@ -231,6 +176,26 @@
                 {
                     scientist = response;
                     offers = await OfferServices.GetOffersByScientistIdAsync(scientist.id);
+                    if (offers != null && offers.Any())
+                    {
+                        ListOfferIds = offers
+                            .Where(offer => offer.Role != null && offer.Role.role_name == "Chủ nhiệm dự án")
+                            .Select(offer => offer.offer_id)
+                            .ToList();
+                        RequestOffers = await OfferServices.GetJoinRequestsByScientistIdAsync(scientist.id, ListOfferIds);
+                    }
+                    proposes = await ProposeServices.GetListPropose();
+                    roles = await RoleServices.GetListRole(RoleType.topic.ToString());
+                    var role = roles.FirstOrDefault(role => role.role_name == "Chủ nhiệm dự án" && role.role_type == RoleType.topic.ToString());
+
+                    if (role != null)
+                    {
+                        roleId = role.id;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Role not found");
+                    }
                 }
             }
             else
@@ -266,7 +231,7 @@
             offer.created_at = DateTime.Now;
             offer.updated_at = DateTime.Now;
 
-            var result = await OfferServices.AddOfferAndLinkToScientistAsync(offer, scientist.id, roleId);
+            var result = await OfferServices.AddOfferAndLinkToScientistAsync(offer, scientist.id, roleId, false);
             if (result)
             {
                 offers = await OfferServices.GetOffersByScientistIdAsync(scientist.id);
@@ -299,7 +264,7 @@
                 throw new InvalidOperationException("Scientist or role information is missing.");
             }
 
-            var result = await OfferServices.UpdateOfferAndLinkToScientistAsync(offer.id, offer, scientist.id, roleId);
+            var result = await OfferServices.UpdateOfferAndLinkToScientistAsync(offer.id, offer, scientist.id, roleId, null, false);
             if (result)
             {
                 offers = await OfferServices.GetOffersByScientistIdAsync(scientist.id);
@@ -327,6 +292,28 @@
                 if (result)
                 {
                     offers = await OfferServices.GetOffersByScientistIdAsync(scientist.id);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"An error occurred while deleting: {ex.Message}");
+        }
+    }
+
+    private async Task UpdateRequest(ScientistOfferRole requestOffer, bool isAccept)
+    {
+        try
+        {
+            var confirm = await JSRuntime.InvokeAsync<bool>("confirm", new object[] { isAccept ? "Bạn có chắc muốn duyệt yêu cầu này?" : "Bạn có chắc muốn từ chối yêu cầu này?" });
+
+            if (confirm && !string.IsNullOrWhiteSpace(requestOffer?.Offer?.id) && !string.IsNullOrWhiteSpace(requestOffer?.Scientist?.id) && !string.IsNullOrWhiteSpace(requestOffer?.Role?.id))
+            {
+                var result = await OfferServices.UpdateOfferAndLinkToScientistAsync(requestOffer.offer_id, requestOffer.Offer, requestOffer.Scientist.id, requestOffer.Role.id, isAccept ? "Đã tham gia" : "Bị từ chối", true);
+                if (result)
+                {
+                    ListOfferIds = offers.Select(offer => offer.id).ToList();
+                    RequestOffers = await OfferServices.GetJoinRequestsByScientistIdAsync(scientist.id, ListOfferIds);
                 }
             }
         }

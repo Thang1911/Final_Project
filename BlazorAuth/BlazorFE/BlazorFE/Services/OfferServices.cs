@@ -29,8 +29,58 @@ namespace BlazorFE.Services
             return scientistOffers;
         }
 
+        public async Task<List<ScientistOfferRole>> GetJoinRequestsByScientistIdAsync(string scientistId, List<string> offerIds)
+        {
+            if (string.IsNullOrEmpty(scientistId))
+                throw new ArgumentException("Scientist ID cannot be null or empty", nameof(scientistId));
+            if (offerIds == null || !offerIds.Any())
+                return null;
+
+            var joinRequests = await _context.Set<ScientistOfferRole>()
+                .Where(scr => scr.scientist_id != scientistId
+                    && scr.requestStatus == "Chờ duyệt"
+                    && offerIds.Contains(scr.offer_id))
+                .Include(scr => scr.Offer)
+                    .ThenInclude(o => o.Propose)
+                .Include(scr => scr.Role)
+                .Include(scr => scr.Scientist)
+                .ToListAsync();
+
+            return joinRequests;
+        }
+
+        public async Task<List<ScientistOfferRole>> GetRequesOfferAsync(string scientistId, bool isJoining)
+        {
+            if (string.IsNullOrEmpty(scientistId))
+                throw new ArgumentException("Scientist ID cannot be null or empty", nameof(scientistId));
+
+            const string ProjectLeaderRole = "Chủ nhiệm dự án";
+
+            var query = _context.Set<ScientistOfferRole>().AsQueryable();
+
+            if (isJoining)
+            {
+                query = query.Where(str => str.scientist_id != scientistId
+                                           && str.Role != null
+                                           && str.Role.role_name == ProjectLeaderRole);
+            }
+            else
+            {
+                query = query.Where(str => str.scientist_id == scientistId);
+            }
+
+            var scientistCurriculum = await query
+                .Include(scr => scr.Offer)
+                    .ThenInclude(o => o.Propose)
+                .Include(scr => scr.Role)
+                .Include(scr => scr.Scientist)
+                .ToListAsync();
+
+            return scientistCurriculum;
+        }
+
         // Add a Offer and Link to Scientist
-        public async Task<bool> AddOfferAndLinkToScientistAsync(Offers newOffer, string scientistId, string roleId)
+        public async Task<bool> AddOfferAndLinkToScientistAsync(Offers newOffer, string scientistId, string roleId, bool isJoining)
         {
             if (newOffer == null) throw new ArgumentNullException(nameof(newOffer));
             if (string.IsNullOrEmpty(scientistId)) throw new ArgumentException("Scientist ID cannot be null or empty", nameof(scientistId));
@@ -39,15 +89,17 @@ namespace BlazorFE.Services
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                await _context.Set<Offers>().AddAsync(newOffer);
-                await _context.SaveChangesAsync();
-
+                if (!isJoining) { 
+                    await _context.Set<Offers>().AddAsync(newOffer);
+                    await _context.SaveChangesAsync();
+                }
                 var scientistOfferRole = new ScientistOfferRole
                 {
                     id = Guid.NewGuid().ToString(),
                     scientist_id = scientistId,
                     offer_id = newOffer.id,
                     role_id = roleId,
+                    requestStatus = isJoining ? "Chờ duyệt" : "Đã tham gia",
                     created_at = DateTime.UtcNow,
                     updated_at = DateTime.UtcNow
                 };
@@ -67,7 +119,7 @@ namespace BlazorFE.Services
         }
 
         // Update a Offer and Link to Scientist
-        public async Task<bool> UpdateOfferAndLinkToScientistAsync(string offerId, Offers updatedOffer, string scientistId, string roleId)
+        public async Task<bool> UpdateOfferAndLinkToScientistAsync(string offerId, Offers updatedOffer, string scientistId, string roleId,string? requestStatus, bool isUpdateRequest)
         {
             if (updatedOffer == null) throw new ArgumentNullException(nameof(updatedOffer));
             if (string.IsNullOrEmpty(offerId)) throw new ArgumentException("Curriculum ID cannot be null or empty", nameof(offerId));
@@ -96,6 +148,10 @@ namespace BlazorFE.Services
                 if (scientistOfferRole != null)
                 {
                     scientistOfferRole.role_id = roleId;
+                    if (isUpdateRequest)
+                    {
+                        scientistOfferRole.requestStatus = requestStatus;
+                    }
                     scientistOfferRole.updated_at = DateTime.UtcNow;
                     _context.Set<ScientistOfferRole>().Update(scientistOfferRole);
                     await _context.SaveChangesAsync();

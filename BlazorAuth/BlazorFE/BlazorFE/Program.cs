@@ -30,6 +30,7 @@ builder.Services.AddScoped<OfferServices>();
 builder.Services.AddScoped<OfficeServices>();
 builder.Services.AddScoped<TrainingServices>();
 builder.Services.AddScoped<BookServices>();
+builder.Services.AddScoped<ProposeServices>();
 
 builder.Services.AddAuthentication(options =>
     {
