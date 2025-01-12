@@ -1,0 +1,184 @@
+﻿@page "/Admin/Category/Offices"
+@rendermode InteractiveServer
+
+@using BlazorFE.Models.Category
+@using BlazorFE.Services
+@inject OfficeServices OfficeServices
+@inject IJSRuntime JSRuntime
+
+<h3>Quản lý cơ quan</h3>
+
+<div class="mb-3">
+    <button class="btn btn-success" @onclick="ToggleAddOffice">Thêm cơ quan</button>
+</div>
+
+@if (isAdd)
+{
+    <form>
+        <div class="mt-2 row align-items-center gap-2">
+            <!-- Mã cơ quan và Tên cơ quan nằm cùng một dòng -->
+            <div class="col-md-5">
+                <label class="form-label">Mã cơ quan<span class="text-danger">*</span></label>
+                <input type="text" class="form-control" @bind="office.office_id">
+                @if (showError && string.IsNullOrWhiteSpace(office.office_id))
+                {
+                    <span class="text-danger">Vui lòng nhập mã cơ quan.</span>
+                }
+            </div>
+            <div class="col-md-5">
+                <label class="form-label">Tên cơ quan<span class="text-danger">*</span></label>
+                <input type="text" class="form-control" @bind="office.office_name">
+                @if (showError && string.IsNullOrWhiteSpace(office.office_name))
+                {
+                    <span class="text-danger">Vui lòng nhập tên cơ quan.</span>
+                }
+            </div>
+
+            <!-- Địa chỉ nằm một dòng riêng -->
+            <div class="col-md-12">
+                <label class="form-label">Địa chỉ</label>
+                <input type="text" class="form-control" @bind="office.address">
+            </div>
+
+            <!-- Số điện thoại, Email, Mã văn phòng phụ nằm cùng một dòng -->
+            <div class="col-md-3">
+                <label class="form-label">Số điện thoại</label>
+                <input type="number" class="form-control" @bind="office.phone">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control" @bind="office.email">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Cơ quan cha (nếu có)</label>
+                <input type="text" class="form-control" @bind="office.office_parent">
+            </div>
+        </div>
+
+        <!-- Các nút Lưu và Hủy -->
+        <div class="mt-3 d-flex justify-content-end gap-3">
+            <button class="btn btn-success" type="button" @onclick="SaveOffice">Lưu</button>
+            <button class="btn btn-primary me-2" @onclick="ToggleAddOffice">Hủy</button>
+        </div>
+    </form>
+}
+
+<table class="table table-striped mt-3">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Mã cơ quan</th>
+            <th>Tên cơ quan</th>
+            <th>Địa chỉ</th>
+            <th>Số điện thoại</th>
+            <th>Email</th>
+            <th>Ngày tạo</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (offices != null && offices.Count > 0)
+        {
+            int i = 1;
+            foreach (var item in offices)
+            {
+                <tr>
+                    <td>@i</td>
+                    <td>@item.office_id</td>
+                    <td>@item.office_name</td>
+                    <td>@item.address</td>
+                    <td>@item.phone</td>
+                    <td>@item.email</td>
+                    <td>@item.created_at.ToString("dd/MM/yyyy")</td>
+                    <td>
+                        <button class="btn btn-warning me-2" @onclick="() => EditOffice(item)">Sửa</button>
+                        <button class="btn btn-danger" @onclick="() => DeleteOffice(item.id)">Xóa</button>
+                    </td>
+                </tr>
+                i++;
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="8" class="text-center">Không có dữ liệu</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<Office> offices { get; set; } = new();
+    private Office office { get; set; } = new();
+    private bool isAdd = false;
+    private bool showError = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadOffices();
+    }
+
+    private async Task LoadOffices()
+    {
+        offices = await OfficeServices.GetListOffices();
+    }
+
+    private void ToggleAddOffice()
+    {
+        isAdd = !isAdd;
+        office = new Office();
+        showError = false;
+    }
+
+    private void EditOffice(Office editOffice)
+    {
+        isAdd = true;
+        office = new Office
+            {
+                id = editOffice.id,
+                office_id = editOffice.office_id,
+                office_name = editOffice.office_name,
+                address = editOffice.address,
+                phone = editOffice.phone,
+                email = editOffice.email,
+                office_parent = editOffice.office_parent,
+                created_at = editOffice.created_at,
+                updated_at = editOffice.updated_at
+            };
+    }
+
+    private async Task SaveOffice()
+    {
+        if (string.IsNullOrWhiteSpace(office.office_name))
+        {
+            showError = true;
+            return;
+        }
+
+        if (string.IsNullOrEmpty(office.id))
+        {
+            office.id = Guid.NewGuid().ToString();
+            office.created_at = DateTime.Now;
+            office.updated_at = DateTime.Now;
+            await OfficeServices.AddOffice(office);
+        }
+        else
+        {
+            office.updated_at = DateTime.Now;
+            await OfficeServices.UpdateOffice(office);
+        }
+
+        isAdd = false;
+        await LoadOffices();
+    }
+
+    private async Task DeleteOffice(string officeId)
+    {
+        var confirm = await JSRuntime.InvokeAsync<bool>("confirm", "Bạn có chắc chắn muốn xóa văn phòng này?");
+        if (confirm)
+        {
+            await OfficeServices.DeleteOffice(officeId);
+            await LoadOffices();
+        }
+    }
+}

@@ -1,0 +1,141 @@
+﻿@page "/Admin/Category/Trainings"
+@rendermode InteractiveServer
+
+@using BlazorFE.Models.Category
+@using BlazorFE.Services.Category
+
+@inject TrainingServices TrainingServices
+@inject IJSRuntime JSRuntime
+
+<h3>Quản lý Cấp độ Đào tạo</h3>
+
+<form>
+    <div class="mt-2 row align-items-center">
+        <div class="col-md-8">
+            <label class="form-label">Tên cấp độ đào tạo<span class="text-danger">*</span></label>
+            <input type="text" class="form-control" @bind="training.training_name">
+            @if (showError && string.IsNullOrWhiteSpace(training.training_name))
+            {
+                <span class="text-danger">Vui lòng nhập tên cấp độ đào tạo.</span>
+            }
+        </div>
+        <div class="col-md-4 d-flex justify-content-end">
+            <button class="btn btn-primary me-2" type="button" @onclick="CancelAddTraining">Hủy</button>
+            <button class="btn btn-success" type="button" @onclick="SaveTraining">Lưu</button>
+        </div>
+    </div>
+</form>
+
+<hr />
+
+<h4>Danh sách cấp độ đào tạo</h4>
+<table class="table table-striped mt-3">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Tên cấp độ đào tạo</th>
+            <th>Ngày tạo</th>
+            <th>Ngày cập nhật</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (trainings == null || !trainings.Any())
+        {
+            <tr>
+                <td colspan="5" class="text-center">Chưa có cấp độ đào tạo nào.</td>
+            </tr>
+        }
+        else
+        {
+            @if (trainings != null && trainings.Count > 0)
+            {
+                int i = 1;
+                @foreach (var item in trainings)
+                {
+                    <tr>
+                        <td>@i</td>
+                        <td>@item.training_name</td>
+                        <td>@item.created_at.ToString("dd/MM/yyyy")</td>
+                        <td>@item.updated_at.ToString("dd/MM/yyyy")</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm me-2" @onclick="() => EditTraining(item)">Sửa</button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => DeleteTraining(item.id)">Xóa</button>
+                        </td>
+                    </tr>
+                }           
+                i++;
+            }
+        }
+    </tbody>
+</table>
+
+@code {
+    private Training training = new Training();
+    private List<Training> trainings = new();
+    private bool showError = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTrainings();
+    }
+
+    private async Task LoadTrainings()
+    {
+        trainings = await TrainingServices.GetListTraining();
+    }
+
+    private async Task SaveTraining()
+    {
+        if (string.IsNullOrWhiteSpace(training.training_name))
+        {
+            showError = true;
+            return;
+        }
+
+        showError = false;
+        if (string.IsNullOrWhiteSpace(training.id))
+        {
+            training.id = Guid.NewGuid().ToString();
+            training.created_at = DateTime.Now;
+            training.updated_at = DateTime.Now;
+            await TrainingServices.AddTraining(training);
+        }
+        else
+        {
+            training.updated_at = DateTime.Now;
+            await TrainingServices.UpdateTraining(training);
+        }
+
+        await LoadTrainings();
+        ResetTraining();
+    }
+
+    private void ResetTraining()
+    {
+        training = new Training();
+    }
+
+    private void EditTraining(Training selectedTraining)
+    {
+        training = new Training
+            {
+                id = selectedTraining.id,
+                training_name = selectedTraining.training_name,
+                created_at = selectedTraining.created_at,
+                updated_at = selectedTraining.updated_at
+            };
+    }
+
+    private async Task DeleteTraining(string trainingId)
+    {
+        await TrainingServices.DeleteTraining(trainingId);
+        await LoadTrainings();
+    }
+
+    private void CancelAddTraining()
+    {
+        ResetTraining();
+        showError = false;
+    }
+}

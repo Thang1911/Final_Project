@@ -1,0 +1,133 @@
+﻿@page "/Scientists/Details/{scientistId}"
+@rendermode InteractiveServer
+
+@using System.Security.Claims;
+@using BlazorFE.Models.Scientist
+@using BlazorFE.Services;
+@using BlazorFE.Models;
+@using BlazorFE.Services.Category;
+@using BlazorFE.Components.Pages.Admin.AllUser.Components
+@inject ScientistServices ProfileServices
+@inject OfficeServices OfficeServices
+@inject TopicServices TopicServices
+@inject CurriculumServices CurriculumServices
+@inject MagazineServices MagazineServices
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+
+@if(scientist != null)
+{
+    <h1 class="m-4 fw-bold"> Thông tin của @scientist.profile_name </h1>
+    <div class="d-flex row gap-2">
+        <ul class="nav nav-tabs">
+            <li class="nav-item">
+                <button class="nav-link @(ActiveTab == 1 ? "active" : "")" @onclick="() => ActiveTab = 1">Lý lịch</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link @(ActiveTab == 2 ? "active" : "")" @onclick="() => ActiveTab = 2">Đề tài/Đề án</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link @(ActiveTab == 3 ? "active" : "")" @onclick="() => ActiveTab = 3">Sách tham khảo/Giáo trình</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link @(ActiveTab == 4 ? "active" : "")" @onclick="() => ActiveTab = 4">Bài báo</button>
+            </li>
+        </ul>
+
+        @if (ActiveTab == 1)
+        {
+            @if(scientist != null) {
+                <ScientistProfileForm scientist="@scientist" Offices="@Offices" />
+            }
+            else {
+                <div>Đang tải dữ liệu .....</div>
+            }
+        }
+        else if (ActiveTab == 2)
+        {
+            @if (scientist != null)
+            {
+                <TopicTable TopicsList="@TopicsList" />
+            }
+            else
+            {
+                <div>Đang tải dữ liệu .....</div>
+            }
+        }
+        else if (ActiveTab == 3)
+        {
+            @if (scientist != null)
+            {
+                <CurriculumsTable ListCurriculums="@CurriculumsList" />
+            }
+            else
+            {
+                <div>Đang tải dữ liệu .....</div>
+            }
+        }
+        else if (ActiveTab == 4)
+        {
+            @if (scientist != null)
+            {
+                <MagazinesTable magazines="@MagazinesList" />
+            }
+            else
+            {
+                <div>Đang tải dữ liệu .....</div>
+            }
+        }
+    </div> 
+} else {
+    <div>Đang tải dữ liệu .....</div>
+}
+
+
+@code {
+    [Parameter]
+    public string scientistId { set; get; }
+    private int ActiveTab { get; set; } = 1;
+    private string userName = "";
+    private string userid = "";
+
+    private Scientist scientist { get; set; }
+    private List<Models.Category.Office> Offices { get; set; }
+    public List<scientist_topic_role> TopicsList { get; set; }
+    public List<ScientistCurriculumRole> CurriculumsList { get; set; }
+    public List<ScientistMagazineRole> MagazinesList { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var principal = authState.User;
+        if (principal.Identity?.IsAuthenticated == true)
+        {
+            userid = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value.ToString();
+            userName = principal.Identity.Name;
+            Offices = await OfficeServices.GetListOffices();
+
+            if (userid != null && userName != null)
+            {
+                var response = await ProfileServices.GetProfileAsync(userid);
+                if (response != null)
+                {
+                    scientist = response;
+                    TopicsList = await TopicServices.GetProjectsByScientistIdAsync(scientistId);
+                    CurriculumsList = await CurriculumServices.GetCurriculumsByScientistIdAsync(scientistId);
+                    MagazinesList = await MagazineServices.GetMagazinesByScientistIdAsync(scientistId);
+                }
+                else
+                {
+                    NavigationManager.NavigateTo("Account/Login");
+                }
+            }
+            else
+            {
+                NavigationManager.NavigateTo("Account/Login");
+            }
+        }
+        else
+        {
+            NavigationManager.NavigateTo("Account/Login");
+        }
+    }
+}

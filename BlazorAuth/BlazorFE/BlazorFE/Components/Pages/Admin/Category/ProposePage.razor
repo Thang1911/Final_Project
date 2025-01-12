@@ -1,0 +1,140 @@
+﻿@page "/Admin/Category/Proposes"
+@rendermode InteractiveServer
+
+@using BlazorFE.Models.Category
+@using BlazorFE.Services
+@inject ProposeServices ProposeServices
+@inject IJSRuntime JSRuntime
+
+<h3>Quản lý đề xuất</h3>
+
+<div class="mb-3">
+    <button class="btn btn-success" @onclick="ToggleAddPropose">Thêm đề xuất</button>
+</div>
+
+@if (isAdd)
+{
+    <form>
+        <div class="mt-2 row align-items-center">
+            <div class="col-md-8">
+                <label class="form-label">Tên loại đề xuất<span class="text-danger">*</span></label>
+                <input type="text" class="form-control" @bind="propose.propose_name">
+                @if (showError && string.IsNullOrWhiteSpace(propose.propose_name))
+                {
+                    <span class="text-danger">Vui lòng nhập tên đề xuất.</span>
+                }
+            </div>
+            <div class="col-md-4 d-flex justify-content-end gap-3">
+                <button class="btn btn-success" type="button" @onclick="SavePropose">Lưu</button>
+                <button class="btn btn-primary me-2" @onclick="ToggleAddPropose">Hủy</button>
+            </div>
+        </div>
+    </form>
+}
+
+<table class="table table-striped mt-3">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Tên loại đề xuất</th>
+            <th>Ngày tạo</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (proposes != null && proposes.Count > 0)
+        {
+            int i = 1;
+            foreach (var item in proposes)
+            {
+                <tr>
+                    <td>@i</td>
+                    <td>@item.propose_name</td>
+                    <td>@item.created_at.ToString("dd/MM/yyyy")</td>
+                    <td>
+                        <button class="btn btn-warning me-2" @onclick="() => EditPropose(item)">Sửa</button>
+                        <button class="btn btn-danger" @onclick="() => DeletePropose(item.id)">Xóa</button>
+                    </td>
+                </tr>
+                i++;
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="4" class="text-center">Không có dữ liệu</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<Propose> proposes { get; set; } = new();
+    private Propose propose { get; set; } = new();
+    private bool isAdd = false;
+    private bool showError = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProposes();
+    }
+
+    private async Task LoadProposes()
+    {
+        proposes = await ProposeServices.GetListPropose();
+    }
+
+    private void ToggleAddPropose()
+    {
+        isAdd = !isAdd;
+        propose = new Propose();
+        showError = false;
+    }
+
+    private void EditPropose(Propose editPropose)
+    {
+        isAdd = true;
+        propose = new Propose
+            {
+                id = editPropose.id,
+                propose_name = editPropose.propose_name,
+                created_at = editPropose.created_at,
+                updated_at = editPropose.updated_at
+            };
+    }
+
+    private async Task SavePropose()
+    {
+        if (string.IsNullOrWhiteSpace(propose.propose_name))
+        {
+            showError = true;
+            return;
+        }
+
+        if (string.IsNullOrEmpty(propose.id))
+        {
+            propose.id = Guid.NewGuid().ToString();
+            propose.created_at = DateTime.Now;
+            propose.updated_at = DateTime.Now;
+            await ProposeServices.AddPropose(propose);
+        }
+        else
+        {
+            propose.updated_at = DateTime.Now;
+            await ProposeServices.UpdatePropose(propose);
+        }
+
+        isAdd = false;
+        await LoadProposes();
+    }
+
+    private async Task DeletePropose(string proposeId)
+    {
+        var confirm = await JSRuntime.InvokeAsync<bool>("confirm", "Bạn có chắc chắn muốn xóa đề xuất này?");
+        if (confirm)
+        {
+            await ProposeServices.DeletePropose(proposeId);
+            await LoadProposes();
+        }
+    }
+}

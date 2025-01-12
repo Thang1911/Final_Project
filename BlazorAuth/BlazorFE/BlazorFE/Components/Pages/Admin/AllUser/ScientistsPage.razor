@@ -1,0 +1,62 @@
+﻿@page "/Admin/Scientists"
+@rendermode InteractiveServer
+
+@using BlazorFE.Models
+@using BlazorFE.Services
+
+@inject ScientistServices ScientistService
+@inject NavigationManager NavigationManager
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Họ và tên</th>
+            <th>Đơn vị công tác</th>
+            <th>Học vị</th>
+            <th>Chuyên ngành nghiên cứu</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (scientists == null || !scientists.Any())
+        {
+            <tr>
+                <td colspan="5" class="text-center">Không có dữ liệu.</td>
+            </tr>
+        }
+        else
+        {
+            @foreach (var scientist in scientists)
+            {
+                <tr>
+                    <td>@scientist.profile_name</td>
+                    <td>@scientist.Office?.office_name</td>
+                    <td>@scientist.scientific_title</td>
+                    <td>@scientist.research_major</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" @onclick="() => ViewDetails(scientist.id)">Xem thông tin</button>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<Models.Scientist.Scientist> scientists;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadScientists();
+    }
+
+    private async Task LoadScientists()
+    {
+        scientists = await ScientistService.GetAllScientistIdAsync();
+    }
+
+    private void ViewDetails(string scientistId)
+    {
+        NavigationManager.NavigateTo($"/Scientists/Details/{scientistId}");
+    }
+}

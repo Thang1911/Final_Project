@@ -1,0 +1,141 @@
+﻿@page "/Admin/Category/Papers"
+@rendermode InteractiveServer
+
+@using BlazorFE.Models.Category
+@using BlazorFE.Services
+@inject PaperServices PaperService
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<h3>Quản lý tạp chí</h3>
+
+<div class="mb-3">
+    <button class="btn btn-primary" @onclick="ShowAddForm">Thêm tạp chí</button>
+</div>
+
+@if (isAdding)
+{
+    <form class="border p-3 mb-3">
+        <div class="mb-3">
+            <label class="form-label">Tên tạp chí</label>
+            <input type="text" class="form-control" @bind="newPaper.paper_name">
+            @if (showError)
+            {
+                <span class="text-danger">Tên tạp chí không được để trống.</span>
+            }
+        </div>
+        <button class="btn btn-success" @onclick="SavePaper">Lưu</button>
+        <button class="btn btn-secondary" @onclick="CancelAdd">Hủy</button>
+    </form>
+}
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Tên tạp chí</th>
+            <th>Ngày tạo</th>
+            <th>Ngày cập nhật</th>
+            <th>Hành động</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (papers == null || !papers.Any())
+        {
+            <tr>
+                <td colspan="5" class="text-center">Không có dữ liệu.</td>
+            </tr>
+        }
+        else
+        {
+            @foreach (var paper in papers)
+            {
+                <tr>
+                    <td>@papers.IndexOf(paper) + 1</td>
+                    <td>@paper.paper_name</td>
+                    <td>@paper.created_at.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                    <td>@paper.updated_at.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" @onclick="() => EditPaper(paper)">Sửa</button>
+                        <button class="btn btn-danger btn-sm" @onclick="() => DeletePaper(paper.id)">Xóa</button>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<Paper> papers;
+    private Paper newPaper = new();
+    private bool isAdding = false;
+    private bool showError = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPapers();
+    }
+
+    private async Task LoadPapers()
+    {
+        papers = await PaperService.GetListPaper();
+    }
+
+    private void ShowAddForm()
+    {
+        isAdding = true;
+        newPaper = new Paper();
+    }
+
+    private async Task SavePaper()
+    {
+        if (string.IsNullOrWhiteSpace(newPaper.paper_name))
+        {
+            showError = true;
+            return;
+        }
+
+        if (string.IsNullOrEmpty(newPaper.id))
+        {
+            newPaper.id = Guid.NewGuid().ToString();
+            newPaper.created_at = DateTime.Now;
+            newPaper.updated_at = DateTime.Now;
+            await PaperService.AddPaper(newPaper);
+        }
+        else
+        {
+            newPaper.updated_at = DateTime.Now;
+            await PaperService.UpdatePaper(newPaper);
+        }
+
+        isAdding = false;
+        await LoadPapers();
+    }
+
+    private void CancelAdd()
+    {
+        isAdding = false;
+    }
+
+    private void EditPaper(Paper editPaper)
+    {
+        isAdding = true;
+        newPaper = new Paper
+            {
+                id = editPaper.id,
+                paper_name = editPaper.paper_name,
+                created_at = editPaper.created_at,
+                updated_at = editPaper.updated_at
+            };
+    }
+
+    private async Task DeletePaper(string id)
+    {
+        var confirm = await JS.InvokeAsync<bool>("confirm", "Bạn có chắc chắn muốn xóa tạp chí này?");
+        if (confirm)
+        {
+            await PaperService.DeletePaper(id);
+            await LoadPapers();
+        }
+    }
+}

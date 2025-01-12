@@ -1,0 +1,141 @@
+﻿@page "/Admin/Category/Books"
+@rendermode InteractiveServer
+
+@using BlazorFE.Models.Category
+@using BlazorFE.Services
+@inject BookServices BookServices
+@inject IJSRuntime JSRuntime
+
+<h3>Quản lý sách</h3>
+
+<div class="mb-3">
+    <button class="btn btn-success" @onclick="ToggleAddBook">Thêm sách</button>
+</div>
+
+@if (isAdd)
+{
+    <form>
+        <div class="mt-2 row align-items-center">
+            <div class="col-md-8">
+                <label class="form-label">Tên loại sách<span class="text-danger">*</span></label>
+                <input type="text" class="form-control" @bind="book.book_name">
+                @if (showError && string.IsNullOrWhiteSpace(book.book_name))
+                {
+                    <span class="text-danger">Vui lòng nhập tên sách.</span>
+                }
+            </div>
+            <div class="col-md-4 d-flex justify-content-end gap-3">
+                <button class="btn btn-success" type="button" @onclick="SaveBook">Lưu</button> 
+                <button class="btn btn-primary me-2" @onclick="ToggleAddBook">Hủy</button>
+            </div>
+        </div>
+    </form>
+
+}
+
+<table class="table table-striped mt-3">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Tên loại sách</th>
+            <th>Ngày tạo</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (books != null && books.Count > 0)
+        {
+            int i = 1;
+            foreach (var item in books)
+            {
+                <tr>
+                    <td>@i</td>
+                    <td>@item.book_name</td>
+                    <td>@item.created_at.ToString("dd/MM/yyyy")</td>
+                    <td>
+                        <button class="btn btn-warning me-2" @onclick="() => EditBook(item)">Sửa</button>
+                        <button class="btn btn-danger" @onclick="() => DeleteBook(item.id)">Xóa</button>
+                    </td>
+                </tr>
+                i++;
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="4" class="text-center">Không có dữ liệu</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<Book> books { get; set; } = new();
+    private Book book { get; set; } = new();
+    private bool isAdd = false;
+    private bool showError = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadBooks();
+    }
+
+    private async Task LoadBooks()
+    {
+        books = await BookServices.GetListBook();
+    }
+
+    private void ToggleAddBook()
+    {
+        isAdd = !isAdd;
+        book = new Book();
+        showError = false;
+    }
+
+    private void EditBook(Book editBook)
+    {
+        isAdd = true;
+        book = new Book
+            {
+                id = editBook.id,
+                book_name = editBook.book_name,
+                created_at = editBook.created_at,
+                updated_at = editBook.updated_at
+            };
+    }
+
+    private async Task SaveBook()
+    {
+        if (string.IsNullOrWhiteSpace(book.book_name))
+        {
+            showError = true;
+            return;
+        }
+
+        if (string.IsNullOrEmpty(book.id))
+        {
+            book.id = Guid.NewGuid().ToString();
+            book.created_at = DateTime.Now;
+            book.updated_at = DateTime.Now;
+            await BookServices.AddBook(book);
+        }
+        else
+        {
+            book.updated_at = DateTime.Now;
+            await BookServices.UpdateBook(book);
+        }
+
+        isAdd = false;
+        await LoadBooks();
+    }
+
+    private async Task DeleteBook(string bookId)
+    {
+        var confirm = await JSRuntime.InvokeAsync<bool>("confirm", "Bạn có chắc chắn muốn xóa sách này?");
+        if (confirm)
+        {
+            await BookServices.DeleteBook(bookId);
+            await LoadBooks();
+        }
+    }
+}

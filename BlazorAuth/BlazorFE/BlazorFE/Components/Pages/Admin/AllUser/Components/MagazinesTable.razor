@@ -1,0 +1,42 @@
+﻿@using BlazorFE.Models.Scientist
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Tên bài báo</th>
+            <th scope="col">Năm công bố</th>
+            <th scope="col">Tên tạp chí</th>
+            <th scope="col">Loại bài báo</th>
+            <th scope="col">Vai trò</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (magazines != null && magazines.Count > 0)
+        {
+            int i = 1;
+            foreach (var item in magazines)
+            {
+                <tr>
+                    <th scope="row">@i</th>
+                    <td>@item?.Magazines?.magazine_name</td>
+                    <td>@item?.Magazines?.year</td>
+                    <td>@item?.Magazines?.journal</td>
+                    <td>@item?.Magazines?.Paper?.paper_name</td>
+                    <td>@item?.Role?.role_name</td>
+                </tr>
+                i++;
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="6" class="text-center">Không có dữ liệu</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+   [Parameter] public List<ScientistMagazineRole> magazines { get; set; }
+}

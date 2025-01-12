@@ -12,10 +12,11 @@ namespace BlazorFE.Models.Conferences
 
         [ForeignKey(nameof(Seminar))]
         public string seminar_id { get; set; }
-        public Seminar Seminar { get; set; }
-        public string office { get; set; }
-        public string unit { get; set; }
-        public string status_name { get; set; }
+        public Seminar? Seminar { get; set; }
+        public string? office { get; set; }
+        public string? unit { get; set; }
+        public string? money { get; set; }
+        public string? status_name { get; set; }
         public DateTime date { get; set; }
         public DateTime created_at { get; set; }
         public DateTime updated_at { get; set; }

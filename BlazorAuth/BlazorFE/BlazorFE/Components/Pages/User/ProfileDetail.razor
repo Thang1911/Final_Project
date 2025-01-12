@@ -11,7 +11,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 
-<h3>Thông tin của @role</h3>
+<h3>Thông tin của nhà khoa học</h3>
 
 <div class="bg-white">
     <div class="justify-content-center">
@@ -313,7 +313,7 @@
             userid = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value.ToString();
             userName = principal.Identity.Name;
             role = principal.FindFirst(ClaimTypes.Role)?.Value.ToString();
-            Offices = await OfficeServices.GetListOffice();
+            Offices = await OfficeServices.GetListOffices();
 
             if (userid != null && userName != null)
             {

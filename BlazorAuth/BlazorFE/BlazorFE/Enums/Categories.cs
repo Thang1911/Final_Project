@@ -1,7 +1,12 @@
-﻿namespace BlazorFE.Enums
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace BlazorFE.Enums
 {
     public enum CategoryType
     {
-        Topic = 0, Project = 1
+        [Display(Name = "Đề án")]
+        Topic = 0, 
+        [Display(Name = "Đề tài")]
+        Project = 1
     }
 }

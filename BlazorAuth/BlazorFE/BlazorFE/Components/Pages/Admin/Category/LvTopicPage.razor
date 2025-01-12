@@ -1,0 +1,155 @@
+﻿@page "/Admin/Category/LvTopics"
+@rendermode InteractiveServer
+
+@using BlazorFE.Models.Category
+@using BlazorFE.Services
+@using BlazorFE.Enums
+@using Helpers
+@inject LvTopicServices LvTopicServices
+@inject IJSRuntime JSRuntime
+
+<h3>Quản lý các loại đề án/đề tài</h3>
+
+<div class="mb-3">
+    <button class="btn btn-success" @onclick="ToggleAddLvTopic">Thêm loại đề án/đề tài</button>
+</div>
+
+@if (isAdd)
+{
+    <form>
+        <div class="mt-2 row align-items-center">
+            <div class="col-md-8">
+                <label class="form-label">Tên loại đề án/đề tài<span class="text-danger">*</span></label>
+                <input type="text" class="form-control" @bind="lvTopic.lvtopic_name">
+                @if (showError && string.IsNullOrWhiteSpace(lvTopic.lvtopic_name))
+                {
+                    <span class="text-danger">Vui lòng nhập tên loại đề án/đề tài.</span>
+                }
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Loại danh mục</label>
+                <select class="form-select" @bind="lvTopic.category">
+                    @foreach (var category in Enum.GetValues<CategoryType>())
+                    {
+                        <option value="@category">@Helpers.EnumHelper.GetEnumDisplayName(category)</option>
+                    }
+                </select>
+            </div>
+            <div class="mt-3 d-flex justify-content-end gap-3">
+                <button class="btn btn-success" type="button" @onclick="SaveLvTopic">Lưu</button>
+                <button class="btn btn-primary me-2" @onclick="ToggleAddLvTopic">Hủy</button>
+            </div>
+        </div>
+    </form>
+}
+
+<table class="table table-striped mt-3">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Tên loại đề án/đề tài</th>
+            <th>Loại danh mục</th>
+            <th>Ngày tạo</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (lvTopics != null && lvTopics.Count > 0)
+        {
+            int i = 1;
+            foreach (var item in lvTopics)
+            {
+                <tr>
+                    <td>@i</td>
+                    <td>@item.lvtopic_name</td>
+                    <td>@Helpers.EnumHelper.GetEnumDisplayName(item.category)</td>
+                    <td>@item.created_at.ToString("dd/MM/yyyy")</td>
+                    <td>
+                        <button class="btn btn-warning me-2" @onclick="() => EditLvTopic(item)">Sửa</button>
+                        <button class="btn btn-danger" @onclick="() => DeleteLvTopic(item.id)">Xóa</button>
+                    </td>
+                </tr>
+                i++;
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="5" class="text-center">Không có dữ liệu</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<LvTopics> lvTopics { get; set; } = new();
+    private LvTopics lvTopic { get; set; } = new();
+    private bool isAdd = false;
+    private bool showError = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadLvTopics();
+    }
+
+    private async Task LoadLvTopics()
+    {
+        lvTopics = await LvTopicServices.GetListLvTopics();
+    }
+
+    private void ToggleAddLvTopic()
+    {
+        isAdd = !isAdd;
+        lvTopic = new LvTopics();
+        showError = false;
+    }
+
+    private void EditLvTopic(LvTopics editLvTopic)
+    {
+        isAdd = true;
+        lvTopic = new LvTopics
+            {
+                id = editLvTopic.id,
+                lvtopic_name = editLvTopic.lvtopic_name,
+                category = editLvTopic.category,
+                created_at = editLvTopic.created_at,
+                updated_at = editLvTopic.updated_at
+            };
+    }
+
+    private async Task SaveLvTopic()
+    {
+        if (string.IsNullOrWhiteSpace(lvTopic.lvtopic_name))
+        {
+            showError = true;
+            return;
+        }
+
+        if (string.IsNullOrEmpty(lvTopic.id))
+        {
+            lvTopic.id = Guid.NewGuid().ToString();
+            lvTopic.created_at = DateTime.Now;
+            lvTopic.updated_at = DateTime.Now;
+            await LvTopicServices.AddLvTopic(lvTopic);
+        }
+        else
+        {
+            lvTopic.updated_at = DateTime.Now;
+            await LvTopicServices.UpdateLvTopic(lvTopic);
+        }
+
+        isAdd = false;
+        await LoadLvTopics();
+    }
+
+    private async Task DeleteLvTopic(string lvTopicId)
+    {
+        var confirm = await JSRuntime.InvokeAsync<bool>("confirm", "Bạn có chắc chắn muốn xóa loại đề án/đề tài này?");
+        if (confirm)
+        {
+            await LvTopicServices.DeleteLvTopic(lvTopicId);
+            await LoadLvTopics();
+        }
+    }
+}
+
