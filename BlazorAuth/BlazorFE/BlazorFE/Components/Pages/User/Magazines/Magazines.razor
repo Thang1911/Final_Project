@@ -235,7 +235,7 @@
                     scientist = response;
                     magazines = await MagazineServices.GetMagazinesByScientistIdAsync(scientist.id);
                     listPapers = await PaperServices.GetListPaper();
-                    var result = await RoleServices.GetListRole(RoleType.magazine.ToString());
+                    roles = await RoleServices.GetListRole(RoleType.magazine.ToString());
                 }
             }
             else

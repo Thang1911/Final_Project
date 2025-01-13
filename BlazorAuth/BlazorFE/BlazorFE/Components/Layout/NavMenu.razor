@@ -20,44 +20,93 @@
                 <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Trang chủ
             </NavLink>
         </div>
-        
-        @if (IsAdmin)
-        {
-            <div class="nav-item px-3">
-                <NavLink class="nav-link" href="/Admin/Scientists">
-                    <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Danh sách nhà nghiên cứu
-                </NavLink>
-            </div>
-        }
-
 
         <AuthorizeView>
             <Authorized>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="/ProfileDetail">
-                        <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> Thông tin cá nhân
-                    </NavLink>
-                </div>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="/User/Offers">
-                        <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Đề xuất đề tài/đề án
-                    </NavLink>
-                </div>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="/User/Topics">
-                        <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Đề tài/Đề án
-                    </NavLink>
-                </div>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="/User/Magazines">
-                        <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Bài báo khoa học
-                    </NavLink>
-                </div>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="/User/Curriculums">
-                        <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Giáo trình/Sách tham khảo
-                    </NavLink>
-                </div>
+                @if (IsAdmin)
+                {
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="/Admin/Scientists">
+                            <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Nhà khoa học
+                        </NavLink>
+                    </div>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="/ProfileDetail">
+                            <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> Thông tin cá nhân
+                        </NavLink>
+                    </div>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link">
+                            <span class="bi bi-file-check-nav-menu" aria-hidden="true"></span> Quản lý đề xuất
+                        </NavLink>
+                    </div>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link">
+                            <span class="bi bi-file-text-nav-menu" aria-hidden="true"></span> Hội thảo/Hội nghị
+                        </NavLink>
+                    </div>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link">
+                            <span class="bi bi-book-nav-menu" aria-hidden="true"></span> Bài báo khoa học
+                        </NavLink>
+                    </div>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link">
+                            <span class="bi bi-book-fill-nav-menu" aria-hidden="true"></span> Giáo trình/Sách tham khảo
+                        </NavLink>
+                    </div>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link">
+                            <span class="bi bi-check-nav-menu" aria-hidden="true"></span> Hội đồng khoa học
+                        </NavLink>
+                    </div>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link">
+                            <span class="bi bi-clock-history-nav-menu" aria-hidden="true"></span> Tổng giờ khoa học
+                        </NavLink>
+                    </div>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link">
+                            <span class="bi bi-bar-chart-nav-menu" aria-hidden="true"></span> Báo cáo thống kê
+                        </NavLink>
+                    </div>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link">
+                            <span class="bi bi-file-earmark-spreadsheet-nav-menu" aria-hidden="true"></span> Thống kê tiến độ
+                        </NavLink>
+                    </div>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link">
+                            <span class="bi bi-setting-nav-menu" aria-hidden="true"></span> Danh mục
+                        </NavLink>
+                    </div>
+                } else {
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="/ProfileDetail">
+                            <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> Thông tin cá nhân
+                        </NavLink>
+                    </div>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="/User/Offers">
+                            <span class="bi bi-file-check-nav-menu" aria-hidden="true"></span> Đề xuất đề tài/đề án
+                        </NavLink>
+                    </div>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="/User/Topics">
+                            <span class="bi bi-file-text-nav-menu" aria-hidden="true"></span> Đề tài/Đề án
+                        </NavLink>
+                    </div>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="/User/Magazines">
+                            <span class="bi bi-book-nav-menu" aria-hidden="true"></span> Bài báo khoa học
+                        </NavLink>
+                    </div>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="/User/Curriculums">
+                            <span class="bi bi-book-fill-nav-menu" aria-hidden="true"></span> Giáo trình/Sách tham khảo
+                        </NavLink>
+                    </div>
+                }
                 <div class="nav-item px-3">
                     <form action="Account/Logout" method="post">
                         <AntiforgeryToken />
