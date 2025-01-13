@@ -30,7 +30,7 @@
                     </div>
                     @if (scientist != null && isAdd)
                     {
-                        <CurriculumForm NewCurriculum="@curriculum" RoleId="@roleId" Roles="@roles" ListBooks="@books" ListTrainings="@trainings" IsReadOnly="@isReadOnly" showError="@showError" OnCancel="ToggleCurriculum" OnSave="SaveCurriculum" />
+                        <CurriculumForm NewCurriculum="@curriculum" ListBooks="@books" ListTrainings="@trainings" IsReadOnly="@isReadOnly" showError="@showError" OnCancel="ToggleCurriculum" OnSave="SaveCurriculum" />
                     }
 
                 </div>

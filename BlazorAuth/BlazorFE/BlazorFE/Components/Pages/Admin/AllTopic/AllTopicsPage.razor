@@ -1,0 +1,32 @@
+﻿@page "/Admin/AllTopics"
+@rendermode InteractiveServer
+
+@using BlazorFE.Models.Scientist
+@using BlazorFE.Services
+@using BlazorFE.Components.Pages.Admin.AllTopic.Components
+
+@inject TopicServices TopicServices
+@inject NavigationManager NavigationManager
+
+@if(listTopics != null)
+{
+    <ListTopicTable TopicsList="@listTopics" />
+}
+else
+{
+    <div>Đang tải dưc liệu ...</div>
+}
+
+@code {
+    public List<scientist_topic_role> listTopics { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadScientists();
+    }
+
+    private async Task LoadScientists()
+    {
+        listTopics = await TopicServices.GetAllTopicAsync();
+    }
+}

@@ -6,10 +6,10 @@
 @inject OfficeServices OfficeServices
 @inject IJSRuntime JSRuntime
 
-<h3>Quản lý cơ quan</h3>
+<h3>Quản lý tổ chức</h3>
 
 <div class="mb-3">
-    <button class="btn btn-success" @onclick="ToggleAddOffice">Thêm cơ quan</button>
+    <button class="btn btn-success" @onclick="ToggleAddOffice">Thêm tổ chức</button>
 </div>
 
 @if (isAdd)
@@ -18,19 +18,19 @@
         <div class="mt-2 row align-items-center gap-2">
             <!-- Mã cơ quan và Tên cơ quan nằm cùng một dòng -->
             <div class="col-md-5">
-                <label class="form-label">Mã cơ quan<span class="text-danger">*</span></label>
+                <label class="form-label">Mã tổ chức<span class="text-danger">*</span></label>
                 <input type="text" class="form-control" @bind="office.office_id">
                 @if (showError && string.IsNullOrWhiteSpace(office.office_id))
                 {
-                    <span class="text-danger">Vui lòng nhập mã cơ quan.</span>
+                    <span class="text-danger">Vui lòng nhập mã tổ chức.</span>
                 }
             </div>
             <div class="col-md-5">
-                <label class="form-label">Tên cơ quan<span class="text-danger">*</span></label>
+                <label class="form-label">Tên tổ chức<span class="text-danger">*</span></label>
                 <input type="text" class="form-control" @bind="office.office_name">
                 @if (showError && string.IsNullOrWhiteSpace(office.office_name))
                 {
-                    <span class="text-danger">Vui lòng nhập tên cơ quan.</span>
+                    <span class="text-danger">Vui lòng nhập tên tổ chức.</span>
                 }
             </div>
 
@@ -67,8 +67,8 @@
     <thead>
         <tr>
             <th>#</th>
-            <th>Mã cơ quan</th>
-            <th>Tên cơ quan</th>
+            <th>Mã tổ chức</th>
+            <th>Tên tổ chức</th>
             <th>Địa chỉ</th>
             <th>Số điện thoại</th>
             <th>Email</th>

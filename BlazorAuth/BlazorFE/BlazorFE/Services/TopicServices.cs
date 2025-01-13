@@ -14,6 +14,18 @@ namespace BlazorFE.Services
             _context = context;
         }
 
+        public async Task<List<scientist_topic_role>> GetAllTopicAsync()
+        {
+            var scientistTopics = await _context.Set<scientist_topic_role>()
+                .Include(str => str.Topics)
+                    .ThenInclude(str => str.LvTopics)
+                .Include(str => str.Role)
+                .Include(str => str.Scientist)
+                .ToListAsync();
+
+            return scientistTopics;
+        }
+
         public async Task<List<scientist_topic_role>> GetProjectsByScientistIdAsync(string scientistId)
         {
             if (string.IsNullOrEmpty(scientistId))

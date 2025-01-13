@@ -1,0 +1,63 @@
+﻿@using Helpers
+@using BlazorFE.Enums
+@using BlazorFE.Models.Scientist
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Tên đề tài</th>
+            <th scope="col">Cấp đề tài/đề án</th>
+            <th scope="col">Kết quả nghiệm thu</th>
+            <th scope="col">Người tham gia</th>
+            <th scope="col">Ngày bắt đầu</th>
+            <th scope="col">Ngày kết thúc</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (TopicsList != null && TopicsList.Count > 0)
+        {
+            int i = 1;
+            var groupedByTopic = TopicsList
+            .GroupBy(x => x.topic_id)
+            .ToList();
+
+            foreach (var group in groupedByTopic)
+            {
+                var topic = group.First().Topics;
+                var scientists = group.Select(x => new { x.Scientist?.profile_name, RoleName = x.Role?.role_name }).ToList();
+
+                <tr>
+                    <th scope="row">@i</th>
+                    <td>@topic?.topic_name</td>
+                    <td>@topic?.LvTopics?.lvtopic_name</td>
+                    <td>
+                        @{
+                            Result enumValue;
+                            string displayName = Enum.TryParse(@topic?.result, out enumValue)
+                            ? Helpers.EnumHelper.GetEnumDisplayName(enumValue)
+                            : "Không xác định";
+                        }
+                        @displayName
+                    </td>
+                    <td>
+                        @string.Join(", ", scientists.Select(s => $"{s.profile_name} ({s.RoleName})"))
+                    </td>
+                    <td>@topic?.start_date?.ToShortDateString()</td>
+                    <td>@topic?.end_date?.ToShortDateString()</td>
+                </tr>
+                i++;
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="7" class="text-center">Không có dữ liệu</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    [Parameter] public List<scientist_topic_role> TopicsList { get; set; }
+}
