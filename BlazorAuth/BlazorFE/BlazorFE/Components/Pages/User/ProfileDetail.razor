@@ -152,7 +152,7 @@
                                     {
                                         @foreach (var office in Offices)
                                         {
-                                            <option value="@office.office_id">@office.office_name</option>
+                                            <option value="@office.id">@office.office_name</option>
                                         }
                                     }
                                 </select>
@@ -356,7 +356,7 @@
     private async Task UpdateAddress(ChangeEventArgs e)
     {
         var selectedOfficeId = e.Value?.ToString();
-        var selectedOffice = Offices?.FirstOrDefault(o => o.office_id == selectedOfficeId);
+        var selectedOffice = Offices?.FirstOrDefault(o => o.id == selectedOfficeId);
         if (selectedOffice != null)
         {
             scientist.address_office = selectedOffice.address;

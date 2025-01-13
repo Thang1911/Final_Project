@@ -4,7 +4,7 @@
 <form>
     <div class="mt-2">
         <!-- Hàng đầu tiên -->
-        <div class="auto-cols">
+        <div class="auto-cols mb-2">
             <div>
                 <label class="labels">Tên đề tài<span class="text-red">*</span></label>
                 <input readonly="@IsReadOnly" type="text" class="form-control" placeholder="Tên đề tài" @bind="@Topics.topic_name">
@@ -47,11 +47,11 @@
                 }
             </div>
             <div>
-                <label class="labels">Ngày sinh</label>
+                <label class="labels">Ngày bắt đầu</label>
                 <input readonly="@IsReadOnly" type="date" class="form-control" @bind="@Topics.start_date">
             </div>
             <div>
-                <label class="labels">Ngày sinh</label>
+                <label class="labels">Ngày kết thúc</label>
                 <input readonly="@IsReadOnly" type="date" class="form-control" @bind="@Topics.end_date">
             </div>
         </div>

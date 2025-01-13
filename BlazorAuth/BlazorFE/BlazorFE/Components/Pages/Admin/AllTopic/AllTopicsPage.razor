@@ -14,7 +14,7 @@
 }
 else
 {
-    <div>Đang tải dưc liệu ...</div>
+    <div>Đang tải dữ liệu ...</div>
 }
 
 @code {
@@ -27,6 +27,8 @@ else
 
     private async Task LoadScientists()
     {
-        listTopics = await TopicServices.GetAllTopicAsync();
+        listTopics = (await TopicServices.GetAllTopicAsync())
+            .Where(topic => topic.requestStatus == "Đã tham gia")
+            .ToList();
     }
 }

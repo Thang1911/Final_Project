@@ -110,17 +110,20 @@
 
             if (userid != null && userName != null)
             {
-                var response = await ProfileServices.GetProfileAsync(userid);
+                var response = await ProfileServices.GetProfileAsync(scientistId);
                 if (response != null)
                 {
                     scientist = response;
-                    TopicsList = await TopicServices.GetProjectsByScientistIdAsync(scientistId);
-                    CurriculumsList = await CurriculumServices.GetCurriculumsByScientistIdAsync(scientistId);
-                    MagazinesList = await MagazineServices.GetMagazinesByScientistIdAsync(scientistId);
-                }
-                else
-                {
-                    NavigationManager.NavigateTo("Account/Login");
+                    // Lọc danh sách TopicsList
+                    TopicsList = (await TopicServices.GetProjectsByScientistIdAsync(scientist.id))
+                        .Where(topic => topic.requestStatus == "Đã tham gia")
+                        .ToList();
+
+                    // Lọc danh sách CurriculumsList
+                    CurriculumsList = (await CurriculumServices.GetCurriculumsByScientistIdAsync(scientist.id))
+                        .Where(curriculum => curriculum.requestStatus == "Đã tham gia")
+                        .ToList();
+                    MagazinesList = await MagazineServices.GetMagazinesByScientistIdAsync(scientist.id);
                 }
             }
             else

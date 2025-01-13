@@ -40,6 +40,24 @@ namespace BlazorFE.Services
         {
             try
             {
+                if (!string.IsNullOrEmpty(newProfile.degree_id))
+                {
+                    var existingDegree = await _context.Degrees.FindAsync(newProfile.degree_id);
+                    if (existingDegree == null)
+                    {
+                        throw new Exception($"Degree with ID '{newProfile.degree_id}' does not exist.");
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(newProfile.office_id))
+                {
+                    var existingOffice = await _context.Offices.FindAsync(newProfile.office_id);
+                    if (existingOffice == null)
+                    {
+                        throw new Exception($"Office with ID '{newProfile.office_id}' does not exist.");
+                    }
+                }
+
                 _context.Scientists.Add(newProfile);
                 await _context.SaveChangesAsync();
             }
@@ -48,6 +66,12 @@ namespace BlazorFE.Services
                 Console.WriteLine($"Database update error: {ex.Message}");
                 throw new Exception("An error occurred while adding the profile. Please try again later.", ex);
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                throw;
+            }
         }
+
     }
 }

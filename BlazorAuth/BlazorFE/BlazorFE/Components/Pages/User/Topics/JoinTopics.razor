@@ -310,7 +310,7 @@
             var result = await TopicServices.AddTopicAndLinkToScientistAsync(topics, scientist.id, roleId, true);
             if (result)
             {
-                ListTopics = await TopicServices.GetRequestTopicAsync(scientist.id, false);
+                ListTopics = await TopicServices.GetRequestTopicAsync(scientist.id, true);
             }
 
             isJoining  = false;

@@ -25,13 +25,65 @@ namespace BlazorFE.Services
                 .Include(smr => smr.Magazines)
                     .ThenInclude(m => m.Paper)
                 .Include(smr => smr.Role)
+                .Include(str => str.Scientist)
+                .ToListAsync();
+
+            return scientistMagazines;
+        }
+
+        public async Task<List<ScientistMagazineRole>> GetJoinRequestsByScientistIdAsync(string scientistId, List<string> magazinesIds)
+        {
+            if (string.IsNullOrEmpty(scientistId))
+                throw new ArgumentException("Scientist ID cannot be null or empty", nameof(scientistId));
+
+            if (magazinesIds == null || !magazinesIds.Any())
+                return null;
+
+            var joinRequests = await _context.Set<ScientistMagazineRole>()
+                .Where(str => str.scientist_id != scientistId
+                    && str.requestStatus == "Chờ duyệt"
+                    && magazinesIds.Contains(str.magazine_id))
+                .Include(smr => smr.Magazines)
+                    .ThenInclude(m => m.Paper)
+                .Include(smr => smr.Role)
+                .Include(str => str.Scientist)
+                .ToListAsync();
+
+            return joinRequests;
+        }
+
+        public async Task<List<ScientistMagazineRole>> GetRequestMagazineAsync(string scientistId, bool isJoining)
+        {
+            if (string.IsNullOrEmpty(scientistId))
+                throw new ArgumentException("Scientist ID cannot be null or empty", nameof(scientistId));
+
+            const string ProjectLeaderRole = "Tác giả đứng đầu";
+
+            var query = _context.Set<ScientistMagazineRole>().AsQueryable();
+
+            if (isJoining)
+            {
+                query = query.Where(str => str.scientist_id != scientistId
+                                           && str.Role != null
+                                           && str.Role.role_name == ProjectLeaderRole);
+            }
+            else
+            {
+                query = query.Where(str => str.scientist_id == scientistId);
+            }
+
+            var scientistMagazines = await query
+                .Include(smr => smr.Magazines)
+                    .ThenInclude(m => m.Paper)
+                .Include(smr => smr.Role)
+                .Include(str => str.Scientist)
                 .ToListAsync();
 
             return scientistMagazines;
         }
 
         // Add a Magazine and Link to Scientist
-        public async Task<bool> AddMagazineAndLinkToScientistAsync(Magazines newMagazine, string scientistId, string roleId)
+        public async Task<bool> AddMagazineAndLinkToScientistAsync(Magazines newMagazine, string scientistId, string roleId, bool isJoining)
         {
             if (newMagazine == null) throw new ArgumentNullException(nameof(newMagazine));
             if (string.IsNullOrEmpty(scientistId)) throw new ArgumentException("Scientist ID cannot be null or empty", nameof(scientistId));
@@ -40,15 +92,18 @@ namespace BlazorFE.Services
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                await _context.Set<Magazines>().AddAsync(newMagazine);
-                await _context.SaveChangesAsync();
-
+                if (!isJoining)
+                {
+                    await _context.Set<Magazines>().AddAsync(newMagazine);
+                    await _context.SaveChangesAsync();
+                }
                 var scientistMagazineRole = new ScientistMagazineRole
                 {
                     id = Guid.NewGuid().ToString(),
                     scientist_id = scientistId,
                     magazine_id = newMagazine.id,
                     role_id = roleId,
+                    requestStatus = isJoining ? "Chờ duyệt" : "Đã tham gia",
                     created_at = DateTime.UtcNow,
                     updated_at = DateTime.UtcNow
                 };
@@ -68,7 +123,7 @@ namespace BlazorFE.Services
         }
 
         // Update a Magazine and Link to Scientist
-        public async Task<bool> UpdateMagazineAndLinkToScientistAsync(string magazineId, Magazines updatedMagazine, string scientistId, string roleId)
+        public async Task<bool> UpdateMagazineAndLinkToScientistAsync(string magazineId, Magazines updatedMagazine, string scientistId, string roleId, string? requestStatus, bool isUpdateRequest)
         {
             if (updatedMagazine == null) throw new ArgumentNullException(nameof(updatedMagazine));
             if (string.IsNullOrEmpty(magazineId)) throw new ArgumentException("Magazine ID cannot be null or empty", nameof(magazineId));
@@ -97,6 +152,10 @@ namespace BlazorFE.Services
                 {
                     scientistMagazineRole.role_id = roleId;
                     scientistMagazineRole.updated_at = DateTime.UtcNow;
+                    if (isUpdateRequest)
+                    {
+                        scientistMagazineRole.requestStatus = requestStatus;
+                    }
                     _context.Set<ScientistMagazineRole>().Update(scientistMagazineRole);
                     await _context.SaveChangesAsync();
                 }
