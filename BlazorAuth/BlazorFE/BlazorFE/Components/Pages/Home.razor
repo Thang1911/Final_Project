@@ -167,22 +167,41 @@
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var principal = authState.User;
 
+        await EnsureRoleExists(ADMINISTRATION_ROLE);
+        await EnsureRoleExists(USER_ROLE);
+
         if (principal.Identity?.IsAuthenticated == true)
         {
             userid = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             userName = principal.Identity.Name;
 
+            var user = await _UserManager.FindByNameAsync(userName);
+            if (user != null)
+            {
+                if (userName.ToLower() == "admin@gmail.com")
+                {
+                    await EnsureUserInRole(user, ADMINISTRATION_ROLE);
+                }
+                else
+                {
+                    await EnsureUserInRole(user, USER_ROLE);
+                }
+            }
+            CurrentUser = (await authenticationStateTask).User;
+
             if (!string.IsNullOrEmpty(userid) && !string.IsNullOrEmpty(userName))
             {
                 var response = await ProfileServices.GetProfileAsync(userid);
-                if (response == null)
+                var authorizationResult = await AuthorizationService.AuthorizeAsync(principal, null, "Administrators");
+                IsAdmin = authorizationResult.Succeeded;
+                Console.WriteLine(IsAdmin);
+                if (IsAdmin)
+                {
+                    return;
+                }
+                else if (response == null && !IsAdmin)
                 {
                     NavigationManager.NavigateTo("/ProfileDetail");
-                } 
-                else
-                {
-                    var authorizationResult = await AuthorizationService.AuthorizeAsync(principal, null, "Administrators");
-                    IsAdmin = authorizationResult.Succeeded;
                 }
             }
             else
@@ -193,24 +212,7 @@
         else
         {
             NavigationManager.NavigateTo("Account/Login");
-        }
-
-        await EnsureRoleExists(ADMINISTRATION_ROLE);
-        await EnsureRoleExists(USER_ROLE);
-
-        var user = await _UserManager.FindByNameAsync(userName);
-        if (user != null)
-        {
-            if (userName.ToLower() == "admin@gmail.com")
-            {
-                await EnsureUserInRole(user, ADMINISTRATION_ROLE);
-            }
-            else
-            {
-                await EnsureUserInRole(user, USER_ROLE);
-            }
-        }
-        CurrentUser = (await authenticationStateTask).User;
+        } 
     }
 
     private async Task EnsureRoleExists(string roleName)

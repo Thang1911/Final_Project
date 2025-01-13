@@ -22,6 +22,7 @@ namespace BlazorFE.Services
             var scientistTopics = await _context.Set<scientist_topic_role>()
                 .Where(str => str.scientist_id == scientistId)
                 .Include(str => str.Topics)
+                    .ThenInclude(str => str.LvTopics)
                 .Include(str => str.Role)
                 .Include(str => str.Scientist)
                 .ToListAsync();
@@ -42,6 +43,7 @@ namespace BlazorFE.Services
                     && str.requestStatus == "Chờ duyệt"
                     && topicIds.Contains(str.topic_id))
                 .Include(str => str.Topics)
+                    .ThenInclude(str => str.LvTopics)
                 .Include(str => str.Role)
                 .Include(str => str.Scientist)
                 .ToListAsync();
@@ -71,6 +73,7 @@ namespace BlazorFE.Services
 
             var scientistTopics = await query
                 .Include(str => str.Topics)
+                    .ThenInclude(str => str.LvTopics)
                 .Include(str => str.Role)
                 .Include(str => str.Scientist)
                 .ToListAsync();

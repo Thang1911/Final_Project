@@ -57,7 +57,16 @@
         <div class="auto-cols mt-2">
             <div>
                 <label class="labels">Học vị<span class="text-red">*</span></label>
-                <input readonly="@isReadOnly" type="number" class="form-control" placeholder="Học vị" @bind="@scientist.degree_Id">
+                <select class="form-control" @bind="@scientist.degree_id" disabled="@isReadOnly">
+                    <option value="">Chọn học vị</option>
+                    @if (ListDegrees != null)
+                    {
+                        @foreach (var degree in ListDegrees)
+                        {
+                            <option value="@degree.id">@degree.degree_name</option>
+                        }
+                    }
+                </select>
             </div>
             <div>
                 <label class="labels">Năm phong</label>
@@ -135,5 +144,6 @@
 @code {
     [Parameter] public Models.Scientist.Scientist scientist { get; set; }
     [Parameter] public List<Models.Category.Office> Offices { get; set; }
+    [Parameter] public List<Models.Category.Degree> ListDegrees { get; set; }
     private bool isReadOnly { get; set; } = true;
 }

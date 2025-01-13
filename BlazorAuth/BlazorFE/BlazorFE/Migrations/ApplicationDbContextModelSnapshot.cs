@@ -4,7 +4,6 @@ using BlazorFE.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -12,11 +11,9 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BlazorFE.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250103072750_updateoffice")]
-    partial class updateoffice
+    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -181,11 +178,11 @@ namespace BlazorFE.Migrations
 
                     b.Property<string>("role_id")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("training_id")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("type")
                         .IsRequired()
@@ -195,6 +192,10 @@ namespace BlazorFE.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("id");
+
+                    b.HasIndex("role_id");
+
+                    b.HasIndex("training_id");
 
                     b.ToTable("Categories");
                 });
@@ -217,6 +218,46 @@ namespace BlazorFE.Migrations
                     b.HasKey("id");
 
                     b.ToTable("Councils");
+                });
+
+            modelBuilder.Entity("BlazorFE.Models.Category.Degree", b =>
+                {
+                    b.Property<string>("id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("created_at")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("degree_name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("updated_at")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("id");
+
+                    b.ToTable("Degrees");
+                });
+
+            modelBuilder.Entity("BlazorFE.Models.Category.LvCouncil", b =>
+                {
+                    b.Property<string>("id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("created_at")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("lvcoucil_name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("updated_at")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("id");
+
+                    b.ToTable("LvCouncils");
                 });
 
             modelBuilder.Entity("BlazorFE.Models.Category.LvTopics", b =>
@@ -356,6 +397,26 @@ namespace BlazorFE.Migrations
                     b.HasKey("id");
 
                     b.ToTable("Proposes");
+                });
+
+            modelBuilder.Entity("BlazorFE.Models.Category.Researcher", b =>
+                {
+                    b.Property<string>("id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("created_at")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("updated_at")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("id");
+
+                    b.ToTable("Researchers");
                 });
 
             modelBuilder.Entity("BlazorFE.Models.Category.Role", b =>
@@ -518,8 +579,10 @@ namespace BlazorFE.Migrations
                     b.Property<DateTime>("date")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("money")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("office")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("seminar_id")
@@ -527,11 +590,9 @@ namespace BlazorFE.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("status_name")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("unit")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("updated_at")
@@ -559,6 +620,9 @@ namespace BlazorFE.Migrations
                     b.Property<int>("decision_number")
                         .HasColumnType("int");
 
+                    b.Property<string>("lvCouncilid")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("lvcouncil_id")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -574,6 +638,8 @@ namespace BlazorFE.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("id");
+
+                    b.HasIndex("lvCouncilid");
 
                     b.HasIndex("tpcouncilid");
 
@@ -729,9 +795,6 @@ namespace BlazorFE.Migrations
                     b.Property<string>("id")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("Officeid")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<string>("address")
                         .HasColumnType("nvarchar(max)");
 
@@ -747,8 +810,9 @@ namespace BlazorFE.Migrations
                     b.Property<DateTime>("created_at")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("degree_Id")
-                        .HasColumnType("int");
+                    b.Property<string>("degree_id")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("email")
                         .HasColumnType("nvarchar(max)");
@@ -763,7 +827,7 @@ namespace BlazorFE.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("office_id")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("office_phone")
                         .HasColumnType("nvarchar(max)");
@@ -799,7 +863,9 @@ namespace BlazorFE.Migrations
 
                     b.HasKey("id");
 
-                    b.HasIndex("Officeid");
+                    b.HasIndex("degree_id");
+
+                    b.HasIndex("office_id");
 
                     b.ToTable("Scientists");
                 });
@@ -816,6 +882,9 @@ namespace BlazorFE.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("requestStatus")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("role_id")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -823,6 +892,9 @@ namespace BlazorFE.Migrations
                     b.Property<string>("scientist_id")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool?>("status")
+                        .HasColumnType("bit");
 
                     b.Property<DateTime>("updated_at")
                         .HasColumnType("datetime2");
@@ -884,6 +956,9 @@ namespace BlazorFE.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("requestStatus")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("role_id")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -891,6 +966,9 @@ namespace BlazorFE.Migrations
                     b.Property<string>("scientist_id")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool?>("status")
+                        .HasColumnType("bit");
 
                     b.Property<DateTime>("updated_at")
                         .HasColumnType("datetime2");
@@ -954,7 +1032,7 @@ namespace BlazorFE.Migrations
                     b.Property<DateTime>("created_at")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("end_date")
+                    b.Property<DateTime?>("end_date")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("lvtopic_id")
@@ -965,7 +1043,7 @@ namespace BlazorFE.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("start_date")
+                    b.Property<DateTime?>("start_date")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("topic_name")
@@ -1115,6 +1193,25 @@ namespace BlazorFE.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("BlazorFE.Models.Category.Categories", b =>
+                {
+                    b.HasOne("BlazorFE.Models.Category.Role", "Role")
+                        .WithMany()
+                        .HasForeignKey("role_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BlazorFE.Models.Category.Training", "Training")
+                        .WithMany()
+                        .HasForeignKey("training_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Role");
+
+                    b.Navigation("Training");
+                });
+
             modelBuilder.Entity("BlazorFE.Models.Conferences.Conference", b =>
                 {
                     b.HasOne("BlazorFE.Models.Category.Seminar", "Seminar")
@@ -1128,9 +1225,15 @@ namespace BlazorFE.Migrations
 
             modelBuilder.Entity("BlazorFE.Models.Council.council", b =>
                 {
+                    b.HasOne("BlazorFE.Models.Category.LvCouncil", "lvCouncil")
+                        .WithMany()
+                        .HasForeignKey("lvCouncilid");
+
                     b.HasOne("BlazorFE.Models.Category.TpCouncil", "tpcouncil")
                         .WithMany()
                         .HasForeignKey("tpcouncilid");
+
+                    b.Navigation("lvCouncil");
 
                     b.Navigation("tpcouncil");
                 });
@@ -1178,9 +1281,17 @@ namespace BlazorFE.Migrations
 
             modelBuilder.Entity("BlazorFE.Models.Scientist.Scientist", b =>
                 {
+                    b.HasOne("BlazorFE.Models.Category.Degree", "Degree")
+                        .WithMany()
+                        .HasForeignKey("degree_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("BlazorFE.Models.Category.Office", "Office")
                         .WithMany()
-                        .HasForeignKey("Officeid");
+                        .HasForeignKey("office_id");
+
+                    b.Navigation("Degree");
 
                     b.Navigation("Office");
                 });

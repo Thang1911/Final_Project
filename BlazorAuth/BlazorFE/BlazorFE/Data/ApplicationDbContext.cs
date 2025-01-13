@@ -42,5 +42,8 @@ namespace BlazorFE.Data
         public DbSet<ScientistOfferRole> ScientistOfferRoles { get; set; }
         public DbSet<scientist_topic_role> ScientistTopicRoles { get; set; }
         public DbSet<Topics> Topics { get; set; }
+        public DbSet<Degree> Degrees { get; set; }
+        public DbSet<LvCouncil> LvCouncils { get; set; }
+        public DbSet<Researcher> Researchers { get; set; }
     }
 }

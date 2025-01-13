@@ -32,6 +32,7 @@ builder.Services.AddScoped<TrainingServices>();
 builder.Services.AddScoped<BookServices>();
 builder.Services.AddScoped<ProposeServices>();
 builder.Services.AddScoped<PaperServices>();
+builder.Services.AddScoped<DegreeServices>();
 
 builder.Services.AddAuthentication(options =>
     {

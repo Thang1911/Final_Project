@@ -130,10 +130,10 @@
                                     <td>@item?.Offer?.Propose?.propose_name</td>
                                     <td>@item?.Scientist?.profile_name</td>
                                     <td>
-                                        @if (MyOffers.Any(myOffer => myOffer?.offer_id == item?.offer_id))
+                                        @if (MyOffers.FirstOrDefault(myOffer => myOffer?.offer_id == item?.offer_id) is var matchedOffer && matchedOffer != null)
                                         {
                                             <button class="btn btn-secondary" disabled>
-                                                @item?.requestStatus
+                                                @matchedOffer.requestStatus
                                             </button>
                                         }
                                         else

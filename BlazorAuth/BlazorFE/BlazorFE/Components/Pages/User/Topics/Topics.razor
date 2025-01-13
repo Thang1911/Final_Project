@@ -25,7 +25,7 @@
             <div class="border-right d-flex flex-column gap-4">
                 <div class="">
                     <div class="d-flex flex-row gap-2">
-                        <button class="btn btn-primary" @onclick="ToggleTopics">Thêm đề tài</button>
+                        <button class="btn btn-primary" @onclick="ToggleTopics" disabled="@isAdd">Thêm đề tài</button>
                         <button class="btn btn-success" @onclick="JoinTopics">Tham gia đề tài</button>
                     </div>
                     @if (isAdd)
@@ -34,8 +34,6 @@
                             Topics="@topics"
                             IsReadOnly="@isReadOnly"
                             ShowError="@showError"
-                            RoleId="@roleId"
-                            Roles="@roles"
                             LvTopics="@lvTopics"
                             OnCancel="ToggleTopics"
                             OnSave="SaveTopic" />

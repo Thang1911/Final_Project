@@ -131,7 +131,7 @@
 
     private async Task DeleteBook(string bookId)
     {
-        var confirm = await JSRuntime.InvokeAsync<bool>("confirm", "Bạn có chắc chắn muốn xóa sách này?");
+        var confirm = await JSRuntime.InvokeAsync<bool>("confirm", "Bạn có chắc chắn muốn xóa loại sách này?");
         if (confirm)
         {
             await BookServices.DeleteBook(bookId);

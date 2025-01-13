@@ -13,7 +13,7 @@ namespace BlazorFE.Models.Magazine
         public int year { get; set; }
         public string journal {  get; set; }
 
-        [ForeignKey(nameof(Paper))]
+        [ForeignKey("Paper")]
         public string paper_id { get; set; }
         public virtual Paper? Paper { get; set; }
         public DateTime created_at { get; set; }

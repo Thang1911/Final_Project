@@ -16,6 +16,7 @@ namespace BlazorFE.Services
         public async Task<List<Scientist>> GetAllScientistIdAsync()
         {
             var allScientist = await _context.Set<Scientist>()
+                .Include(sct => sct.Degree)
                 .Include(sct => sct.Office)
                 .ToListAsync();
 

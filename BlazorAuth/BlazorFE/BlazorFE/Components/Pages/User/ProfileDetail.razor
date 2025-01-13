@@ -8,6 +8,7 @@
 @using BlazorFE.Services.Category;
 @inject ScientistServices ProfileServices
 @inject OfficeServices OfficeServices
+@inject DegreeServices DegreeServices
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 
@@ -102,8 +103,17 @@
                         <div class="auto-cols mt-2">
                             <div>
                                 <label class="labels">Học vị<span class="text-red">*</span></label>
-                                <input readonly="@isReadOnly" type="number" class="form-control" placeholder="Học vị" @bind="@scientist.degree_Id">
-                                @if (showError && scientist.degree_Id == null)
+                                <select class="form-control" @bind="@scientist.degree_id" disabled="@isReadOnly">
+                                    <option value="">Chọn học vị</option>
+                                    @if (Degrees != null)
+                                    {
+                                        @foreach (var degree in Degrees)
+                                        {
+                                                <option value="@degree.id">@degree.degree_name</option>
+                                        }
+                                    }
+                                </select>
+                                @if (showError && scientist.degree_id == null)
                                 {
                                     <span class="text-danger">Vui lòng nhập học vị.</span>
                                 }
@@ -222,6 +232,7 @@
     private string role = "";
     private Scientist scientist { get; set; }
     private List<Models.Category.Office> Offices { get; set; }
+    private List<Models.Category.Degree> Degrees { get; set; }
 
     private void EditProfile()
     {
@@ -261,7 +272,7 @@
                scientist.birthday != null &&
                !string.IsNullOrWhiteSpace(scientist.birth_place) &&
                !string.IsNullOrWhiteSpace(scientist.email) &&
-               scientist.degree_Id != null &&
+               scientist.degree_id != null &&
                !string.IsNullOrWhiteSpace(scientist.office_id) &&
                !string.IsNullOrWhiteSpace(scientist.address_office);
     }
@@ -314,6 +325,7 @@
             userName = principal.Identity.Name;
             role = principal.FindFirst(ClaimTypes.Role)?.Value.ToString();
             Offices = await OfficeServices.GetListOffices();
+            Degrees = await DegreeServices.GetListDegree();
 
             if (userid != null && userName != null)
             {

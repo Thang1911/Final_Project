@@ -155,10 +155,10 @@
                                     <td>@item?.Topics?.start_date?.ToShortDateString()</td>
                                     <td>@item?.Topics?.end_date?.ToShortDateString()</td>
                                     <td>
-                                        @if (MyTopics.Any(myTopic => myTopic.Topics?.id == item.Topics?.id))
+                                        @if (MyTopics.FirstOrDefault(myTopic => myTopic.Topics?.id == item.Topics?.id) is var matchedTopic && matchedTopic != null)
                                         {
                                             <button class="btn btn-secondary" disabled>
-                                                @item?.requestStatus
+                                                @matchedTopic.requestStatus
                                             </button>
                                         }
                                         else

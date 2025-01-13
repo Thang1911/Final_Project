@@ -1,0 +1,142 @@
+﻿@page "/Admin/Category/Degrees"
+@rendermode InteractiveServer
+
+@using BlazorFE.Models.Category
+@using BlazorFE.Services
+
+@inject DegreeServices DegreeServices
+@inject IJSRuntime JSRuntime
+
+<h3>Quản lý học vị</h3>
+
+<div class="mb-3">
+    <button class="btn btn-success" @onclick="ToggleAddDegree">Thêm học vị</button>
+</div>
+
+@if (isAdd)
+{
+    <form>
+        <div class="mt-2 row align-items-center">
+            <div class="col-md-8">
+                <label class="form-label">Tên học vị<span class="text-danger">*</span></label>
+                <input type="text" class="form-control" @bind="degree.degree_name">
+                @if (showError && string.IsNullOrWhiteSpace(degree.degree_name))
+                {
+                    <span class="text-danger">Vui lòng nhập tên học vị.</span>
+                }
+            </div>
+            <div class="col-md-4 d-flex justify-content-end gap-3">
+                <button class="btn btn-success" type="button" @onclick="SaveDegree">Lưu</button>
+                <button class="btn btn-primary me-2" @onclick="ToggleAddDegree">Hủy</button>
+            </div>
+        </div>
+    </form>
+
+}
+
+<table class="table table-striped mt-3">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Tên loại sách</th>
+            <th>Ngày tạo</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (degrees != null && degrees.Count > 0)
+        {
+            int i = 1;
+            foreach (var item in degrees)
+            {
+                <tr>
+                    <td>@i</td>
+                    <td>@item.degree_name</td>
+                    <td>@item.created_at.ToString("dd/MM/yyyy")</td>
+                    <td>
+                        <button class="btn btn-warning me-2" @onclick="() => EditDegree(item)">Sửa</button>
+                        <button class="btn btn-danger" @onclick="() => DeleteDegree(item.id)">Xóa</button>
+                    </td>
+                </tr>
+                i++;
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="4" class="text-center">Không có dữ liệu</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<Degree> degrees { get; set; } = new();
+    private Degree degree { get; set; } = new();
+    private bool isAdd = false;
+    private bool showError = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDegrees();
+    }
+
+    private async Task LoadDegrees()
+    {
+        degrees = await DegreeServices.GetListDegree();
+    }
+
+    private void ToggleAddDegree()
+    {
+        isAdd = !isAdd;
+        degree = new Degree();
+        showError = false;
+    }
+
+    private void EditDegree(Degree editDegree)
+    {
+        isAdd = true;
+        degree = new Degree
+            {
+                id = editDegree.id,
+                degree_name = editDegree.degree_name,
+                created_at = editDegree.created_at,
+                updated_at = editDegree.updated_at
+            };
+    }
+
+    private async Task SaveDegree()
+    {
+        if (string.IsNullOrWhiteSpace(degree.degree_name))
+        {
+            showError = true;
+            return;
+        }
+
+        if (string.IsNullOrEmpty(degree.id))
+        {
+            degree.id = Guid.NewGuid().ToString();
+            degree.created_at = DateTime.Now;
+            degree.updated_at = DateTime.Now;
+            await DegreeServices.AddDegree(degree);
+        }
+        else
+        {
+            degree.updated_at = DateTime.Now;
+            await DegreeServices.UpdateDegree(degree);
+        }
+
+        isAdd = false;
+        await LoadDegrees();
+    }
+
+    private async Task DeleteDegree(string degreeId)
+    {
+        var confirm = await JSRuntime.InvokeAsync<bool>("confirm", "Bạn có chắc chắn muốn xóa học vị này?");
+        if (confirm)
+        {
+            await DegreeServices.DeleteDegree(degreeId);
+            await LoadDegrees();
+        }
+    }
+}

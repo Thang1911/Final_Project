@@ -29,7 +29,7 @@
     </form>
 }
 
-<table class="table table-bordered">
+<table class="table table-striped">
     <thead>
         <tr>
             <th>#</th>
@@ -51,7 +51,7 @@
             @foreach (var paper in papers)
             {
                 <tr>
-                    <td>@papers.IndexOf(paper) + 1</td>
+                    <td>@(papers.IndexOf(paper) + 1)</td>
                     <td>@paper.paper_name</td>
                     <td>@paper.created_at.ToString("dd/MM/yyyy HH:mm:ss")</td>
                     <td>@paper.updated_at.ToString("dd/MM/yyyy HH:mm:ss")</td>

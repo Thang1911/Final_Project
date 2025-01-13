@@ -148,10 +148,10 @@
                                     <td>@item?.Scientist?.profile_name</td>
                                     <td>@item?.Curriculums?.year</td>
                                     <td>
-                                        @if (MyCurriculums.Any(myCurriculum => myCurriculum?.Curriculums?.id == item?.Curriculums?.id))
+                                        @if (MyCurriculums.FirstOrDefault(myCurriculum => myCurriculum?.Curriculums?.id == item?.Curriculums?.id) is var matchedCurriculum && matchedCurriculum != null)
                                         {
                                             <button class="btn btn-secondary" disabled>
-                                                @item?.requestStatus
+                                                @matchedCurriculum.requestStatus
                                             </button>
                                         }
                                         else

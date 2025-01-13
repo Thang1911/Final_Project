@@ -1,5 +1,6 @@
 ﻿using BlazorFE.Models.Category;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BlazorFE.Models.Scientist
 {
@@ -18,12 +19,15 @@ namespace BlazorFE.Models.Scientist
         public string? house_phone {  get; set; }
         public string? phone { get; set; }
         public string? email { get; set; }
-        public int? degree_Id { get; set; }
+        [ForeignKey("Degree")]
+        public string degree_id { get; set; }
+        public virtual Degree? Degree { get; set; }
         public string? nvestiture { get; set; }
         public string? scientific_title { get; set; }
         public string? research_major { get; set; }
         public string? research_title { get; set; }
         public string? research_position { get; set; }
+        [ForeignKey("Office")]
         public string? office_id { get; set; }
         public virtual Office? Office { get; set; }
         public string? address_office { get; set; }

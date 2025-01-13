@@ -9,6 +9,7 @@
 @using BlazorFE.Components.Pages.Admin.AllUser.Components
 @inject ScientistServices ProfileServices
 @inject OfficeServices OfficeServices
+@inject DegreeServices DegreeServices
 @inject TopicServices TopicServices
 @inject CurriculumServices CurriculumServices
 @inject MagazineServices MagazineServices
@@ -37,7 +38,7 @@
         @if (ActiveTab == 1)
         {
             @if(scientist != null) {
-                <ScientistProfileForm scientist="@scientist" Offices="@Offices" />
+                <ScientistProfileForm ListDegrees="@Degrees" scientist="@scientist" Offices="@Offices" />
             }
             else {
                 <div>Đang tải dữ liệu .....</div>
@@ -91,6 +92,7 @@
 
     private Scientist scientist { get; set; }
     private List<Models.Category.Office> Offices { get; set; }
+    private List<Models.Category.Degree> Degrees { get; set; }
     public List<scientist_topic_role> TopicsList { get; set; }
     public List<ScientistCurriculumRole> CurriculumsList { get; set; }
     public List<ScientistMagazineRole> MagazinesList { get; set; }
@@ -104,6 +106,7 @@
             userid = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value.ToString();
             userName = principal.Identity.Name;
             Offices = await OfficeServices.GetListOffices();
+            Degrees = await DegreeServices.GetListDegree();
 
             if (userid != null && userName != null)
             {
