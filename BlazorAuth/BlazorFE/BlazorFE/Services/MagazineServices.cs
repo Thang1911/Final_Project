@@ -14,6 +14,19 @@ namespace BlazorFE.Services
             _context = context;
         }
 
+        public async Task<List<ScientistMagazineRole>> GetAllMagazinesAsync()
+        {
+            var scientistMagazines = await _context.Set<ScientistMagazineRole>()
+                .Include(smr => smr.Magazines)
+                    .ThenInclude(m => m.Paper)
+                .Include(smr => smr.Role)
+                .Include(str => str.Scientist)
+                .ToListAsync();
+
+            return scientistMagazines;
+        }
+
+
         // Get Magazines by Scientist ID
         public async Task<List<ScientistMagazineRole>> GetMagazinesByScientistIdAsync(string scientistId)
         {

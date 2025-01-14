@@ -1,4 +1,4 @@
-﻿@page "/User/Magazines"
+﻿@page "/User/JoinMagazines"
 @rendermode InteractiveServer
 
 @using System.Security.Claims;
@@ -133,7 +133,7 @@
                                 <td>@item?.Magazines?.Paper?.paper_name</td>
                                 <td>@item?.Scientist?.profile_name</td>
                                 <td>
-                                    @if (myMagazines.FirstOrDefault(myMagazine => myMagazine.magazine_id == item.magazine_id) is var matchedMagazine && matchedMagazine != null)
+                                    @if (myMagazines.FirstOrDefault(myMagazine => myMagazine.magazine_id == item?.magazine_id) is var matchedMagazine && matchedMagazine != null)
                                     {
                                         <button class="btn btn-secondary" disabled>
                                             @matchedMagazine.requestStatus
@@ -141,7 +141,7 @@
                                     }
                                     else
                                     {
-                                        <button class="btn btn-primary" @onclick="() => JoiningMagazine(item.Magazines)">Tham gia</button>
+                                        <button class="btn btn-primary" @onclick="() => JoiningMagazine(item?.Magazines)">Tham gia</button>
                                     }
                                 </td>
                             </tr>
@@ -264,19 +264,16 @@
                 throw new InvalidOperationException("Scientist or role information is missing.");
             }
 
-            magazine.id = Guid.NewGuid().ToString();
-            magazine.created_at = DateTime.Now;
-            magazine.updated_at = DateTime.Now;
-
             var result = await MagazineServices.AddMagazineAndLinkToScientistAsync(magazine, scientist.id, roleId, true);
             if (result)
             {
+                myMagazines = await MagazineServices.GetMagazinesByScientistIdAsync(scientist.id);
                 magazines = await MagazineServices.GetRequestMagazineAsync(scientist.id, true);
             }
 
             isJoining = false;
             isReadOnly = true;
-            magazine = null;
+            magazine = new Models.Magazine.Magazines();
         }
         catch (Exception ex)
         {

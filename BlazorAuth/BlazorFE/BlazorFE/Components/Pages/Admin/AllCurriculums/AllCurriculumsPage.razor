@@ -1,0 +1,34 @@
+﻿@page "/Admin/AllCurriculums"
+@rendermode InteractiveServer
+
+@using BlazorFE.Models.Scientist
+@using BlazorFE.Services
+@using BlazorFE.Components.Pages.Admin.AllCurriculums.Components
+
+@inject CurriculumServices CurriculumServices
+@inject NavigationManager NavigationManager
+
+@if (listCurriculums != null)
+{
+    <AllCurriculumsTable CurriculumsList="@listCurriculums" />
+}
+else
+{
+    <div>Đang tải dữ liệu ...</div>
+}
+
+@code {
+    public List<ScientistCurriculumRole> listCurriculums { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadScientists();
+    }
+
+    private async Task LoadScientists()
+    {
+        listCurriculums = (await CurriculumServices.GetAllCurriculumsAsync())
+            .Where(smr => smr.requestStatus == "Đã tham gia")
+            .ToList();
+    }
+}

@@ -1,4 +1,6 @@
 ﻿@using BlazorFE.Models.Scientist
+@using BlazorFE.Components.Common
+@using Helpers
 
 <table class="table table-striped table-hover">
     <thead>
@@ -29,17 +31,15 @@
                     <td>@item?.Curriculums?.Book?.book_name</td>
                     <td>@item?.Curriculums?.Training?.training_name</td>
                     <td>@item?.Role?.role_name</td>
-                    <td>@item?.requestStatus</td>
+                    <td><Label Type="@(Helpers.LabelHelper.GetStatusLabel(item?.requestStatus))" Text="@item?.requestStatus" /></td>
                     <td></td>
                     <td>
                         <button class="btn btn-warning"
-                                @onclick="() => OnEdit.InvokeAsync(item?.Curriculums)"
-                                disabled="@((item?.Role?.id != AuthorRoleId))">
+                                @onclick="() => OnEdit.InvokeAsync(item?.Curriculums)" disabled="@(!string.Equals(item?.requestStatus, "đã tham gia", StringComparison.OrdinalIgnoreCase))">
                             Chỉnh sửa
                         </button>
                         <button class="btn btn-danger"
-                                @onclick="() => OnDelete.InvokeAsync(item?.Curriculums)"
-                                disabled="@((item?.Role?.id != AuthorRoleId))">
+                                @onclick="() => OnDelete.InvokeAsync(item?.Curriculums)">
                             Xóa
                         </button>
                     </td>

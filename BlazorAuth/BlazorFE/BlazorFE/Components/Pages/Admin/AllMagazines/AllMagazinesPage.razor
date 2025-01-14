@@ -1,0 +1,34 @@
+﻿@page "/Admin/AllMagazines"
+@rendermode InteractiveServer
+
+@using BlazorFE.Models.Scientist
+@using BlazorFE.Services
+@using BlazorFE.Components.Pages.Admin.AllMagazines.Components
+
+@inject MagazineServices MagazineServices
+@inject NavigationManager NavigationManager
+
+@if (listMagazines != null)
+{
+    <AllMagazinesTable MagazinesList="@listMagazines" />
+}
+else
+{
+    <div>Đang tải dữ liệu ...</div>
+}
+
+@code {
+    public List<ScientistMagazineRole> listMagazines { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadScientists();
+    }
+
+    private async Task LoadScientists()
+    {
+        listMagazines = (await MagazineServices.GetAllMagazinesAsync())
+            .Where(smr => smr.requestStatus == "Đã tham gia")
+            .ToList();
+    }
+}

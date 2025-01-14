@@ -1,0 +1,58 @@
+﻿@using Helpers
+@using BlazorFE.Enums
+@using BlazorFE.Models.Scientist
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Tên bài báo</th>
+            <th scope="col">Năm công bố</th>
+            <th scope="col">Tên tạp chí</th>
+            <th scope="col">Loại bài báo</th>
+            <th scope="col">Người tham gia</th>
+            <th scope="col">Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (MagazinesList != null && MagazinesList.Count > 0)
+        {
+            int i = 1;
+            var groupedByMagazine = MagazinesList
+            .GroupBy(x => x.magazine_id)
+            .ToList();
+
+            foreach (var group in groupedByMagazine)
+            {
+                var magazine = group.First().Magazines;
+                var scientists = group.Select(x => new { x.Scientist?.profile_name, RoleName = x.Role?.role_name }).ToList();
+
+                <tr>
+                    <th scope="row">@i</th>
+                    <td>@magazine?.magazine_name</td>
+                    <td>@magazine?.year</td>
+                    <td>@magazine?.year</td>
+                    <td>@magazine?.journal</td>
+                    <td>@magazine?.Paper?.paper_name</td>
+                    <td>
+                        @string.Join(", ", scientists.Select(s => $"{s.profile_name} ({s.RoleName})"))
+                    </td>
+                    <td>
+                        <button class="btn btn-outline-info">Xem thông tin</button>
+                    </td>
+                </tr>
+                i++;
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="7" class="text-center">Không có dữ liệu</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    [Parameter] public List<ScientistMagazineRole> MagazinesList { get; set; }
+}

@@ -13,6 +13,18 @@ namespace BlazorFE.Services
             _context = context;
         }
 
+        public async Task<List<ScientistOfferRole>> GetAllOffersAsync()
+        {
+            var scientistOffers = await _context.Set<ScientistOfferRole>()
+                .Include(scr => scr.Offer)
+                    .ThenInclude(o => o.Propose)
+                .Include(scr => scr.Role)
+                .Include(scr => scr.Scientist)
+                .ToListAsync();
+
+            return scientistOffers;
+        }
+
         // Get Offers by Scientist ID
         public async Task<List<ScientistOfferRole>> GetOffersByScientistIdAsync(string scientistId)
         {
@@ -24,6 +36,7 @@ namespace BlazorFE.Services
                 .Include(scr => scr.Offer)
                     .ThenInclude(o => o.Propose)
                 .Include(scr => scr.Role)
+                .Include(scr => scr.Scientist)
                 .ToListAsync();
 
             return scientistOffers;

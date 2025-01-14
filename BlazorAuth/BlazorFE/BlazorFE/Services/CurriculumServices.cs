@@ -14,6 +14,20 @@ namespace BlazorFE.Services
             _context = context;
         }
 
+        public async Task<List<ScientistCurriculumRole>> GetAllCurriculumsAsync()
+        {
+            var scientistCurriculums = await _context.Set<ScientistCurriculumRole>()
+                .Include(scr => scr.Curriculums)
+                    .ThenInclude(c => c.Book)
+                .Include(scr => scr.Curriculums)
+                    .ThenInclude(c => c.Training)
+                .Include(scr => scr.Role)
+                .Include(str => str.Scientist)
+                .ToListAsync();
+
+            return scientistCurriculums;
+        }
+
         // Get Curriculums by Scientist ID
         public async Task<List<ScientistCurriculumRole>> GetCurriculumsByScientistIdAsync(string scientistId)
         {
@@ -27,6 +41,7 @@ namespace BlazorFE.Services
                 .Include(scr => scr.Curriculums)
                     .ThenInclude(c => c.Training)
                 .Include(scr => scr.Role)
+                .Include(str => str.Scientist)
                 .ToListAsync();
 
             return scientistCurriculums;

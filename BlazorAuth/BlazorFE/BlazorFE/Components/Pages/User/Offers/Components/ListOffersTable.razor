@@ -1,4 +1,5 @@
-﻿@using Helpers
+﻿@using BlazorFE.Components.Common
+@using Helpers
 @using BlazorFE.Enums
 @using BlazorFE.Models.Scientist
 
@@ -12,6 +13,7 @@
             <th scope="col">Ghi chú</th>
             <th scope="col">Trạng thái</th>
             <th scope="col">Vai trò</th>
+            <th scope="col">Yêu cầu</th>
             <th scope="col">Thao tác</th>
         </tr>
     </thead>
@@ -29,9 +31,13 @@
                     <td>@item?.Offer?.note</td>
                     <td>@item?.Offer?.status</td>
                     <td>@item?.Role?.role_name</td>
+                    <td><Label Type="@(Helpers.LabelHelper.GetStatusLabel(item?.requestStatus))" Text="@item?.requestStatus" /></td>
                     <td>
-                        <button class="btn btn-warning" @onclick="() => OnEdit.InvokeAsync(item.Offer)">Chỉnh sửa</button>
-                        <button class="btn btn-danger" @onclick="() => OnDelete.InvokeAsync(item.Offer)">Xóa</button>
+                        <button class="btn btn-warning" @onclick="() => OnEdit.InvokeAsync(item.Offer)" disabled="@(!string.Equals(item?.requestStatus, "đã tham gia", StringComparison.OrdinalIgnoreCase))">Chỉnh sửa</button>
+                        <button class="btn btn-danger"
+                                @onclick="() => OnDelete.InvokeAsync(item.Offer)">
+                            Xóa
+                        </button>
                     </td>
                 </tr>
                 i++;
@@ -40,7 +46,7 @@
         else
         {
             <tr>
-                <td colspan="8" class="text-center">Không có dữ liệu</td>
+                <td colspan="9" class="text-center">Không có dữ liệu</td>
             </tr>
         }
     </tbody>

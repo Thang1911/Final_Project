@@ -12,6 +12,7 @@
             <th scope="col">Người tham gia</th>
             <th scope="col">Ngày bắt đầu</th>
             <th scope="col">Ngày kết thúc</th>
+            <th scope="col">Thao tác</th>
         </tr>
     </thead>
     <tbody>
@@ -45,6 +46,9 @@
                     </td>
                     <td>@topic?.start_date?.ToShortDateString()</td>
                     <td>@topic?.end_date?.ToShortDateString()</td>
+                    <td>
+                        <button class="btn btn-outline-info">Xem thông tin</button>
+                    </td>
                 </tr>
                 i++;
             }

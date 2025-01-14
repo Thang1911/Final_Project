@@ -1,0 +1,12 @@
+﻿<h5><span class="@GetLabelClass() ">@Text</span></h5>
+
+@code {
+    [Parameter] public string Text { get; set; } = string.Empty;
+    [Parameter] public string Type { get; set; }
+
+    private string GetLabelClass()
+    {
+        var validTypes = new[] { "default", "primary", "success", "info", "warning", "danger", "light", "dark" };
+        return validTypes.Contains(Type) ? $"badge rounded-pill bg-{Type}" : "badge rounded-pill bg-default";
+    }
+}

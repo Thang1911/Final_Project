@@ -1,0 +1,34 @@
+﻿@page "/Admin/AllOffers"
+@rendermode InteractiveServer
+
+@using BlazorFE.Models.Scientist
+@using BlazorFE.Services
+@using BlazorFE.Components.Pages.Admin.AllOffers.Components
+
+@inject OfferServices OfferServices
+@inject NavigationManager NavigationManager
+
+@if (listOffers != null)
+{
+    <AllOffersTable OffersList="@listOffers" />
+}
+else
+{
+    <div>Đang tải dữ liệu ...</div>
+}
+
+@code {
+    public List<ScientistOfferRole> listOffers { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadScientists();
+    }
+
+    private async Task LoadScientists()
+    {
+        listOffers = (await OfferServices.GetAllOffersAsync())
+            .Where(smr => smr.requestStatus == "Đã tham gia")
+            .ToList();
+    }
+}

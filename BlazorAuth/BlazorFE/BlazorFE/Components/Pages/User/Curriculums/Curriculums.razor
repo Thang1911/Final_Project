@@ -8,6 +8,7 @@
 @using BlazorFE.Services.Category;
 @using BlazorFE.Enums;
 @using System.ComponentModel.DataAnnotations;
+
 @inject ScientistServices ProfileServices
 @inject CurriculumServices CurriculumServices
 @inject RoleServices RoleServices
@@ -182,7 +183,7 @@
                     books = await BookServices.GetListBook();
                     trainings = await TrainingServices.GetListTraining();
                     roles = await RoleServices.GetListRole(RoleType.curriculum.ToString());
-                    var role = roles.FirstOrDefault(role => role.role_name == "Tác giả" && role.role_type == RoleType.curriculum.ToString());
+                    var role = roles.FirstOrDefault(role => role.role_name == "Tác giả");
 
                     if (role != null)
                     {
