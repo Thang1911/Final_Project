@@ -13,6 +13,7 @@
 @inject TopicServices TopicServices
 @inject RoleServices RoleServices
 @inject LvTopicServices LvTopicServices
+@inject FileUploadServices FileUploadServices
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
@@ -37,6 +38,14 @@
                             LvTopics="@lvTopics"
                             OnCancel="ToggleTopics"
                             OnSave="SaveTopic" />
+@* 
+                        <div class="auto-cols">
+                            <div>
+                                <label for="formFile" class="labels">Tệp đính kèm</label>
+                                <inputfile class="form-control" type="file" id="formfile" OnChange="handlefilechange" />
+                            </div>
+                        </div> *@
+
                     }
                 </div>
                 <ListTopicTable 
@@ -138,6 +147,36 @@
     private List<scientist_topic_role> ListTopics { get; set; }
     private List<scientist_topic_role> RequestTopics { get; set; }
     private List<string> ListTopicIds { get; set; }
+
+    private IBrowserFile SelectedFile { get; set; }
+
+    private async Task HandleFileChange(ChangeEventArgs e)
+    {
+        var fileInput = (e.Value as IEnumerable<IBrowserFile>)?.FirstOrDefault();
+        Console.WriteLine("FIle", fileInput.Name);
+        if (fileInput != null)
+        {
+            SelectedFile = fileInput;
+            Console.WriteLine("File selected: " + SelectedFile.Name);
+        }
+        else
+        {
+            Console.WriteLine("No file uploaded");
+        }
+    }
+
+    private async Task UploadFileAsync(string relatedId, string relatedType)
+    {
+        if (SelectedFile != null)
+        {
+            var stream = SelectedFile.OpenReadStream();
+            await FileUploadServices.UploadFileAsBase64Async(SelectedFile.Name, stream, relatedId, relatedType);
+        }
+        else
+        {
+            return;
+        }
+    }
 
     private void EditTopic(Models.Topic.Topics editTopic)
     {
@@ -254,6 +293,7 @@
             var result = await TopicServices.AddTopicAndLinkToScientistAsync(topics, scientist.id, roleId, false);
             if (result)
             {
+                await UploadFileAsync(topics.id, "topic");
                 ListTopics = await TopicServices.GetProjectsByScientistIdAsync(scientist.id);
             }
 

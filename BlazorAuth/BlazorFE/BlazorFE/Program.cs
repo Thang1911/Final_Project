@@ -33,6 +33,10 @@ builder.Services.AddScoped<BookServices>();
 builder.Services.AddScoped<ProposeServices>();
 builder.Services.AddScoped<PaperServices>();
 builder.Services.AddScoped<DegreeServices>();
+builder.Services.AddScoped<FileUploadServices>();
+
+builder.Services.AddSingleton<GoogleDriveServices>();
+
 
 builder.Services.AddAuthentication(options =>
     {

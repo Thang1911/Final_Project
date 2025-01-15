@@ -1,0 +1,50 @@
+﻿@rendermode InteractiveServer
+
+@inject GoogleDriveServices DriveService
+
+<h3>Upload File to Public Store</h3>
+
+<InputFile OnChange="HandleFileSelected" multiple />
+<button @onclick="HandleUploadFile" disabled="@(!isFileSelected)">Upload</button>
+
+@if (!string.IsNullOrEmpty(uploadStatus))
+{
+    <p>@uploadStatus</p>
+}
+
+@code {
+    private IBrowserFile selectedFile;
+    private bool isFileSelected = false;
+    private string uploadStatus;
+
+    private const string FolderId = "1hdkBV634KcqZH4Chkwk1d6sSoNt4Tu-G";
+
+    private async Task HandleUploadFile()
+    {
+        if (selectedFile == null) return;
+
+        try
+        {
+            using var stream = selectedFile.OpenReadStream();
+            var fileId = await DriveService.UploadFileAsync(stream, selectedFile.Name, FolderId);
+            await DriveService.MakeFilePublicAsync(fileId);
+            var publicUrl = $"https://drive.google.com/uc?id={fileId}";
+            uploadStatus = $"Upload successful! Public URL: <a href='{publicUrl}' target='_blank'>{publicUrl}</a>";
+        }
+        catch (Exception ex)
+        {
+            uploadStatus = $"Error: {ex.Message}";
+        }
+    }
+
+    private void HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        var files = e.GetMultipleFiles();
+        if (files.Any())
+        {
+            selectedFile = files.First();
+            isFileSelected = true;
+            uploadStatus = null;
+        }
+    }
+}

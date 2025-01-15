@@ -2,7 +2,7 @@
 @using BlazorFE.Enums
 
 <form>
-    <div class="mt-2">
+    <div class="d-flex flex-column gap-3">
         <!-- Hàng đầu tiên -->
         <div class="auto-cols mb-2">
             <div>
@@ -55,6 +55,12 @@
                 <input readonly="@IsReadOnly" type="date" class="form-control" @bind="@Topics.end_date">
             </div>
         </div>
+@*         <div class="auto-cols">
+            <div>
+                <label for="formFile" class="labels">Tệp đính kèm</label>
+                <input class="form-control" type="file" id="formFile" @onchange="HandleFileChange">
+            </div>
+        </div> *@
     </div>
     <div class="d-flex gap-1">
         <div class="mt-4 text-center">
@@ -73,4 +79,5 @@
     [Parameter] public List<Models.Category.LvTopics> LvTopics { get; set; }
     [Parameter] public EventCallback OnCancel { get; set; }
     [Parameter] public EventCallback OnSave { get; set; }
+    // [Parameter] public EventCallback OnChangeFile { get; set; }
 }

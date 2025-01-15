@@ -123,7 +123,9 @@
                     CurriculumsList = (await CurriculumServices.GetCurriculumsByScientistIdAsync(scientist.id))
                         .Where(curriculum => curriculum.requestStatus == "Đã tham gia")
                         .ToList();
-                    MagazinesList = await MagazineServices.GetMagazinesByScientistIdAsync(scientist.id);
+                    MagazinesList = (await MagazineServices.GetMagazinesByScientistIdAsync(scientist.id))
+                        .Where(curriculum => curriculum.requestStatus == "Đã tham gia")
+                        .ToList(); 
                 }
             }
             else

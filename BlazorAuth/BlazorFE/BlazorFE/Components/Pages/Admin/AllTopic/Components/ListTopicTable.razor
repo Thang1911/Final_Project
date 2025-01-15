@@ -9,9 +9,10 @@
             <th scope="col">Tên đề tài</th>
             <th scope="col">Cấp đề tài/đề án</th>
             <th scope="col">Kết quả nghiệm thu</th>
-            <th scope="col">Người tham gia</th>
             <th scope="col">Ngày bắt đầu</th>
             <th scope="col">Ngày kết thúc</th>
+            <th scope="col">Người tham gia</th>
+            <th scope="col">Tệp đính kèm</th>
             <th scope="col">Thao tác</th>
         </tr>
     </thead>
@@ -41,11 +42,12 @@
                         }
                         @displayName
                     </td>
+                    <td>@topic?.start_date?.ToShortDateString()</td>
+                    <td>@topic?.end_date?.ToShortDateString()</td>
                     <td>
                         @string.Join(", ", scientists.Select(s => $"{s.profile_name} ({s.RoleName})"))
                     </td>
-                    <td>@topic?.start_date?.ToShortDateString()</td>
-                    <td>@topic?.end_date?.ToShortDateString()</td>
+                    <td></td>
                     <td>
                         <button class="btn btn-outline-info">Xem thông tin</button>
                     </td>

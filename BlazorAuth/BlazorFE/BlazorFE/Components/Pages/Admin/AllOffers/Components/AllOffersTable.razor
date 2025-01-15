@@ -29,10 +29,10 @@
 
                 <tr>
                     <th scope="row">@i</th>
-                    <td>offer.offer_name</td>
-                    <td>offer.year</td>
-                    <td>offer.Propose?.propose_name</td>
-                    <td>offer.note</td>
+                    <td>@offer.offer_name</td>
+                    <td>@offer.year</td>
+                    <td>@offer.Propose?.propose_name</td>
+                    <td>@offer.note</td>
                     <td>
                         @string.Join(", ", scientists.Select(s => $"{s.profile_name} ({s.RoleName})"))
                     </td>
