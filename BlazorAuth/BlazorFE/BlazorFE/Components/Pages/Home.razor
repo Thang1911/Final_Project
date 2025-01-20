@@ -217,7 +217,7 @@
                 var response = await ProfileServices.GetProfileAsync(userid);
                 var authorizationResult = await AuthorizationService.AuthorizeAsync(principal, null, "Administrators");
                 IsAdmin = authorizationResult.Succeeded;
-                Console.WriteLine(IsAdmin);
+
                 if (IsAdmin)
                 {
                     return;

@@ -32,7 +32,7 @@ namespace BlazorFE.Services
                 throw new ArgumentException("Scientist ID cannot be null or empty", nameof(scientistId));
 
             var scientistTopics = await _context.Set<scientist_topic_role>()
-                .Where(str => str.scientist_id == scientistId)
+                .Where(str => str.scientist_id == scientistId && str.requestStatus == "Đã tham gia")
                 .Include(str => str.Topics)
                     .ThenInclude(str => str.LvTopics)
                 .Include(str => str.Role)
@@ -42,18 +42,14 @@ namespace BlazorFE.Services
             return scientistTopics;
         }
 
-        public async Task<List<scientist_topic_role>> GetJoinRequestsByScientistIdAsync(string scientistId, List<string> topicIds)
+        public async Task<List<scientist_topic_role>> GetJoinRequestsByScientistIdAsync(string scientistId)
         {
             if (string.IsNullOrEmpty(scientistId))
                 throw new ArgumentException("Scientist ID cannot be null or empty", nameof(scientistId));
 
-            if (topicIds == null || !topicIds.Any())
-                return null;
-
             var joinRequests = await _context.Set<scientist_topic_role>()
-                .Where(str => str.scientist_id != scientistId
-                    && str.requestStatus == "Chờ duyệt"
-                    && topicIds.Contains(str.topic_id))
+                .Where(str => str.scientist_id == scientistId
+                    && str.requestStatus == "Chờ duyệt")
                 .Include(str => str.Topics)
                     .ThenInclude(str => str.LvTopics)
                 .Include(str => str.Role)
@@ -68,15 +64,12 @@ namespace BlazorFE.Services
             if (string.IsNullOrEmpty(scientistId))
                 throw new ArgumentException("Scientist ID cannot be null or empty", nameof(scientistId));
 
-            const string ProjectLeaderRole = "Chủ nhiệm dự án";
-
             var query = _context.Set<scientist_topic_role>().AsQueryable();
 
             if (isJoining)
             {
                 query = query.Where(str => str.scientist_id != scientistId
-                                           && str.Role != null
-                                           && str.Role.role_name == ProjectLeaderRole);
+                                           && str.Role != null);
             }
             else
             {

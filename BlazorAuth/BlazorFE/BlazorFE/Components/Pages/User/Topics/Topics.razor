@@ -2,7 +2,8 @@
 @rendermode InteractiveServer
 
 @using System.Security.Claims;
-@using BlazorFE.Components.Pages.User.Topics.Component
+@using BlazorFE.Components.Pages.User.Topics
+@using BlazorFE.Components.Pages.User.Topics.Comp
 @using BlazorFE.Models.Scientist
 @using BlazorFE.Services;
 @using BlazorFE.Enums;
@@ -27,24 +28,20 @@
                 <div class="">
                     <div class="d-flex flex-row gap-2">
                         <button class="btn btn-primary" @onclick="ToggleTopics" disabled="@isAdd">Thêm đề tài</button>
-                        <button class="btn btn-success" @onclick="JoinTopics">Tham gia đề tài</button>
+                        <button class="btn btn-success" @onclick="JoinTopics">Thêm thành viên</button>
                     </div>
                     @if (isAdd)
                     {
-                       <TopicForm 
+                       <CompTopicForm 
                             Topics="@topics"
+                            roleId="@roleId"
+                            roles="@roles"
                             IsReadOnly="@isReadOnly"
                             ShowError="@showError"
                             LvTopics="@lvTopics"
                             OnCancel="ToggleTopics"
-                            OnSave="SaveTopic" />
-@* 
-                        <div class="auto-cols">
-                            <div>
-                                <label for="formFile" class="labels">Tệp đính kèm</label>
-                                <inputfile class="form-control" type="file" id="formfile" OnChange="handlefilechange" />
-                            </div>
-                        </div> *@
+                            OnSave="SaveTopic" 
+                         />
 
                     }
                 </div>
@@ -54,14 +51,14 @@
                     OnDelete="DeleteTopic" 
                  />
                 <div>
-                    <h3>Danh sách yêu cầu tham gia:</h3>
+                    <h3>Danh sách lời mời tham gia:</h3>
                     <table class="table table-striped table-hover">
                         <thead>
                             <tr>
                                 <th scope="col">#</th>
                                 <th scope="col">Tên đề tài</th>
                                 <th scope="col">Loại đề tài</th>
-                                <th scope="col">Người yêu cầu</th>
+                                <th scope="col">Người mời</th>
                                 <th scope="col">Vai trò</th>
                                 <th scope="col">Thao tác</th>
                             </tr>
@@ -79,7 +76,7 @@
                                         <td>@item?.Scientist?.profile_name</td>
                                         <td>@item?.Role?.role_name</td>
                                         <td>
-                                            <button class="btn btn-warning" @onclick="() => UpdateRequest(item, true)">Duyệt</button>
+                                            <button class="btn btn-warning" @onclick="() => UpdateRequest(item, true)">Đồng ý</button>
                                             <button class="btn btn-danger" @onclick="() => UpdateRequest(item, false)">Từ chối</button>
                                         </td>
                                     </tr>
@@ -148,36 +145,6 @@
     private List<scientist_topic_role> RequestTopics { get; set; }
     private List<string> ListTopicIds { get; set; }
 
-    private IBrowserFile SelectedFile { get; set; }
-
-    private async Task HandleFileChange(ChangeEventArgs e)
-    {
-        var fileInput = (e.Value as IEnumerable<IBrowserFile>)?.FirstOrDefault();
-        Console.WriteLine("FIle", fileInput.Name);
-        if (fileInput != null)
-        {
-            SelectedFile = fileInput;
-            Console.WriteLine("File selected: " + SelectedFile.Name);
-        }
-        else
-        {
-            Console.WriteLine("No file uploaded");
-        }
-    }
-
-    private async Task UploadFileAsync(string relatedId, string relatedType)
-    {
-        if (SelectedFile != null)
-        {
-            var stream = SelectedFile.OpenReadStream();
-            await FileUploadServices.UploadFileAsBase64Async(SelectedFile.Name, stream, relatedId, relatedType);
-        }
-        else
-        {
-            return;
-        }
-    }
-
     private void EditTopic(Models.Topic.Topics editTopic)
     {
         isAdd = true;
@@ -237,24 +204,10 @@
                     ListTopics = await TopicServices.GetProjectsByScientistIdAsync(scientist.id);
                     if (ListTopics != null && ListTopics.Any())
                     {
-                        ListTopicIds = ListTopics
-                            .Where(topic => topic.Role != null && topic.Role.role_name == "Chủ nhiệm dự án")
-                            .Select(topic => topic.topic_id)
-                            .ToList();
-                        RequestTopics = await TopicServices.GetJoinRequestsByScientistIdAsync(scientist.id, ListTopicIds);
+                        RequestTopics = await TopicServices.GetJoinRequestsByScientistIdAsync(scientist.id);
                     }
                     lvTopics = await LvTopicServices.GetListLvTopics();
                     roles = await RoleServices.GetListRole(RoleType.topic.ToString());
-                    var role = roles.FirstOrDefault(role => role.role_name == "Chủ nhiệm dự án");
-
-                    if (role != null)
-                    {
-                        roleId = role.id;
-                    }
-                    else
-                    {
-                        Console.WriteLine("Role not found");
-                    }
                 }
             }
             else
@@ -293,7 +246,6 @@
             var result = await TopicServices.AddTopicAndLinkToScientistAsync(topics, scientist.id, roleId, false);
             if (result)
             {
-                await UploadFileAsync(topics.id, "topic");
                 ListTopics = await TopicServices.GetProjectsByScientistIdAsync(scientist.id);
             }
 
@@ -365,15 +317,14 @@
     {
         try
         {
-            var confirm = await JSRuntime.InvokeAsync<bool>("confirm", new object[] { isAccept ? "Bạn có chắc muốn duyệt yêu cầu này?" : "Bạn có chắc muốn từ chối yêu cầu này?" });
+            var confirm = await JSRuntime.InvokeAsync<bool>("confirm", new object[] { isAccept ? "Bạn có chắc muốn đồng ý lời mời này?" : "Bạn có chắc muốn từ chối lời mời này?" });
 
             if (confirm && !string.IsNullOrWhiteSpace(requestTopic?.Topics?.id) && !string.IsNullOrWhiteSpace(requestTopic?.Scientist?.id) && !string.IsNullOrWhiteSpace(requestTopic?.Role?.id))
             {
-                var result = await TopicServices.UpdateTopicAndLinkToScientistAsync(requestTopic.Topics.id, requestTopic.Topics, requestTopic.Scientist.id, requestTopic.Role.id, isAccept ? "Đã tham gia" : "Từ chối", true);
+                var result = await TopicServices.UpdateTopicAndLinkToScientistAsync(requestTopic.Topics.id, requestTopic.Topics, requestTopic.Scientist.id, requestTopic.Role.id, isAccept ? "Đã tham gia" : "Đã từ chối", true);
                 if (result)
                 {
-                    ListTopicIds = ListTopics.Select(topic => topic.topic_id).ToList();
-                    RequestTopics = await TopicServices.GetJoinRequestsByScientistIdAsync(scientist.id, ListTopicIds);
+                    RequestTopics = await TopicServices.GetJoinRequestsByScientistIdAsync(scientist.id);
                 }
             }
         }

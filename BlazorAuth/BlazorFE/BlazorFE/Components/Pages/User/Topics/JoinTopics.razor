@@ -16,7 +16,7 @@
 @inject IJSRuntime JSRuntime
 
 @if(scientist != null) {
-    <h3>Danh sách yêu cầu tham gia của @scientist.profile_name</h3>
+    <h3>Danh sách lời mời tham gia của @scientist.profile_name</h3>
 
     <div class="bg-white">
         <div class="justify-content-center">
@@ -54,6 +54,20 @@
                                         }
                                     </div>
                                     <div>
+                                        <label class="labels">Thành viên<span class="text-red">*</span></label>
+                                        <select disabled="@isReadOnly" type="text" class="form-control" @bind="@scientistId">
+                                            <option value="">Chọn thành viên</option>
+                                            @foreach (var item in SelectableScientists)
+                                            {
+                                                <option value="@item.id">@item.profile_name</option>
+                                            }
+                                        </select>
+                                        @if (showError && string.IsNullOrWhiteSpace(scientistId))
+                                        {
+                                            <span class="text-danger">Vui lòng chọn thành viên.</span>
+                                        }
+                                    </div>
+                                    <div>
                                         <label class="labels">Vai trò<span class="text-red">*</span></label>
                                         <select disabled="@isReadOnly" type="text" class="form-control" @bind="@roleId">
                                             <option value="">Chọn vai trò</option>
@@ -67,6 +81,10 @@
                                             <span class="text-danger">Vui lòng chọn vai tró.</span>
                                         }
                                     </div>
+                                </div>
+
+                                <!-- Hàng thứ hai -->
+                                <div class="auto-cols mt-2">
                                     <div>
                                         <label class="labels">Kết quả đánh giá<span class="text-red">*</span></label>
                                         <select disabled="true" type="text" class="form-control" @bind="topics.result" aria-label="Default select example">
@@ -84,10 +102,6 @@
                                             <span class="text-danger">Vui lòng chọn kết quả.</span>
                                         }
                                     </div>
-                                </div>
-
-                                <!-- Hàng thứ hai -->
-                                <div class="auto-cols mt-2">
                                     <div>
                                         <label class="labels">Ngày bắt đầu<span class="text-red">*</span></label>
                                         <input readonly="true" type="date" class="form-control" @bind="@topics.start_date">
@@ -126,17 +140,16 @@
                             <th scope="col">Tên đề tài</th>
                             <th scope="col">Loại đề tài</th>
                             <th scope="col">Kết quả</th>
-                            <th scope="col">Chủ nhiệm dự án</th>
                             <th scope="col">Ngày bắt đầu</th>
                             <th scope="col">Ngày kết thúc</th>
                             <th scope="col">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @if (ListTopics != null && ListTopics.Count > 0)
+                        @if (MyTopics != null && MyTopics.Count > 0)
                         {
                             int i = 1;
-                            foreach (var item in ListTopics)
+                            foreach (var item in MyTopics)
                             {
                                 <tr class="">
                                     <th scope="row">@i</th>
@@ -151,20 +164,10 @@
                                         }
                                         @displayName
                                     </td>
-                                    <td>@item?.Scientist?.profile_name</td>
                                     <td>@item?.Topics?.start_date?.ToShortDateString()</td>
                                     <td>@item?.Topics?.end_date?.ToShortDateString()</td>
                                     <td>
-                                        @if (MyTopics.FirstOrDefault(myTopic => myTopic.Topics?.id == item.Topics?.id) is var matchedTopic && matchedTopic != null)
-                                        {
-                                            <button class="btn btn-secondary" disabled>
-                                                @matchedTopic.requestStatus
-                                            </button>
-                                        }
-                                        else
-                                        {
-                                            <button class="btn btn-primary" @onclick="() => JoiningTopic(item.Topics)">Tham gia</button>
-                                        }
+                                        <button class="btn btn-primary" @onclick="() => JoiningTopic(item.Topics)">Thêm thành viên</button>
                                     </td>
                                 </tr>
                                 i++;
@@ -173,7 +176,7 @@
                         else
                         {
                             <tr>
-                                <td colspan="8" class="text-center">Không có dữ liệu</td>
+                                <td colspan="7" class="text-center">Không có dữ liệu</td>
                             </tr>
                         }
                     </tbody>
@@ -215,6 +218,7 @@
     private string userName = "";
     private string userid = "";
     private string roleId = "";
+    private string scientistId = "";
     private List<Models.Category.Role> roles { get; set; }
     private List<Models.Category.LvTopics> lvTopics { get; set; }
     private Scientist scientist { get; set; }
@@ -224,12 +228,22 @@
         };
     private List<scientist_topic_role> ListTopics { get; set; }
     private List<scientist_topic_role> MyTopics { get; set; }
+    private List<Scientist> AllScientists { get; set; }
+    private List<Scientist> SelectableScientists { get; set; }
+    private List<string> ListScientistId { get; set; }
 
     private void JoiningTopic(Models.Topic.Topics joinTopic)
     {
         isJoining = true;
         isReadOnly = false;
         topics = joinTopic;
+        ListScientistId = ListTopics
+            .Where(tp => tp.topic_id == topics.id) 
+            .Select(tp => tp.scientist_id)
+            .ToList();
+        SelectableScientists = AllScientists
+            .Where(scientist => ListScientistId != null && !ListScientistId.Contains(scientist.id))
+            .ToList();
     }
 
     private void Cancle()
@@ -273,10 +287,10 @@
                 {
                     scientist = response;
                     MyTopics = await TopicServices.GetProjectsByScientistIdAsync(scientist.id);
-                    ListTopics = await TopicServices.GetRequestTopicAsync(scientist.id, true);
+                    ListTopics = await TopicServices.GetAllTopicAsync();
+                    AllScientists = await ProfileServices.GetAllScientistIdAsync();
                     lvTopics = await LvTopicServices.GetListLvTopics();
-                    var result = await RoleServices.GetListRole(RoleType.topic.ToString());
-                    roles = result.Where(role => role.role_name != "Chủ nhiệm dự án" && role.role_type == RoleType.topic.ToString()).ToList();
+                    roles = (await RoleServices.GetListRole(RoleType.topic.ToString())).ToList();
                 }
             }
             else
