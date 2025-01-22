@@ -1,4 +1,4 @@
-﻿@page "/User/Magazines"
+﻿@page "/User/Magazines/Edit/:{MagazineId}"
 @rendermode InteractiveServer
 
 @using System.Security.Claims;
@@ -25,10 +25,9 @@
         <div class="border-right">
             <div class="">
                 <div class="d-flex gap-2 justify-content-end">
-                    <button class="btn btn-success" @onclick="ToggleMagazine">Thêm bài báo</button>
-                    <button class="btn btn-outline-primary" @onclick="NavigateToJoining">Tham gia bài báo</button>
+                    <button class="btn btn-outline-primary" @onclick="NavigateToJoining">Thêm thành viên</button>
                 </div>
-                @if (scientist != null && isAdd)
+                @if (scientist != null)
                 {
                     <form>
                         <div class="mt-2">
@@ -101,7 +100,7 @@
 
                         <div class="d-flex gap-1 mt-2">
                             <div class="text-center">
-                                <button class="btn btn-primary" type="button" @onclick="ToggleMagazine">Hủy</button>
+                                <button class="btn btn-primary" type="button" >Hủy</button>
                             </div>
                             <div class="text-center">
                                 <button class="btn btn-success" type="submit" @onclick="SaveMagazine" @onclick:preventDefault>Lưu</button>
@@ -110,7 +109,7 @@
                     </form>
                 }
             </div>
-            <table class="table table-striped table-hover">
+           @*  <table class="table table-striped table-hover">
                 <thead>
                     <tr>
                         <th scope="col">#</th>
@@ -155,7 +154,7 @@
                         </tr>
                     }
                 </tbody>
-            </table>
+            </table> *@
 
             <h3 class="mt-2">Danh sách lời mời: </h3>
 
@@ -235,7 +234,7 @@
     private bool isReadOnly = true;
     private bool showError = false;
     private bool isUpdate = false;
-    private bool isAdd = false;
+    private string MagazineId { get; set; }
     private string userName = "";
     private string userid = "";
     private string roleId = "";
@@ -246,21 +245,6 @@
     private List<ScientistMagazineRole> magazines { get; set; }
     private List<ScientistMagazineRole> requestMagazines { get; set; }
     private List<string> ListMagazineIds { get; set; }
-
-    private void EditMagazine(Models.Magazine.Magazines editMagazine)
-    {
-        isAdd = true;
-        isReadOnly = false;
-        magazine = editMagazine;
-        isUpdate = true;
-    }
-
-    private void ToggleMagazine()
-    {
-        isAdd = !isAdd;
-        isReadOnly = !isReadOnly;
-        magazine = new Models.Magazine.Magazines();
-    }
 
     private void NavigateToJoining()
     {
@@ -338,7 +322,6 @@
                 magazines = await MagazineServices.GetMagazinesByScientistIdAsync(scientist.id);
             }
 
-            isAdd = false;
             isReadOnly = true;
             magazine = null;
         }
@@ -371,7 +354,6 @@
                 magazines = await MagazineServices.GetMagazinesByScientistIdAsync(scientist.id);
             }
 
-            isAdd = false;
             isReadOnly = true;
             magazine = null;
         }

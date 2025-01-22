@@ -34,7 +34,39 @@ namespace BlazorFE.Services
                 throw new ArgumentException("Scientist ID cannot be null or empty", nameof(scientistId));
 
             var scientistMagazines = await _context.Set<ScientistMagazineRole>()
-                .Where(smr => smr.scientist_id == scientistId)
+                .Where(smr => smr.scientist_id == scientistId && smr.requestStatus == "Đã tham gia")
+                .Include(smr => smr.Magazines)
+                    .ThenInclude(m => m.Paper)
+                .Include(smr => smr.Role)
+                .Include(str => str.Scientist)
+                .ToListAsync();
+
+            return scientistMagazines;
+        }
+
+        public async Task<List<ScientistMagazineRole>> GetRequestMagazinesByScientistIdAsync(string scientistId)
+        {
+            if (string.IsNullOrEmpty(scientistId))
+                throw new ArgumentException("Scientist ID cannot be null or empty", nameof(scientistId));
+
+            var scientistMagazines = await _context.Set<ScientistMagazineRole>()
+                .Where(smr => smr.scientist_id == scientistId && smr.requestStatus == "Chờ duyệt")
+                .Include(smr => smr.Magazines)
+                    .ThenInclude(m => m.Paper)
+                .Include(smr => smr.Role)
+                .Include(str => str.Scientist)
+                .ToListAsync();
+
+            return scientistMagazines;
+        }
+
+        public async Task<List<ScientistMagazineRole>> GetScientistByMagazineIdAsync(string magazineId, bool isAccept)
+        {
+            if (string.IsNullOrEmpty(magazineId))
+                throw new ArgumentException("Magazine ID cannot be null or empty", nameof(magazineId));
+
+            var scientistMagazines = await _context.Set<ScientistMagazineRole>()
+                .Where(smr => smr.magazine_id == magazineId && smr.requestStatus == (isAccept ? "Đã tham gia" : "Chờ duyệt"))
                 .Include(smr => smr.Magazines)
                     .ThenInclude(m => m.Paper)
                 .Include(smr => smr.Role)

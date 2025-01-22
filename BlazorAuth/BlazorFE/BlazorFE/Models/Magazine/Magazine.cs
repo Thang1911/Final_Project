@@ -16,6 +16,10 @@ namespace BlazorFE.Models.Magazine
         [ForeignKey("Paper")]
         public string paper_id { get; set; }
         public virtual Paper? Paper { get; set; }
+        public string magazine_type { get; set; }
+        public string magazine_scope { get; set; }
+        public string index_score { get; set; }
+        public string rank { get; set; }
         public DateTime created_at { get; set; }
         public DateTime updated_at { get; set; }
     }

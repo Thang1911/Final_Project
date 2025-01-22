@@ -21,6 +21,7 @@ namespace BlazorFE.Models.Scientist
         public virtual Role? Role { get; set; }
         public bool? status { get; set; }
         public string? requestStatus { get; set; }
+        public virtual Scientist? ScientistRequest { get; set; }
         public DateTime created_at { get; set; }
         public DateTime updated_at { get; set; }
 
