@@ -34,6 +34,7 @@ builder.Services.AddScoped<ProposeServices>();
 builder.Services.AddScoped<PaperServices>();
 builder.Services.AddScoped<DegreeServices>();
 builder.Services.AddScoped<FileUploadServices>();
+builder.Services.AddScoped<MagazineScoreServices>();
 
 builder.Services.AddSingleton<GoogleDriveServices>();
 

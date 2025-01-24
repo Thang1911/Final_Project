@@ -1,4 +1,5 @@
 ﻿using BlazorFE.Data;
+using BlazorFE.Models.Category;
 using BlazorFE.Models.Magazine;
 using BlazorFE.Models.Scientist;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +25,12 @@ namespace BlazorFE.Services
                 .ToListAsync();
 
             return scientistMagazines;
+        }
+
+        public async Task<Magazines> GetMagazineByIdAsync(string magazineId)
+        {
+            var existingMagazine = await _context.Magazines.FindAsync(magazineId);
+            return existingMagazine;
         }
 
 
@@ -53,6 +60,24 @@ namespace BlazorFE.Services
                 .Where(smr => smr.scientist_id == scientistId && smr.requestStatus == "Chờ duyệt")
                 .Include(smr => smr.Magazines)
                     .ThenInclude(m => m.Paper)
+                .Include(smr => smr.Role)
+                .Include(str => str.Scientist)
+                .ToListAsync();
+
+            return scientistMagazines;
+        }
+
+        public async Task<List<ScientistMagazineRole>> GetListScientistByMagazineIdAsync(string magazineId)
+        {
+            if (string.IsNullOrEmpty(magazineId))
+                throw new ArgumentException("Magazine ID cannot be null or empty", nameof(magazineId));
+
+            var scientistMagazines = await _context.Set<ScientistMagazineRole>()
+                .Where(smr => smr.magazine_id == magazineId)
+                .Include(smr => smr.Magazines)
+                    .ThenInclude(m => m.Paper)
+                .Include(smr => smr.Magazines)
+                    .ThenInclude(m => m.MagazineScore)
                 .Include(smr => smr.Role)
                 .Include(str => str.Scientist)
                 .ToListAsync();

@@ -4,6 +4,7 @@ using BlazorFE.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BlazorFE.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250124043156_updateMagazine")]
+    partial class updateMagazine
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -292,10 +295,6 @@ namespace BlazorFE.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("magazine_score_name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("scope")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -782,9 +781,6 @@ namespace BlazorFE.Migrations
                     b.Property<string>("id")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("MagazineScoreid")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<DateTime>("created_at")
                         .HasColumnType("datetime2");
 
@@ -797,9 +793,6 @@ namespace BlazorFE.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("magazine_scope")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("magazine_score_id")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("paper_id")
@@ -816,8 +809,6 @@ namespace BlazorFE.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("id");
-
-                    b.HasIndex("MagazineScoreid");
 
                     b.HasIndex("paper_id");
 
@@ -1349,17 +1340,11 @@ namespace BlazorFE.Migrations
 
             modelBuilder.Entity("BlazorFE.Models.Magazine.Magazines", b =>
                 {
-                    b.HasOne("BlazorFE.Models.Category.MagazineScore", "MagazineScore")
-                        .WithMany()
-                        .HasForeignKey("MagazineScoreid");
-
                     b.HasOne("BlazorFE.Models.Category.Paper", "Paper")
                         .WithMany()
                         .HasForeignKey("paper_id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("MagazineScore");
 
                     b.Navigation("Paper");
                 });

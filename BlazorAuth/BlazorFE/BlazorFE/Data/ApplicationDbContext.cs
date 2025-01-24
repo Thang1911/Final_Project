@@ -46,5 +46,6 @@ namespace BlazorFE.Data
         public DbSet<LvCouncil> LvCouncils { get; set; }
         public DbSet<Researcher> Researchers { get; set; }
         public DbSet<Project> Projects { get; set; }
+        public DbSet<MagazineScore> MagazineScores { get; set; }
     }
 }

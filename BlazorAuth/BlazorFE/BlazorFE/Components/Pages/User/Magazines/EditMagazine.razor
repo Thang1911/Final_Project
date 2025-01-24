@@ -13,6 +13,7 @@
 @inject MagazineServices MagazineServices
 @inject RoleServices RoleServices
 @inject PaperServices PaperServices
+@inject MagazineScoreServices MagazineScoreServices
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
@@ -49,6 +50,23 @@
                                         <span class="text-danger">Vui lòng nhập tên tạp chí</span>
                                     }
                                 </div>
+                                <div>
+                                    <label class="labels">Phạm vi bài báo<span class="text-red">*</span></label>
+                                    <select type="text" class="form-control" @bind="@magazine.magazine_scope" aria-label="Default select example">
+                                        <option value="0">Chọn phạm vi</option>
+                                        @foreach (var scope in Enum.GetValues<BlazorFE.Enums.Magazine.MagazineScope>())
+                                        {
+                                            <option value="@(scope)">
+                                                @Helpers.EnumHelper.GetEnumDisplayName(scope)
+                                            </option>
+                                        }
+                                    </select>
+
+                                    @if (showError && magazine.magazine_scope == "")
+                                    {
+                                        <span class="text-danger">Vui lòng chọn phạm vi bài báo.</span>
+                                    }
+                                </div>
                             </div>
 
                             <!-- Hàng thứ hai -->
@@ -67,6 +85,37 @@
                                         <span class="text-danger">Vui lòng chọn năm công bố.</span>
                                     }
                                 </div>
+                                <div>
+                                    <label class="labels">Chỉ số<span class="text-red">*</span></label>
+                                    <select type="text" class="form-control" @bind="@magazine.magazine_score_id" aria-label="Default select example">
+                                        <option value="">Chọn chỉ số</option>
+                                        @foreach (var score in listMagazineScore)
+                                        {
+                                            <option value="@score.id">@score.magazine_score_name</option>
+                                        }
+                                    </select>
+
+                                    @if (showError && magazine.magazine_score_id == "")
+                                    {
+                                        <span class="text-danger">Vui lòng chọn chỉ số của bài báo.</span>
+                                    }
+                                </div>
+                                <div>
+                                    <label class="labels">Xếp hạng bài báo</label>
+                                    <select type="text" class="form-control" @bind="@magazine.rank" aria-label="Default select example">
+                                        <option value="">Chọn xếp hạng</option>
+                                        @foreach (var rk in Enum.GetValues<BlazorFE.Enums.Magazine.MagazineRank>())
+                                        {
+                                            <option value="@(rk)">
+                                                @Helpers.EnumHelper.GetEnumDisplayName(rk)
+                                            </option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Hàng thứ ba -->
+                            <div class="auto-cols mt-2">
                                 <div>
                                     <label class="labels">Vai trò<span class="text-red">*</span></label>
                                     <select disabled="@isReadOnly" class="form-control" @bind="roleId">
@@ -156,38 +205,31 @@
                 </tbody>
             </table> *@
 
-            <h3 class="mt-2">Danh sách lời mời: </h3>
+            <h3 class="mt-2">Danh sách thành viên: </h3>
 
             <table class="table table-striped table-hover">
                 <thead>
                     <tr>
                         <th scope="col">#</th>
-                        <th scope="col">Tên bài báo</th>
-                        <th scope="col">Năm công bố</th>
-                        <th scope="col">Tên tạp chí</th>
-                        <th scope="col">Loại bài báo</th>
-                        <th scope="col">Người mời</th>
+                        <th scope="col">Tên thành viên</th>
                         <th scope="col">Vai trò</th>
+                        <th scope="col">Quyền</th>
                         <th scope="col">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @if (requestMagazines != null && requestMagazines.Count > 0)
+                    @if (listScientistMagazines != null && listScientistMagazines.Count > 0)
                     {
                         int i = 1;
-                        foreach (var item in requestMagazines)
+                        foreach (var item in listScientistMagazines)
                         {
                             <tr>
                                 <th scope="row">@i</th>
-                                <td>@item?.Magazines?.magazine_name</td>
-                                <td>@item?.Magazines?.year</td>
-                                <td>@item?.Magazines?.journal</td>
-                                <td>@item?.Magazines?.Paper?.paper_name</td>
-                                <td>@item?.ScientistRequest?.profile_name</td>
+                                <td>@item?.Scientist?.profile_name</td>
                                 <td>@item?.Role?.role_name</td>
+                                <td>@item?.status</td>
                                 <td>
-                                    <button class="btn btn-warning" @onclick="() => UpdateRequest(item, true)">Đồng ý</button>
-                                    <button class="btn btn-danger" @onclick="() => UpdateRequest(item, false)">Từ chối</button>
+                                    <button class="btn btn-danger" @onclick="() => DeleteMagazine(item)" disabled="@(item?.status ?? false)">Xóa</button>
                                 </td>
                             </tr>
                             i++;
@@ -240,10 +282,11 @@
     private string roleId = "";
     private List<Models.Category.Role> roles { get; set; }
     private List<Models.Category.Paper> listPapers { get; set; }
+    private List<Models.Category.MagazineScore> listMagazineScore { get; set; }
     private Scientist scientist { get; set; }
     private Models.Magazine.Magazines magazine { get; set; }
-    private List<ScientistMagazineRole> magazines { get; set; }
     private List<ScientistMagazineRole> requestMagazines { get; set; }
+    private List<ScientistMagazineRole> listScientistMagazines { get; set; }
     private List<string> ListMagazineIds { get; set; }
 
     private void NavigateToJoining()
@@ -278,9 +321,10 @@
                 if (response != null)
                 {
                     scientist = response;
-                    magazines = await MagazineServices.GetMagazinesByScientistIdAsync(scientist.id);
-                    requestMagazines = await MagazineServices.GetRequestMagazinesByScientistIdAsync(scientist.id);
+                    magazine = await MagazineServices.GetMagazineByIdAsync(MagazineId);
+                    listScientistMagazines = await MagazineServices.GetListScientistByMagazineIdAsync(MagazineId);
                     listPapers = await PaperServices.GetListPaper();
+                    listMagazineScore = await MagazineScoreServices.GetListMagazineScore();
                     roles = await RoleServices.GetListRole(RoleType.magazine.ToString());
                 }
             }
@@ -292,42 +336,6 @@
         else
         {
             NavigationManager.NavigateTo("Account/Login");
-        }
-    }
-
-    private async Task AddNewScientistMagazine()
-    {
-        try
-        {
-            if (magazine == null || string.IsNullOrWhiteSpace(magazine.magazine_name))
-            {
-                showError = true;
-                return;
-            }
-
-            showError = false;
-
-            if (scientist == null || string.IsNullOrEmpty(scientist.id) || string.IsNullOrEmpty(roleId))
-            {
-                throw new InvalidOperationException("Scientist or role information is missing.");
-            }
-
-            magazine.id = Guid.NewGuid().ToString();
-            magazine.created_at = DateTime.Now;
-            magazine.updated_at = DateTime.Now;
-
-            var result = await MagazineServices.AddMagazineAndLinkToScientistAsync(magazine, scientist.id, roleId, false);
-            if (result)
-            {
-                magazines = await MagazineServices.GetMagazinesByScientistIdAsync(scientist.id);
-            }
-
-            isReadOnly = true;
-            magazine = null;
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"An error occurred: {ex.Message}");
         }
     }
 
@@ -363,7 +371,7 @@
         }
     }
 
-    private async Task DeleteMagazine(Models.Magazine.Magazines magazine)
+    private async Task DeleteMagazine(ScientistMagazineRole smr)
     {
         try
         {
@@ -371,32 +379,10 @@
 
             if (confirm)
             {
-                var result = await MagazineServices.DeleteMagazineAndLinkFromScientistAsync(magazine.id, scientist.id);
+                var result = await MagazineServices.DeleteMagazineAndLinkFromScientistAsync(smr.magazine_id, smr.scientist_id);
                 if (result)
                 {
                     magazines = await MagazineServices.GetMagazinesByScientistIdAsync(scientist.id);
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"An error occurred while deleting: {ex.Message}");
-        }
-    }
-
-    private async Task UpdateRequest(ScientistMagazineRole requestMagazine, bool isAccept)
-    {
-        try
-        {
-            var confirm = await JSRuntime.InvokeAsync<bool>("confirm", new object[] { isAccept ? "Bạn có chắc muốn duyệt yêu cầu này?" : "Bạn có chắc muốn từ chối yêu cầu này?" });
-
-            if (confirm && !string.IsNullOrWhiteSpace(requestMagazine?.magazine_id) && !string.IsNullOrWhiteSpace(requestMagazine?.scientist_id) && !string.IsNullOrWhiteSpace(requestMagazine?.role_id))
-            {
-                var result = await MagazineServices.UpdateMagazineAndLinkToScientistAsync(requestMagazine.magazine_id, requestMagazine.Magazines, requestMagazine.Scientist.id, requestMagazine.Role.id, isAccept ? "Đã tham gia" : "Bị từ chối", true);
-                if (result)
-                {
-                    ListMagazineIds = magazines.Select(magazine => magazine.id).ToList();
-                    requestMagazines = await MagazineServices.GetJoinRequestsByScientistIdAsync(scientist.id, ListMagazineIds);
                 }
             }
         }

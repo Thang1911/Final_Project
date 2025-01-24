@@ -1,0 +1,204 @@
+﻿@page "/Admin/Category/MagazineScore"
+@rendermode InteractiveServer
+
+@using BlazorFE.Models.Category
+@using BlazorFE.Services
+@using BlazorFE.Enums
+@inject PaperServices PaperService
+@inject MagazineScoreServices MagazineScoreServices
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<h3>Quản lý chỉ số bài báo</h3>
+
+<div class="mb-3">
+    <button class="btn btn-primary" @onclick="ShowAddForm">Thêm chỉ số</button>
+</div>
+
+@if (isAdding)
+{
+    <form class="border p-3 mb-3">
+        <div class="auto-cols">
+            <div class="mb-3">
+                <label class="form-label">Tên chỉ số</label>
+                <input type="text" class="form-control" @bind="magazineScore.magazine_score_name">
+                @if (showError)
+                {
+                    <span class="text-danger">Tên chỉ số không được để trống.</span>
+                }
+            </div>
+            <div>
+                <label class="form-label">Phạm vi bài báo<span class="text-red">*</span></label>
+                <select type="text" class="form-control" @bind="@magazineScore.scope" aria-label="Default select example">
+                    <option value="">Chọn phạm vi</option>
+                    @foreach (var scope in Enum.GetValues<BlazorFE.Enums.Magazine.MagazineScope>())
+                    {
+                        <option value="@(scope)">
+                            @Helpers.EnumHelper.GetEnumDisplayName(scope)
+                        </option>
+                    }
+                </select>
+
+                @if (showError && magazineScore.scope == "")
+                {
+                    <span class="text-danger">Vui lòng chọn phạm vi bài báo.</span>
+                }
+            </div>
+        </div>
+        <div class="d-flex justify-content-end gap-2">
+            <button class="btn btn-success" @onclick="SaveMagazineScore">Lưu</button>
+            <button class="btn btn-secondary" @onclick="CancelAdd">Hủy</button>
+        </div>
+    </form>
+}
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Tên chỉ số</th>
+            <th>Phạm vi chỉ số</th>
+            <th>Ngày tạo</th>
+            <th>Ngày cập nhật</th>
+            <th>Hành động</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (magazineScores == null || !magazineScores.Any())
+        {
+            <tr>
+                <td colspan="6" class="text-center">Không có dữ liệu.</td>
+            </tr>
+        }
+        else
+        {
+            @foreach (var ms in magazineScores)
+            {
+                <tr>
+                    <td>@(magazineScores.IndexOf(ms) + 1)</td>
+                    <td>@ms.magazine_score_name</td>
+                    <td>
+                        @{
+                            BlazorFE.Enums.Magazine.MagazineScope enumValue;
+                            string displayName = Enum.TryParse(@ms.scope, out enumValue)
+                            ? Helpers.EnumHelper.GetEnumDisplayName(enumValue)
+                            : "Không xác định";
+                        }
+                        @displayName
+                    </td>
+                    <td>@ms.created_at.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                    <td>@ms.updated_at.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" @onclick="() => EditMagazineScore(ms)">Sửa</button>
+                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteMagazineScore(ms.id)">Xóa</button>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+<style>
+    .auto-cols {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    gap: 16px;
+    justify-content: space-between;
+    }
+
+    .auto-cols > div {
+    flex: 1;
+    min-width: 200px;
+    }
+
+    .d-flex {
+    display: flex;
+    flex-direction: row;
+    justify-content: right;
+    }
+
+    .text-red {
+    color: red;
+    }
+
+    .text-gray {
+        color: #ccc;
+    }
+</style>
+
+@code {
+    private List<MagazineScore> magazineScores;
+    private MagazineScore magazineScore = new();
+    private bool isAdding = false;
+    private bool showError = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMagazineScores();
+    }
+
+    private async Task LoadMagazineScores()
+    {
+        magazineScores = await MagazineScoreServices.GetListMagazineScore();
+    }
+
+    private void ShowAddForm()
+    {
+        isAdding = true;
+        magazineScore = new MagazineScore();
+    }
+
+    private async Task SaveMagazineScore()
+    {
+        if (string.IsNullOrWhiteSpace(magazineScore.magazine_score_name) || string.IsNullOrWhiteSpace(magazineScore.scope))
+        {
+            showError = true;
+            return;
+        }
+
+        if (string.IsNullOrEmpty(magazineScore.id))
+        {
+            magazineScore.id = Guid.NewGuid().ToString();
+            magazineScore.created_at = DateTime.Now;
+            magazineScore.updated_at = DateTime.Now;
+            await MagazineScoreServices.AddMagazineScore(magazineScore);
+        }
+        else
+        {
+            magazineScore.updated_at = DateTime.Now;
+            await MagazineScoreServices.UpdateMagazineScore(magazineScore);
+        }
+
+        isAdding = false;
+        await LoadMagazineScores();
+    }
+
+    private void CancelAdd()
+    {
+        isAdding = false;
+    }
+
+    private void EditMagazineScore(MagazineScore editMagazineScore)
+    {
+        isAdding = true;
+        magazineScore = new MagazineScore
+            {
+                id = editMagazineScore.id,
+                magazine_score_name = editMagazineScore.magazine_score_name,
+                scope = editMagazineScore.scope,
+                created_at = editMagazineScore.created_at,
+                updated_at = editMagazineScore.updated_at
+            };
+    }
+
+    private async Task DeleteMagazineScore(string id)
+    {
+        var confirm = await JS.InvokeAsync<bool>("confirm", "Bạn có chắc chắn muốn xóa chỉ số này?");
+        if (confirm)
+        {
+            await MagazineScoreServices.DeleteMagazineScore(id);
+            await LoadMagazineScores();
+        }
+    }
+}
