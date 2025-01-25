@@ -26,7 +26,6 @@
             <div class="">
                 <div class="d-flex gap-2 justify-content-end">
                     <button class="btn btn-success" @onclick="ToggleMagazine">Thêm bài báo</button>
-                    <button class="btn btn-outline-primary" @onclick="NavigateToJoining">Tham gia bài báo</button>
                 </div>
                 @if (scientist != null && isAdd)
                 {
@@ -249,10 +248,7 @@
 
     private void EditMagazine(Models.Magazine.Magazines editMagazine)
     {
-        isAdd = true;
-        isReadOnly = false;
-        magazine = editMagazine;
-        isUpdate = true;
+        NavigationManager.NavigateTo($"/User/Magazines/Edit/{editMagazine.id}");
     }
 
     private void ToggleMagazine()

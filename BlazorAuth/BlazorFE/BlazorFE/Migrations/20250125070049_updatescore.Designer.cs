@@ -4,6 +4,7 @@ using BlazorFE.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BlazorFE.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250125070049_updatescore")]
+    partial class updatescore
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -782,6 +785,9 @@ namespace BlazorFE.Migrations
                     b.Property<string>("id")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("MagazineScoreid")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<DateTime>("created_at")
                         .HasColumnType("datetime2");
 
@@ -797,7 +803,7 @@ namespace BlazorFE.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("magazine_score_id")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("paper_id")
                         .IsRequired()
@@ -814,7 +820,7 @@ namespace BlazorFE.Migrations
 
                     b.HasKey("id");
 
-                    b.HasIndex("magazine_score_id");
+                    b.HasIndex("MagazineScoreid");
 
                     b.HasIndex("paper_id");
 
@@ -1348,7 +1354,7 @@ namespace BlazorFE.Migrations
                 {
                     b.HasOne("BlazorFE.Models.Category.MagazineScore", "MagazineScore")
                         .WithMany()
-                        .HasForeignKey("magazine_score_id");
+                        .HasForeignKey("MagazineScoreid");
 
                     b.HasOne("BlazorFE.Models.Category.Paper", "Paper")
                         .WithMany()

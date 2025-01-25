@@ -210,6 +210,8 @@ namespace BlazorFE.Services
                 existingMagazine.year = updatedMagazine.year;
                 existingMagazine.journal = updatedMagazine.journal;
                 existingMagazine.paper_id = updatedMagazine.paper_id;
+                existingMagazine.magazine_scope = updatedMagazine.magazine_scope;
+                existingMagazine.magazine_score_id = updatedMagazine.magazine_score_id;
                 existingMagazine.updated_at = DateTime.UtcNow;
 
                 _context.Set<Magazines>().Update(existingMagazine);

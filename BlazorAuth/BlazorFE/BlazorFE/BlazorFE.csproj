@@ -9,7 +9,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BlazorFE.Client\BlazorFE.Client.csproj" />
-    <PackageReference Include="Google.Apis.Auth" Version="1.68.0" />
+    <PackageReference Include="Google.Apis" Version="1.69.0" />
+    <PackageReference Include="Google.Apis.Auth" Version="1.69.0" />
     <PackageReference Include="Google.Apis.Drive.v3" Version="1.68.0.3627" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.11" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.11" />

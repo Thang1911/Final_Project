@@ -16,6 +16,8 @@ namespace BlazorFE.Models.Magazine
         public string paper_id { get; set; }
         public virtual Paper? Paper { get; set; }
         public string? magazine_scope { get; set; }
+
+        [ForeignKey("MagazineScore")]
         public string? magazine_score_id { get; set; }
         public virtual MagazineScore? MagazineScore { get; set; }
         public string? rank { get; set; }

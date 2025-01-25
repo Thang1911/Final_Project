@@ -2,10 +2,8 @@
 
 @inject GoogleDriveServices DriveService
 
-<h3>Upload File to Public Store</h3>
-
-<InputFile OnChange="HandleFileSelected" multiple />
-<button @onclick="HandleUploadFile" disabled="@(!isFileSelected)">Upload</button>
+<InputFile OnChange="HandleFileSelected" />
+<button @onclick="HandleUploadFile" disabled="@(!isFileSelected)">Tải</button>
 
 @code {
     private IBrowserFile selectedFile;
@@ -32,11 +30,15 @@
 
     private void HandleFileSelected(InputFileChangeEventArgs e)
     {
-        var files = e.GetMultipleFiles();
-        if (files.Any())
+        try
         {
-            selectedFile = files.First();
-            isFileSelected = true;
+            selectedFile = e.File;
+            isFileSelected = selectedFile != null;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Lỗi khi chọn file: {ex.Message}");
         }
     }
+
 }
