@@ -60,4 +60,40 @@ public class GoogleDriveServices
         request.Fields = "id";
         await request.ExecuteAsync();
     }
+
+    public async Task DeleteFileFromFolderAsync(string fileId, string folderId)
+    {
+        try
+        {
+            var file = await _driveService.Files.Get(fileId).ExecuteAsync();
+
+            if (file.Parents != null && file.Parents.Contains(folderId))
+            {
+                var request = _driveService.Files.Delete(fileId);
+                await request.ExecuteAsync();
+                Console.WriteLine($"File with ID {fileId} deleted from folder.");
+            }
+            else
+            {
+                Console.WriteLine($"File with ID {fileId} is not in the specified folder.");
+            }
+        }
+        catch (Google.GoogleApiException apiEx)
+        {
+            if (apiEx.Error.Code == 404)
+            {
+                Console.WriteLine($"File with ID {fileId} not found.");
+            }
+            else
+            {
+                Console.WriteLine($"Error: {apiEx.Message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+    }
+
+
 }

@@ -14,6 +14,7 @@
 @inject RoleServices RoleServices
 @inject PaperServices PaperServices
 @inject MagazineScoreServices MagazineScoreServices
+@inject FileUploadServices FileUploadServices
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
@@ -242,12 +243,47 @@
             <h3 class="mt-2">Danh sách tài liệu: </h3>
 
             <div class="d-flex gap-2 justify-content-end">
-                <button class="btn btn-outline-primary" @onclick="UploadFile">Thêm tài liệu</button>
+                <button class="btn btn-outline-primary" @onclick="ToggleUploadFile">Thêm tài liệu</button>
             </div>
             @if (isUpload)
             {
-                <UploadFile />
+                <UploadFile relatedId="@MagazineId" OnSave="LoadFiles" />
             }
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Tên tài liệu</th>
+                        <th scope="col">Loại tài liệu</th>
+                        <th scope="col">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (listFiles != null && listFiles.Count > 0)
+                    {
+                        int i = 1;
+                        foreach (var item in listFiles)
+                        {
+                            <tr>
+                                <th scope="row">@i</th>
+                                <td>@item.original_name</td>
+                                <td>@item.file_type</td>
+                                <td>
+                                    <button class="btn btn-outline-success" @onclick="() => DownloadFile(item.file_path)">Tải tệp đính kèm</button>
+                                    <button class="btn btn-danger" @onclick="() => DeleteFile(item.id)">Xóa</button>
+                                </td>
+                            </tr>
+                            i++;
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center">Không có dữ liệu</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
@@ -301,6 +337,9 @@
     private List<string> ListMagazineIds { get; set; }
     private List<string> ListScientistIds { get; set; }
     private List<Scientist> scientists { get; set; }
+    private List<Models.File.File> listFiles { get; set; }
+
+    private const string FolderId = "1hdkBV634KcqZH4Chkwk1d6sSoNt4Tu-G";
 
     private void AddMember()
     {
@@ -309,9 +348,9 @@
         ListScientistIds = listScientistMagazines.Select(x => x.scientist_id).ToList();
     }
 
-    private void UploadFile()
+    private void ToggleUploadFile()
     {
-        isUpload = true;
+        isUpload = !isUpload;
     }
 
     private void ToggleUpdate()
@@ -323,6 +362,12 @@
     private async Task SaveMagazine()
     {
         await UpdateMagazine();
+    }
+
+    private async Task LoadFiles()
+    {
+        isUpload = false;
+        listFiles = await FileUploadServices.GetFilesByRelatedIdAsync(MagazineId);
     }
 
     protected override async Task OnInitializedAsync()
@@ -345,6 +390,7 @@
                     listScientistMagazines = await MagazineServices.GetListScientistByMagazineIdAsync(MagazineId);
                     listPapers = await PaperServices.GetListPaper();
                     AlllistMagazineScore = await MagazineScoreServices.GetListMagazineScore();
+                    await LoadFiles();
                     if (AlllistMagazineScore.Count > 0)
                     {
                         listMagazineScore = AlllistMagazineScore;
@@ -456,4 +502,32 @@
             listMagazineScore = selectedScore;
         }
     }
+
+    private async Task DownloadFile(string filePath)
+    {
+        if (!string.IsNullOrEmpty(filePath))
+        {
+            await JSRuntime.InvokeVoidAsync("window.open", filePath, "_blank");
+        }
+    }
+
+    private async Task DeleteFile(string fileId)
+    {
+        var confirmDelete = await JSRuntime.InvokeAsync<bool>("confirm", "Bạn có chắc chắn muốn xóa tệp này?");
+        if (confirmDelete)
+        {
+            var isDeleted = await FileUploadServices.DeleteFileAsync(fileId, FolderId);
+            if (isDeleted)
+            {
+                LoadFiles();
+                await JSRuntime.InvokeVoidAsync("alert", "Xóa tệp thành công!");
+                StateHasChanged();
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Không thể xóa tệp. Vui lòng thử lại.");
+            }
+        }
+    }
+
 }
