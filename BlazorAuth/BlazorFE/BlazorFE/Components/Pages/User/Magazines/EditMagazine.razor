@@ -138,7 +138,7 @@
                             } else
                             {
                                 <div class="text-center">
-                                    <button class="btn btn-success" @onclick="ToggleUpdate" @onclick:preventDefault>Chỉnh sửa</button>
+                                    <button class="btn btn-success" @onclick="ToggleUpdate" @onclick:preventDefault disabled="(@scientistMagazine?.status ?? false)">Chỉnh sửa</button>
                                 </div>
                             }
                             <div class="text-center">
@@ -332,6 +332,7 @@
     private List<Models.Category.MagazineScore> listMagazineScore { get; set; }
     private Scientist scientist { get; set; }
     private Models.Magazine.Magazines magazine { get; set; }
+    private ScientistMagazineRole scientistMagazine { get; set; }
     private List<ScientistMagazineRole> requestMagazines { get; set; }
     private List<ScientistMagazineRole> listScientistMagazines { get; set; }
     private List<string> ListMagazineIds { get; set; }
@@ -387,6 +388,7 @@
                     scientist = response;
                     scientists = await ProfileServices.GetAllScientistIdAsync();
                     magazine = await MagazineServices.GetMagazineByIdAsync(MagazineId);
+                    scientistMagazine = await MagazineServices.GetMagazineByScientistIdAsync(MagazineId, scientist.id);
                     listScientistMagazines = await MagazineServices.GetListScientistByMagazineIdAsync(MagazineId);
                     listPapers = await PaperServices.GetListPaper();
                     AlllistMagazineScore = await MagazineScoreServices.GetListMagazineScore();

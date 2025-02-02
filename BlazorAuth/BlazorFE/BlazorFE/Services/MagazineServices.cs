@@ -33,6 +33,22 @@ namespace BlazorFE.Services
             return existingMagazine;
         }
 
+        public async Task<ScientistMagazineRole> GetMagazineByScientistIdAsync(string magazineId, string scientistId)
+        {
+            if (string.IsNullOrEmpty(scientistId))
+                throw new ArgumentException("Scientist ID cannot be null or empty", nameof(scientistId));
+
+            var scientistMagazines = await _context.Set<ScientistMagazineRole>()
+                .Where(smr => smr.scientist_id == scientistId && smr.requestStatus == "Đã tham gia" && smr.magazine_id == magazineId)
+                .Include(smr => smr.Magazines)
+                    .ThenInclude(m => m.Paper)
+                .Include(smr => smr.Role)
+                .Include(str => str.Scientist)
+                .FirstOrDefaultAsync();
+
+            return scientistMagazines;
+        }
+
 
         // Get Magazines by Scientist ID
         public async Task<List<ScientistMagazineRole>> GetMagazinesByScientistIdAsync(string scientistId)
