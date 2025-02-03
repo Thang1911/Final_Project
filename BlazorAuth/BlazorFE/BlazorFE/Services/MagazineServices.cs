@@ -169,7 +169,7 @@ namespace BlazorFE.Services
         }
 
         // Add a Magazine and Link to Scientist
-        public async Task<bool> AddMagazineAndLinkToScientistAsync(Magazines newMagazine, string scientistId, string roleId, bool isJoining)
+        public async Task<bool> AddMagazineAndLinkToScientistAsync(Magazines newMagazine, string scientistId, string roleId, bool isJoining, bool? isEditable)
         {
             if (newMagazine == null) throw new ArgumentNullException(nameof(newMagazine));
             if (string.IsNullOrEmpty(scientistId)) throw new ArgumentException("Scientist ID cannot be null or empty", nameof(scientistId));
@@ -190,6 +190,7 @@ namespace BlazorFE.Services
                     magazine_id = newMagazine.id,
                     role_id = roleId,
                     requestStatus = isJoining ? "Chờ duyệt" : "Đã tham gia",
+                    status = isEditable,
                     created_at = DateTime.UtcNow,
                     updated_at = DateTime.UtcNow
                 };

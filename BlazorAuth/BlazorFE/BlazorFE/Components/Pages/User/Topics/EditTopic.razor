@@ -1,4 +1,4 @@
-﻿@page "/User/Magazines/Edit/{MagazineId}"
+﻿@page "/User/Topics/Edit/{TopicId}"
 @rendermode InteractiveServer
 
 @using System.Security.Claims;
@@ -10,10 +10,9 @@
 @using Helpers
 
 @inject ScientistServices ProfileServices
-@inject MagazineServices MagazineServices
+@inject TopicServices TopicServices
 @inject RoleServices RoleServices
-@inject PaperServices PaperServices
-@inject MagazineScoreServices MagazineScoreServices
+@inject LvTopicServices LvTopicServices
 @inject FileUploadServices FileUploadServices
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
@@ -24,121 +23,75 @@
     <div class="justify-content-center">
         <div class="border-right">
             <div class="">
-                @if (scientist != null && magazine != null)
+                @if (scientist != null && scientistTopic != null)
                 {
                     <form>
-                        <div class="mt-2">
+                        <div class="d-flex flex-column gap-3">
                             <!-- Hàng đầu tiên -->
+                            <div class="auto-cols mb-2">
+                                <div>
+                                    <label class="labels">Tên đề tài<span class="text-red">*</span></label>
+                                    <input readonly="@IsReadOnly" type="text" class="form-control" placeholder="Tên đề tài" @bind="@scientistTopic.Topics.topic_name">
+                                    @if (ShowError && string.IsNullOrWhiteSpace(scientistTopic.Topics.topic_name))
+                                    {
+                                        <span class="text-danger">Vui lòng nhập tên đề tài</span>
+                                    }
+                                </div>
+                                <div>
+                                    <label class="labels">Cấp độ đề tài<span class="text-red">*</span></label>
+                                    <select disabled="@IsReadOnly" type="text" class="form-control" @bind="@scientistTopic.Topics.lvtopic_id">
+                                        <option value="" class="text-gray">Chọn cấp độ đề tài</option>
+                                        @foreach (var item in lvTopics)
+                                        {
+                                            <option value="@item.id">@item.lvtopic_name</option>
+                                        }
+                                    </select>
+                                    @if (ShowError && string.IsNullOrWhiteSpace(scientistTopic.Topics.lvtopic_id))
+                                    {
+                                        <span class="text-danger">Vui lòng chọn cấp độ đề tài.</span>
+                                    }
+                                </div>
+                                <div>
+                                    <label class="labels">Kết quả đánh giá<span class="text-red">*</span></label>
+                                    <select disabled="@IsReadOnly" type="text" class="form-control" @bind="scientistTopic.Topics.result" aria-label="Default select example">
+                                        <option value="0">Chọn kết quả</option>
+                                        @foreach (var option in Enum.GetValues<Result>())
+                                        {
+                                            <option value="@(option)">
+                                                @Helpers.EnumHelper.GetEnumDisplayName(option)
+                                            </option>
+                                        }
+                                    </select>
+
+                                    @if (ShowError && scientistTopic.Topics.result == "")
+                                    {
+                                        <span class="text-danger">Vui lòng chọn kết quả.</span>
+                                    }
+                                </div>
+                            </div>
                             <div class="auto-cols">
-                                <div>
-                                    <label class="labels">Tên bài báo<span class="text-red">*</span></label>
-                                    <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Tên bài báo" @bind="@magazine.magazine_name">
-                                    @if (showError && string.IsNullOrWhiteSpace(magazine.magazine_name))
-                                    {
-                                        <span class="text-danger">Vui lòng nhập tên bài báo</span>
-                                    }
-                                </div>
-                                <div>
-                                    <label class="labels">Tên tạp chí<span class="text-red">*</span></label>
-                                    <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Tên tạp chí" @bind="@magazine.journal">
-                                    @if (showError && string.IsNullOrWhiteSpace(magazine.journal))
-                                    {
-                                        <span class="text-danger">Vui lòng nhập tên tạp chí</span>
-                                    }
-                                </div>
-                                <div>
-                                    <label class="labels">Phạm vi bài báo<span class="text-red">*</span></label>
-                                    <select type="text" class="form-control" @bind="@magazine.magazine_scope" @bind:event="oninput" @onchange="UpdateScore" aria-label="Default select example" disabled="@isReadOnly">
-                                        <option value="0">Chọn phạm vi</option>
-                                        @foreach (var scope in Enum.GetValues<BlazorFE.Enums.Magazine.MagazineScope>())
-                                        {
-                                            <option value="@(scope)">
-                                                @Helpers.EnumHelper.GetEnumDisplayName(scope)
-                                            </option>
-                                        }
-                                    </select>
 
-                                    @if (showError && magazine.magazine_scope == "")
-                                    {
-                                        <span class="text-danger">Vui lòng chọn phạm vi bài báo.</span>
-                                    }
-                                </div>
-                            </div>
-
-                            <!-- Hàng thứ hai -->
-                            <div class="auto-cols mt-2">
                                 <div>
-                                    <label class="labels">Năm công bố<span class="text-red">*</span></label>
-                                    <select disabled="@isReadOnly" class="form-control" @bind="magazine.year">
-                                        <option value="0" selected>Chọn năm</option>
-                                        @for (int year = DateTime.Now.Year; year >= 1900; year--)
-                                        {
-                                            <option value="@year">@year</option>
-                                        }
-                                    </select>
-                                    @if (showError && magazine.year == 0)
-                                    {
-                                        <span class="text-danger">Vui lòng chọn năm công bố.</span>
-                                    }
+                                    <label class="labels">Ngày bắt đầu</label>
+                                    <input readonly="@IsReadOnly" type="date" class="form-control" @bind="@scientistTopic.Topics.start_date">
                                 </div>
                                 <div>
-                                    <label class="labels">Chỉ số<span class="text-red">*</span></label>
-                                    <select type="text" class="form-control" @bind="@magazine.magazine_score_id" aria-label="Default select example" disabled="@isReadOnly">
-                                        <option value="">Chọn chỉ số</option>
-                                        @foreach (var score in listMagazineScore)
-                                        {
-                                            <option value="@score.id">@score.magazine_score_name</option>
-                                        }
-                                    </select>
-
-                                    @if (showError && magazine.magazine_score_id == "")
-                                    {
-                                        <span class="text-danger">Vui lòng chọn chỉ số của bài báo.</span>
-                                    }
-                                </div>
-                                <div>
-                                    <label class="labels">Xếp hạng bài báo</label>
-                                    <select type="text" class="form-control" @bind="@magazine.rank" aria-label="Default select example" disabled="@isReadOnly">
-                                        <option value="">Chọn xếp hạng</option>
-                                        @foreach (var rk in Enum.GetValues<BlazorFE.Enums.Magazine.MagazineRank>())
-                                        {
-                                            <option value="@(rk)">
-                                                @Helpers.EnumHelper.GetEnumDisplayName(rk)
-                                            </option>
-                                        }
-                                    </select>
-                                </div>
-                            </div>
-
-                            <!-- Hàng thứ ba -->
-                            <div class="auto-cols mt-2">
-                                <div>
-                                    <label class="labels">Loại bài báo<span class="text-red">*</span></label>
-                                    <select disabled="@isReadOnly" type="text" class="form-control" @bind="@magazine.paper_id">
-                                        <option value="">Chọn loại bài báo</option>
-                                        @foreach (var item in listPapers)
-                                        {
-                                            <option value="@item.id">@item.paper_name</option>
-                                        }
-                                    </select>
-                                    @if (showError && string.IsNullOrWhiteSpace(magazine.paper_id))
-                                    {
-                                        <span class="text-danger">Vui lòng chọn loại bài báo.</span>
-                                    }
+                                    <label class="labels">Ngày kết thúc</label>
+                                    <input readonly="@IsReadOnly" type="date" class="form-control" @bind="@scientistTopic.Topics.end_date">
                                 </div>
                             </div>
                         </div>
-
                         <div class="d-flex gap-1 mt-2">
                             @if (isUpdate)
                             {
                                 <div class="text-center">
-                                    <button class="btn btn-success" type="submit" @onclick="SaveMagazine" @onclick:preventDefault>Lưu</button>
+                                    <button class="btn btn-success" type="submit" @onclick="SaveTopic" @onclick:preventDefault>Lưu</button>
                                 </div>
-                            } else
+                            }
+                            else
                             {
                                 <div class="text-center">
-                                    <button class="btn btn-success" @onclick="ToggleUpdate" @onclick:preventDefault disabled="@(scientistMagazine?.status ?? true)">Chỉnh sửa</button>
+                                    <button class="btn btn-success" @onclick="ToggleUpdate" @onclick:preventDefault disabled="@(scientistTopic?.status ?? true)">Chỉnh sửa</button>
                                 </div>
                             }
                             <div class="text-center">
@@ -152,15 +105,16 @@
             <h3 class="mt-2">Danh sách thành viên: </h3>
 
             <div class="d-flex gap-2 justify-content-end">
-                <button class="btn btn-outline-primary" @onclick="AddMember" disabled="@(scientistMagazine?.status ?? true)">Thêm thành viên</button>
+                <button class="btn btn-outline-primary" @onclick="AddMember" disabled="@(scientistTopic?.status ?? true)">Thêm thành viên</button>
             </div>
 
-            @if(isAddMember) {
+            @if (isAddMember)
+            {
                 <form>
                     <div class="auto-cols">
                         <div>
                             <label class="labels">Thành viên<span class="text-red">*</span></label>
-                            <select disabled="@isReadOnly" type="text" class="form-control" @bind="@ScientistId">
+                            <select disabled="@IsReadOnly" type="text" class="form-control" @bind="@ScientistId">
                                 <option value="">Chọn thành viên</option>
                                 @foreach (var item in scientists)
                                 {
@@ -170,34 +124,34 @@
                                     }
                                 }
                             </select>
-                            @if (showError && string.IsNullOrWhiteSpace(ScientistId))
+                            @if (ShowError && string.IsNullOrWhiteSpace(ScientistId))
                             {
                                 <span class="text-danger">Vui lòng chọn thành viên.</span>
                             }
                         </div>
                         <div>
                             <label class="labels">Vai trò<span class="text-red">*</span></label>
-                            <select disabled="@isReadOnly" class="form-control" @bind="roleId">
+                            <select disabled="@IsReadOnly" class="form-control" @bind="roleId">
                                 <option value="" selected>Chọn vai trò</option>
                                 @foreach (var item in roles)
                                 {
                                     <option value="@item.id">@item.role_name</option>
                                 }
                             </select>
-                            @if (showError && string.IsNullOrWhiteSpace(roleId))
+                            @if (ShowError && string.IsNullOrWhiteSpace(roleId))
                             {
                                 <span class="text-danger">Vui lòng chọn vai trò.</span>
                             }
                         </div>
                         <div>
                             <label class="labels">Quyền<span class="text-red">*</span></label>
-                            <select disabled="@isReadOnly" class="form-control" @onchange="OnPermissionChange">
+                            <select disabled="@IsReadOnly" class="form-control" @onchange="OnPermissionChange">
                                 <option value="">Chọn quyền</option>
                                 <option value="false">Chỉnh sửa</option>
                                 <option value="true">Đọc</option>
                             </select>
 
-                            @if (showError && SelectedPermission == null)
+                            @if (ShowError && SelectedPermission == null)
                             {
                                 <span class="text-danger">Vui lòng chọn quyền cho thành viên.</span>
                             }
@@ -208,7 +162,7 @@
                             <button class="btn btn-primary" type="button">Hủy</button>
                         </div>
                         <div class="text-center">
-                            <button class="btn btn-success" type="submit" @onclick="CreateNewRequestMagazine" @onclick:preventDefault>Lưu</button>
+                            <button class="btn btn-success" type="submit" @onclick="CreateNewRequestTopic" @onclick:preventDefault>Lưu</button>
                         </div>
                     </div>
                 </form>
@@ -226,10 +180,10 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @if (listScientistMagazines != null && listScientistMagazines.Count > 0)
+                    @if (listScientistTopics != null && listScientistTopics.Count > 0)
                     {
                         int i = 1;
-                        foreach (var item in listScientistMagazines)
+                        foreach (var item in listScientistTopics)
                         {
                             <tr>
                                 <th scope="row">@i</th>
@@ -256,11 +210,11 @@
             <h3 class="mt-2">Danh sách tài liệu: </h3>
 
             <div class="d-flex gap-2 justify-content-end">
-                <button class="btn btn-outline-primary" @onclick="ToggleUploadFile" disabled="@(scientistMagazine?.status ?? true)">Thêm tài liệu</button>
+                <button class="btn btn-outline-primary" @onclick="ToggleUploadFile" disabled="@(scientistTopic?.status ?? true)">Thêm tài liệu</button>
             </div>
             @if (isUpload)
             {
-                <UploadFile relatedId="@MagazineId" OnSave="LoadFiles" />
+                <UploadFile relatedId="@TopicId" OnSave="LoadFiles" />
             }
             <table class="table table-striped table-hover">
                 <thead>
@@ -303,37 +257,37 @@
 
 <style>
     .auto-cols {
-    display: flex;
-    flex-direction: row;
-    width: 100%;
-    gap: 16px;
-    justify-content: space-between;
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        gap: 16px;
+        justify-content: space-between;
     }
 
-    .auto-cols > div {
-    flex: 1;
-    min-width: 200px;
-    }
+        .auto-cols > div {
+            flex: 1;
+            min-width: 200px;
+        }
 
     .d-flex {
-    display: flex;
-    flex-direction: row;
-    justify-content: right;
+        display: flex;
+        flex-direction: row;
+        justify-content: right;
     }
 
     .text-red {
-    color: red;
+        color: red;
     }
 </style>
 
 @code {
     [Parameter]
-    public string MagazineId { get; set; }
+    public string TopicId { get; set; }
 
-    private bool isReadOnly = true;
+    private bool IsReadOnly = true;
     private bool isAddMember = false;
     private bool isUpload = false;
-    private bool showError = false;
+    private bool ShowError = false;
     private bool isUpdate = false;
     private string ScientistId { get; set; }
     private string userName = "";
@@ -341,15 +295,12 @@
     private string roleId = "";
     private bool? SelectedPermission { get; set; }
     private List<Models.Category.Role> roles { get; set; }
-    private List<Models.Category.Paper> listPapers { get; set; }
-    private List<Models.Category.MagazineScore> AlllistMagazineScore { get; set; }
-    private List<Models.Category.MagazineScore> listMagazineScore { get; set; }
+    private List<Models.Category.LvTopics> lvTopics { get; set; }
     private Scientist scientist { get; set; }
-    private Models.Magazine.Magazines magazine { get; set; }
-    private ScientistMagazineRole scientistMagazine { get; set; }
-    private List<ScientistMagazineRole> requestMagazines { get; set; }
-    private List<ScientistMagazineRole> listScientistMagazines { get; set; }
-    private List<string> ListMagazineIds { get; set; }
+    private scientist_topic_role scientistTopic { get; set; }
+    private List<scientist_topic_role> requestTopics { get; set; }
+    private List<scientist_topic_role> listScientistTopics { get; set; }
+    private List<string> ListTopicIds { get; set; }
     private List<string> ListScientistIds { get; set; }
     private List<Scientist> scientists { get; set; }
     private List<Models.File.File> listFiles { get; set; }
@@ -359,8 +310,8 @@
     private void AddMember()
     {
         isAddMember = true;
-        isReadOnly = false;
-        ListScientistIds = listScientistMagazines.Select(x => x.scientist_id).ToList();
+        IsReadOnly = false;
+        ListScientistIds = listScientistTopics.Select(x => x.scientist_id).ToList();
     }
 
     private void ToggleUploadFile()
@@ -371,18 +322,18 @@
     private void ToggleUpdate()
     {
         isUpdate = !isUpdate;
-        isReadOnly = !isReadOnly;
+        IsReadOnly = !IsReadOnly;
     }
 
-    private async Task SaveMagazine()
+    private async Task SaveTopic()
     {
-        await UpdateMagazine();
+        await UpdateTopic();
     }
 
     private async Task LoadFiles()
     {
         isUpload = false;
-        listFiles = await FileUploadServices.GetFilesByRelatedIdAsync(MagazineId);
+        listFiles = await FileUploadServices.GetFilesByRelatedIdAsync(TopicId);
     }
 
     private void OnPermissionChange(ChangeEventArgs e)
@@ -413,20 +364,13 @@
                 {
                     scientist = response;
                     scientists = await ProfileServices.GetAllScientistIdAsync();
-                    magazine = await MagazineServices.GetMagazineByIdAsync(MagazineId);
-                    scientistMagazine = await MagazineServices.GetMagazineByScientistIdAsync(MagazineId, scientist.id);
-                    listScientistMagazines = await MagazineServices.GetListScientistByMagazineIdAsync(MagazineId);
-                    listPapers = await PaperServices.GetListPaper();
-                    AlllistMagazineScore = await MagazineScoreServices.GetListMagazineScore();
-                    await LoadFiles();
-                    if (AlllistMagazineScore.Count > 0)
-                    {
-                        listMagazineScore = AlllistMagazineScore;
-                    }
+                    scientistTopic = await TopicServices.GetScientistTopicByIdAsync(TopicId, scientist.id);
+                    listScientistTopics = await TopicServices.GetListScientistByTopicIdAsync(TopicId);
+                    lvTopics = await LvTopicServices.GetListLvTopics();
                     roles = await RoleServices.GetListRole(RoleType.magazine.ToString());
-                    if(listScientistMagazines.Count > 0)
+                    if (listScientistTopics.Count > 0)
                     {
-                        roleId = listScientistMagazines.FirstOrDefault(i => i.scientist_id == scientist.id).role_id;
+                        roleId = listScientistTopics.FirstOrDefault(i => i.scientist_id == scientist.id).role_id;
                     }
                 }
             }
@@ -441,30 +385,30 @@
         }
     }
 
-    private async Task CreateNewRequestMagazine()
+    private async Task CreateNewRequestTopic()
     {
         try
         {
-            if (magazine == null || string.IsNullOrWhiteSpace(magazine.magazine_name))
+            if (string.IsNullOrWhiteSpace(scientistTopic.id))
             {
-                showError = true;
+                ShowError = true;
                 return;
             }
 
-            showError = false;
+            ShowError = false;
 
             if (string.IsNullOrEmpty(ScientistId) || string.IsNullOrEmpty(roleId))
             {
                 throw new InvalidOperationException("Scientist or role information is missing.");
             }
 
-            var result = await MagazineServices.AddMagazineAndLinkToScientistAsync(magazine, ScientistId, roleId, true, SelectedPermission);
+            var result = await TopicServices.AddTopicAndLinkToScientistAsync(scientistTopic.Topics, ScientistId, roleId, true, SelectedPermission);
             if (result)
             {
-                listScientistMagazines = await MagazineServices.GetListScientistByMagazineIdAsync(MagazineId);
+                listScientistTopics = await TopicServices.GetListScientistByTopicIdAsync(TopicId);
             }
 
-            isReadOnly = true;
+            IsReadOnly = true;
             isAddMember = false;
         }
         catch (Exception ex)
@@ -473,30 +417,30 @@
         }
     }
 
-    private async Task UpdateMagazine()
+    private async Task UpdateTopic()
     {
         try
         {
-            if (magazine == null || string.IsNullOrWhiteSpace(magazine.magazine_name))
+            if (string.IsNullOrWhiteSpace(scientistTopic.id))
             {
-                showError = true;
+                ShowError = true;
                 return;
             }
 
-            showError = false;
+            ShowError = false;
 
             if (scientist == null || string.IsNullOrEmpty(scientist.id))
             {
                 throw new InvalidOperationException("Scientist information is missing.");
             }
 
-            var result = await MagazineServices.UpdateMagazineAndLinkToScientistAsync(MagazineId, magazine, scientist.id, roleId, null, false);
+            var result = await TopicServices.UpdateTopicAndLinkToScientistAsync(scientistTopic.topic_id, scientistTopic.Topics, scientist.id, roleId, null, false);
             if (result)
             {
-                magazine = await MagazineServices.GetMagazineByIdAsync(MagazineId);
+                scientistTopic = await TopicServices.GetScientistTopicByIdAsync(TopicId, scientist.id);
             }
 
-            isReadOnly = true;
+            IsReadOnly = true;
         }
         catch (Exception ex)
         {
@@ -504,7 +448,7 @@
         }
     }
 
-    private async Task DeleteMagazine(ScientistMagazineRole smr)
+    private async Task DeleteMagazine(scientist_topic_role str)
     {
         try
         {
@@ -512,22 +456,12 @@
 
             if (confirm)
             {
-                var result = await MagazineServices.DeleteMagazineAndLinkFromScientistAsync(smr.magazine_id, smr.scientist_id);
+                var result = await TopicServices.DeleteTopicAndLinkFromScientistAsync(str.topic_id, str.scientist_id);
             }
         }
         catch (Exception ex)
         {
             Console.Error.WriteLine($"An error occurred while deleting: {ex.Message}");
-        }
-    }
-
-    private async Task UpdateScore(ChangeEventArgs e)
-    {
-        var selectedScope = e.Value?.ToString();
-        var selectedScore = AlllistMagazineScore?.Where(m => m.scope == selectedScope).ToList();
-        if (selectedScore != null)
-        {
-            listMagazineScore = selectedScore;
         }
     }
 
@@ -559,3 +493,4 @@
     }
 
 }
+

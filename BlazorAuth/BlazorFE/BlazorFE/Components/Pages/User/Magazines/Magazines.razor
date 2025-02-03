@@ -328,7 +328,7 @@
             magazine.created_at = DateTime.Now;
             magazine.updated_at = DateTime.Now;
 
-            var result = await MagazineServices.AddMagazineAndLinkToScientistAsync(magazine, scientist.id, roleId, false);
+            var result = await MagazineServices.AddMagazineAndLinkToScientistAsync(magazine, scientist.id, roleId, false, false);
             if (result)
             {
                 magazines = await MagazineServices.GetMagazinesByScientistIdAsync(scientist.id);

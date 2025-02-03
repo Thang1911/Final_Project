@@ -147,10 +147,7 @@
 
     private void EditTopic(Models.Topic.Topics editTopic)
     {
-        isAdd = true;
-        isReadOnly = false;
-        topics = editTopic;
-        isUpdate = true;
+        NavigationManager.NavigateTo($"/User/Topics/Edit/{editTopic.id}");
     }
 
     private void ToggleTopics()
@@ -243,7 +240,7 @@
             topics.created_at = DateTime.Now;
             topics.updated_at = DateTime.Now;
 
-            var result = await TopicServices.AddTopicAndLinkToScientistAsync(topics, scientist.id, roleId, false);
+            var result = await TopicServices.AddTopicAndLinkToScientistAsync(topics, scientist.id, roleId, false, false);
             if (result)
             {
                 ListTopics = await TopicServices.GetProjectsByScientistIdAsync(scientist.id);

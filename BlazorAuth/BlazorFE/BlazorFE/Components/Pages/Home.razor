@@ -5,6 +5,7 @@
 @using BlazorFE.Services;
 @using Microsoft.AspNetCore.Authorization;
 @using Microsoft.AspNetCore.Identity;
+
 @inject UserManager<ApplicationUser> _UserManager
 @inject RoleManager<IdentityRole> _RoleManager
 @inject ScientistServices ProfileServices
@@ -13,144 +14,143 @@
 @inject NavigationManager NavigationManager
 
 <PageTitle>Trang chủ</PageTitle>
+    @if(IsAdmin)
+    {
+        <h1>Xin chào, Admin!</h1>
+    } else
+    {
+        <h1>Xin chào, nhà khoa học!</h1>
+    }
 
-@if(IsAdmin)
-{
-    <h1>Xin chào, Admin!</h1>
-} else
-{
-    <h1>Xin chào, nhà khoa học!</h1>
-}
-
-<div class="d-flex justify-content-center mt-4">
-    <div class="w-fit d-flex flex-wrap gap-4">
-        @if(!IsAdmin) {
-            <NavLink href="/ProfileDetail" class="d-flex flex-column text-center gap-2 bg-primary bg-opacity-50 rounded-3 text-white width-item align-center no-underline">
-                <div class="d-flex justify-content-center">
-                    <div class="pt-2 px-2 w-fit">
-                        <div class="bi-bank-nav-menu"></div>
+    <div class="d-flex justify-content-center mt-4">
+        <div class="w-fit d-flex flex-wrap gap-4">
+            @if(!IsAdmin) {
+                <NavLink href="/ProfileDetail" class="d-flex flex-column text-center gap-2 bg-primary bg-opacity-50 rounded-3 text-white width-item align-center no-underline">
+                    <div class="d-flex justify-content-center">
+                        <div class="pt-2 px-2 w-fit">
+                            <div class="bi-bank-nav-menu"></div>
+                        </div>
                     </div>
-                </div>
-                <div class="px-2 pb-2">Thông tin cá nhân</div>
-            </NavLink>
-            <NavLink href="/User/Offers" class="d-flex flex-column text-center gap-2 bg-primary bg-opacity-50 rounded-3 text-white width-item align-center no-underline">
-                <div class="d-flex justify-content-center">
-                    <div class="pt-2 px-2 w-fit">
-                        <div class="bi-bank-nav-menu"></div>
+                    <div class="px-2 pb-2">Thông tin cá nhân</div>
+                </NavLink>
+                <NavLink href="/User/Offers" class="d-flex flex-column text-center gap-2 bg-primary bg-opacity-50 rounded-3 text-white width-item align-center no-underline">
+                    <div class="d-flex justify-content-center">
+                        <div class="pt-2 px-2 w-fit">
+                            <div class="bi-bank-nav-menu"></div>
+                        </div>
                     </div>
-                </div>
-                <div class="px-2 pb-2">Đề xuất cá nhân</div>
-            </NavLink>
-            <NavLink href="/User/Topics" class="d-flex flex-column text-center gap-2 bg-primary bg-opacity-50 rounded-3 text-white width-item align-center no-underline">
-                <div class="d-flex justify-content-center">
-                    <div class="pt-2 px-2 w-fit">
-                        <div class="bi-bank-nav-menu"></div>
+                    <div class="px-2 pb-2">Đề xuất cá nhân</div>
+                </NavLink>
+                <NavLink href="/User/Topics" class="d-flex flex-column text-center gap-2 bg-primary bg-opacity-50 rounded-3 text-white width-item align-center no-underline">
+                    <div class="d-flex justify-content-center">
+                        <div class="pt-2 px-2 w-fit">
+                            <div class="bi-bank-nav-menu"></div>
+                        </div>
                     </div>
-                </div>
-                <div class="px-2 pb-2">Đề tài/Đề án</div>
-            </NavLink>
-            <NavLink href="/User/Magazines" class="d-flex flex-column text-center gap-2 bg-primary bg-opacity-50 rounded-3 text-white width-item align-center no-underline">
-                <div class="d-flex justify-content-center">
-                    <div class="pt-2 px-2 w-fit">
-                        <div class="bi-bank-nav-menu"></div>
+                    <div class="px-2 pb-2">Đề tài/Đề án</div>
+                </NavLink>
+                <NavLink href="/User/Magazines" class="d-flex flex-column text-center gap-2 bg-primary bg-opacity-50 rounded-3 text-white width-item align-center no-underline">
+                    <div class="d-flex justify-content-center">
+                        <div class="pt-2 px-2 w-fit">
+                            <div class="bi-bank-nav-menu"></div>
+                        </div>
                     </div>
-                </div>
-                <div class="px-2 pb-2">Bài báo khoa học</div>
-            </NavLink>
-            <NavLink href="/User/Curriculums" class="d-flex flex-column text-center gap-2 bg-primary bg-opacity-50 rounded-3 text-white width-item align-center no-underline">
-                <div class="d-flex justify-content-center">
-                    <div class="pt-2 px-2 w-fit">
-                        <div class="bi-bank-nav-menu"></div>
+                    <div class="px-2 pb-2">Bài báo khoa học</div>
+                </NavLink>
+                <NavLink href="/User/Curriculums" class="d-flex flex-column text-center gap-2 bg-primary bg-opacity-50 rounded-3 text-white width-item align-center no-underline">
+                    <div class="d-flex justify-content-center">
+                        <div class="pt-2 px-2 w-fit">
+                            <div class="bi-bank-nav-menu"></div>
+                        </div>
                     </div>
-                </div>
-                <div class="px-2 pb-2">Giáo trình/Sách tham khảo</div>
-            </NavLink>
-        }
-        else
-        {
-            <div class="d-flex flex-column text-center gap-2 bg-primary bg-opacity-50 rounded-3 text-white width-item align-center">
-                <div class="d-flex justify-content-center">
-                    <div class="pt-2 px-2 w-fit">
-                        <div class="bi-bank-nav-menu"></div>
+                    <div class="px-2 pb-2">Giáo trình/Sách tham khảo</div>
+                </NavLink>
+            }
+            else
+            {
+                <div class="d-flex flex-column text-center gap-2 bg-primary bg-opacity-50 rounded-3 text-white width-item align-center">
+                    <div class="d-flex justify-content-center">
+                        <div class="pt-2 px-2 w-fit">
+                            <div class="bi-bank-nav-menu"></div>
+                        </div>
                     </div>
+                    <div class="px-2 pb-2">Nhà khoa học</div>
                 </div>
-                <div class="px-2 pb-2">Nhà khoa học</div>
-            </div>
-            <div class="d-flex flex-column text-center gap-2 bg-primary bg-opacity-50 rounded-3 text-white width-item align-center">
-                <div class="d-flex justify-content-center">
-                    <div class="pt-2 px-2 w-fit">
-                        <div class="bi-bank-nav-menu"></div>
+                <div class="d-flex flex-column text-center gap-2 bg-primary bg-opacity-50 rounded-3 text-white width-item align-center">
+                    <div class="d-flex justify-content-center">
+                        <div class="pt-2 px-2 w-fit">
+                            <div class="bi-bank-nav-menu"></div>
+                        </div>
                     </div>
+                    <div class="px-2 pb-2">Quản lý đề xuất</div>
                 </div>
-                <div class="px-2 pb-2">Quản lý đề xuất</div>
-            </div>
-            <div class="d-flex flex-column text-center gap-2 bg-primary bg-opacity-50 rounded-3 text-white width-item align-center">
-                <div class="d-flex justify-content-center">
-                    <div class="pt-2 px-2 w-fit">
-                        <div class="bi-bank-nav-menu"></div>
+                <div class="d-flex flex-column text-center gap-2 bg-primary bg-opacity-50 rounded-3 text-white width-item align-center">
+                    <div class="d-flex justify-content-center">
+                        <div class="pt-2 px-2 w-fit">
+                            <div class="bi-bank-nav-menu"></div>
+                        </div>
                     </div>
+                    <div class="px-2 pb-2">Đề tài/Đề án</div>
                 </div>
-                <div class="px-2 pb-2">Đề tài/Đề án</div>
-            </div>
-            <div class="d-flex flex-column text-center gap-2 bg-primary bg-opacity-50 rounded-3 text-white width-item align-center">
-                <div class="d-flex justify-content-center">
-                    <div class="pt-2 px-2 w-fit">
-                        <div class="bi-bank-nav-menu"></div>
+                <div class="d-flex flex-column text-center gap-2 bg-primary bg-opacity-50 rounded-3 text-white width-item align-center">
+                    <div class="d-flex justify-content-center">
+                        <div class="pt-2 px-2 w-fit">
+                            <div class="bi-bank-nav-menu"></div>
+                        </div>
                     </div>
+                    <div class="px-2 pb-2">Hội thảo/Hội nghị</div>
                 </div>
-                <div class="px-2 pb-2">Hội thảo/Hội nghị</div>
-            </div>
-            <div class="d-flex flex-column text-center gap-2 bg-primary bg-opacity-50 rounded-3 text-white width-item align-center">
-                <div class="d-flex justify-content-center">
-                    <div class="pt-2 px-2 w-fit">
-                        <div class="bi-bank-nav-menu"></div>
+                <div class="d-flex flex-column text-center gap-2 bg-primary bg-opacity-50 rounded-3 text-white width-item align-center">
+                    <div class="d-flex justify-content-center">
+                        <div class="pt-2 px-2 w-fit">
+                            <div class="bi-bank-nav-menu"></div>
+                        </div>
                     </div>
+                    <div class="px-2 pb-2">Bài báo khoa học</div>
                 </div>
-                <div class="px-2 pb-2">Bài báo khoa học</div>
-            </div>
-            <div class="d-flex flex-column text-center gap-2 bg-primary bg-opacity-50 rounded-3 text-white width-item align-center">
-                <div class="d-flex justify-content-center">
-                    <div class="pt-2 px-2 w-fit">
-                        <div class="bi-bank-nav-menu"></div>
+                <div class="d-flex flex-column text-center gap-2 bg-primary bg-opacity-50 rounded-3 text-white width-item align-center">
+                    <div class="d-flex justify-content-center">
+                        <div class="pt-2 px-2 w-fit">
+                            <div class="bi-bank-nav-menu"></div>
+                        </div>
                     </div>
+                    <div class="px-2 pb-2">Giáo trình/Sách tham khảo</div>
                 </div>
-                <div class="px-2 pb-2">Giáo trình/Sách tham khảo</div>
-            </div>
-            <div class="d-flex flex-column text-center gap-2 bg-primary bg-opacity-50 rounded-3 text-white width-item align-center">
-                <div class="d-flex justify-content-center">
-                    <div class="pt-2 px-2 w-fit">
-                        <div class="bi-bank-nav-menu"></div>
+                <div class="d-flex flex-column text-center gap-2 bg-primary bg-opacity-50 rounded-3 text-white width-item align-center">
+                    <div class="d-flex justify-content-center">
+                        <div class="pt-2 px-2 w-fit">
+                            <div class="bi-bank-nav-menu"></div>
+                        </div>
                     </div>
+                    <div class="px-2 pb-2">Hội đồng khoa học</div>
                 </div>
-                <div class="px-2 pb-2">Hội đồng khoa học</div>
-            </div>
-            <div class="d-flex flex-column text-center gap-2 bg-primary bg-opacity-50 rounded-3 text-white width-item align-center">
-                <div class="d-flex justify-content-center">
-                    <div class="pt-2 px-2 w-fit">
-                        <div class="bi-bank-nav-menu"></div>
+                <div class="d-flex flex-column text-center gap-2 bg-primary bg-opacity-50 rounded-3 text-white width-item align-center">
+                    <div class="d-flex justify-content-center">
+                        <div class="pt-2 px-2 w-fit">
+                            <div class="bi-bank-nav-menu"></div>
+                        </div>
                     </div>
+                    <div class="px-2 pb-2">Tổng giờ khoa học</div>
                 </div>
-                <div class="px-2 pb-2">Tổng giờ khoa học</div>
-            </div>
-            <div class="d-flex flex-column text-center gap-2 bg-primary bg-opacity-50 rounded-3 text-white width-item align-center">
-                <div class="d-flex justify-content-center">
-                    <div class="pt-2 px-2 w-fit">
-                        <div class="bi-bank-nav-menu"></div>
+                <div class="d-flex flex-column text-center gap-2 bg-primary bg-opacity-50 rounded-3 text-white width-item align-center">
+                    <div class="d-flex justify-content-center">
+                        <div class="pt-2 px-2 w-fit">
+                            <div class="bi-bank-nav-menu"></div>
+                        </div>
                     </div>
+                    <div class="px-2 pb-2">Báo cáo thống kê</div>
                 </div>
-                <div class="px-2 pb-2">Báo cáo thống kê</div>
-            </div>
-            <div class="d-flex flex-column text-center gap-2 bg-primary bg-opacity-50 rounded-3 text-white width-item align-center">
-                <div class="d-flex justify-content-center">
-                    <div class="pt-2 px-2 w-fit">
-                        <div class="bi-bank-nav-menu"></div>
+                <div class="d-flex flex-column text-center gap-2 bg-primary bg-opacity-50 rounded-3 text-white width-item align-center">
+                    <div class="d-flex justify-content-center">
+                        <div class="pt-2 px-2 w-fit">
+                            <div class="bi-bank-nav-menu"></div>
+                        </div>
                     </div>
+                    <div class="px-2 pb-2">Báo cáo tiến độ</div>
                 </div>
-                <div class="px-2 pb-2">Báo cáo tiến độ</div>
-            </div>
-        }
+            }
+        </div>
     </div>
-</div>
 
 <style>
     .bi-bank-nav-menu {

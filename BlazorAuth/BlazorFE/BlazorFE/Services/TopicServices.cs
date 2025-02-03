@@ -26,6 +26,22 @@ namespace BlazorFE.Services
             return scientistTopics;
         }
 
+        public async Task<scientist_topic_role> GetScientistTopicByIdAsync(string topicId, string scientistId)
+        {
+            if (string.IsNullOrEmpty(scientistId))
+                throw new ArgumentException("Scientist ID cannot be null or empty", nameof(scientistId));
+
+            var scientistTopic = await _context.Set<scientist_topic_role>()
+                .Where(str => str.scientist_id == scientistId && str.requestStatus == "Đã tham gia" && str.topic_id == topicId)
+                .Include(str => str.Topics)
+                    .ThenInclude(str => str.LvTopics)
+                .Include(str => str.Role)
+                .Include(str => str.Scientist)
+                .FirstOrDefaultAsync();
+
+            return scientistTopic;
+        }
+
         public async Task<List<scientist_topic_role>> GetProjectsByScientistIdAsync(string scientistId)
         {
             if (string.IsNullOrEmpty(scientistId))
@@ -59,6 +75,22 @@ namespace BlazorFE.Services
             return joinRequests;
         }
 
+        public async Task<List<scientist_topic_role>> GetListScientistByTopicIdAsync(string topicId)
+        {
+            if (string.IsNullOrEmpty(topicId))
+                throw new ArgumentException("Magazine ID cannot be null or empty", nameof(topicId));
+
+            var scientistTopics = await _context.Set<scientist_topic_role>()
+               .Where(str => str.topic_id == topicId)
+                .Include(str => str.Topics)
+                    .ThenInclude(st => st.LvTopics)
+                .Include(str => str.Role)
+                .Include(str => str.Scientist)
+                .ToListAsync();
+
+            return scientistTopics;
+        }
+
         public async Task<List<scientist_topic_role>> GetRequestTopicAsync(string scientistId, bool isJoining)
         {
             if (string.IsNullOrEmpty(scientistId))
@@ -86,7 +118,7 @@ namespace BlazorFE.Services
             return scientistTopics;
         }
 
-        public async Task<bool> AddTopicAndLinkToScientistAsync(Topics newTopic, string scientistId, string roleId, bool isJoining)
+        public async Task<bool> AddTopicAndLinkToScientistAsync(Topics newTopic, string scientistId, string roleId, bool isJoining, bool? isEditable)
         {
             if (newTopic == null) throw new ArgumentNullException(nameof(newTopic));
             if (string.IsNullOrEmpty(scientistId)) throw new ArgumentException("Scientist ID cannot be null or empty", nameof(scientistId));
@@ -105,7 +137,7 @@ namespace BlazorFE.Services
                     scientist_id = scientistId,
                     topic_id = newTopic.id,
                     role_id = roleId,
-                    status = false,
+                    status = isEditable,
                     requestStatus = isJoining ? "Chờ duyệt" : "Đã tham gia",
                     created_at = DateTime.UtcNow,
                     updated_at = DateTime.UtcNow
