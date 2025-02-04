@@ -1,0 +1,144 @@
+﻿@page "/Admin/Category/LvCouncils"
+@rendermode InteractiveServer
+
+@using BlazorFE.Models.Category
+@using BlazorFE.Services.Category
+
+@inject LvCouncilServices LvCouncilServices
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<h3>Quản lý cấp hội đồng</h3>
+
+<div class="mb-3 d-flex justify-content-end">
+    <button class="btn btn-primary" @onclick="ShowAddForm">Thêm</button>
+</div>
+
+@if (isAdding)
+{
+    <form class="border p-3 mb-3">
+        <div class="mb-3">
+            <label class="form-label">Tên cấp hội đồng</label>
+            <input type="text" class="form-control" @bind="newLvCouncil.lvcoucil_name">
+            @if (showError)
+            {
+                <span class="text-danger">Tên cấp hội đồng không được để trống.</span>
+            }
+        </div>
+        <div class="d-flex gap-3 justify-content-end">
+            <button class="btn btn-success" @onclick="SaveLvCouncil">Lưu</button>
+            <button class="btn btn-secondary" @onclick="CancelAdd">Hủy</button>
+        </div>
+    </form>
+}
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Tên cấp độ</th>
+            <th>Ngày tạo</th>
+            <th>Ngày cập nhật</th>
+            <th>Hành động</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (lvCouncils == null || !lvCouncils.Any())
+        {
+            <tr>
+                <td colspan="5" class="text-center">Không có dữ liệu.</td>
+            </tr>
+        }
+        else
+        {
+            @foreach (var LvCouncil in lvCouncils)
+            {
+                <tr>
+                    <td>@(lvCouncils.IndexOf(LvCouncil) + 1)</td>
+                    <td>@LvCouncil.lvcoucil_name</td>
+                    <td>@LvCouncil.created_at.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                    <td>@LvCouncil.updated_at.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" @onclick="() => EditLvCouncil(LvCouncil)">Sửa</button>
+                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteLvCouncil(LvCouncil.id)">Xóa</button>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<LvCouncil> lvCouncils;
+    private LvCouncil newLvCouncil = new();
+    private bool isAdding = false;
+    private bool showError = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadLvCouncils();
+    }
+
+    private async Task LoadLvCouncils()
+    {
+        lvCouncils = await LvCouncilServices.GetListLvCouncil();
+    }
+
+    private void ShowAddForm()
+    {
+        isAdding = true;
+        newLvCouncil = new LvCouncil();
+    }
+
+    private async Task SaveLvCouncil()
+    {
+        if (string.IsNullOrWhiteSpace(newLvCouncil.lvcoucil_name))
+        {
+            showError = true;
+            return;
+        }
+
+        if (string.IsNullOrEmpty(newLvCouncil.id))
+        {
+            newLvCouncil.id = Guid.NewGuid().ToString();
+            newLvCouncil.created_at = DateTime.Now;
+            newLvCouncil.updated_at = DateTime.Now;
+            await LvCouncilServices.AddLvCouncil(newLvCouncil);
+        }
+        else
+        {
+            newLvCouncil.updated_at = DateTime.Now;
+            await LvCouncilServices.UpdateLvCouncil(newLvCouncil);
+        }
+
+        isAdding = false;
+        await LoadLvCouncils();
+    }
+
+    private void CancelAdd()
+    {
+        isAdding = false;
+    }
+
+    private void EditLvCouncil(LvCouncil editLvCouncil)
+    {
+        isAdding = true;
+        newLvCouncil = new LvCouncil
+            {
+                id = editLvCouncil.id,
+                lvcoucil_name = editLvCouncil.lvcoucil_name,
+                created_at = editLvCouncil.created_at,
+                updated_at = editLvCouncil.updated_at
+            };
+    }
+
+    private async Task DeleteLvCouncil(string id)
+    {
+        var confirm = await JS.InvokeAsync<bool>("confirm", "Bạn có chắc chắn muốn xóa cấp hội đồng này?");
+        if (confirm)
+        {
+            await LvCouncilServices.DeleteLvCouncil(id);
+            await LoadLvCouncils();
+        }
+    }
+}

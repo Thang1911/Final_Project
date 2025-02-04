@@ -1,4 +1,3 @@
-using BlazorFE.Client.Pages;
 using BlazorFE.Components;
 using BlazorFE.Components.Account;
 using BlazorFE.Data;
@@ -35,6 +34,9 @@ builder.Services.AddScoped<PaperServices>();
 builder.Services.AddScoped<DegreeServices>();
 builder.Services.AddScoped<FileUploadServices>();
 builder.Services.AddScoped<MagazineScoreServices>();
+builder.Services.AddScoped<CouncilServices>();
+builder.Services.AddScoped<LvCouncilServices>();
+builder.Services.AddScoped<TpCouncilServices>();
 
 builder.Services.AddSingleton<GoogleDriveServices>();
 

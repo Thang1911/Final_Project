@@ -327,7 +327,7 @@ namespace BlazorFE.Migrations
                 columns: table => new
                 {
                     id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    tpcouncil_id = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    tpCouncil_id = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     tpcouncil_name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     created_at = table.Column<DateTime>(type: "datetime2", nullable: false),
                     updated_at = table.Column<DateTime>(type: "datetime2", nullable: false)
@@ -604,9 +604,9 @@ namespace BlazorFE.Migrations
                     id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     decision_number = table.Column<int>(type: "int", nullable: false),
                     date = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    lvcouncil_id = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    lvCouncil_id = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     lvCouncilid = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    tpcouncil_id = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    tpCouncil_id = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     tpcouncilid = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     council_name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     year = table.Column<int>(type: "int", nullable: false)

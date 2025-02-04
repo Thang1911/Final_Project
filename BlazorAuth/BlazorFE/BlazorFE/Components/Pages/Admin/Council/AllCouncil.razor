@@ -1,0 +1,272 @@
+﻿@page "/Admin/Council"
+@rendermode InteractiveServer
+
+@using System.Security.Claims;
+@using BlazorFE.Models
+@using BlazorFE.Services
+@using BlazorFE.Services.Category
+@using System.ComponentModel.DataAnnotations;
+
+@inject ScientistServices ScientistService
+@inject CouncilServices CouncilServices
+@inject LvCouncilServices LvCouncilServices
+@inject TpCouncilServices TpCouncilServices
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IJSRuntime JSRuntime
+
+<div class="my-2 d-flex justify-content-end">
+    <button class="btn btn-outline-primary" @onclick="ToggleForm">Thêm hội đồng</button>
+</div>
+
+@if(isAdd)
+{
+    <form>
+        <div class="mt-2">
+            <!-- Hàng đầu tiên -->
+            <div class="auto-cols">
+                <div>
+                    <label class="labels">Tên hội đồng<span class="text-red">*</span></label>
+                    <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Tên hội đồng" @bind="@council.council_name">
+                    @if (showError && string.IsNullOrWhiteSpace(council.council_name))
+                    {
+                        <span class="text-danger">Vui lòng nhập tên hội đồng</span>
+                    }
+                </div>
+                <div>
+                    <label class="labels">Cấp hội đồng<span class="text-red">*</span></label>
+                    <select disabled="@isReadOnly" type="text" class="form-control" @bind="@council.lvCouncil_id">
+                        <option value="">Chọn cấp hội đồng</option>
+                        @foreach (var item in lvCouncils)
+                        {
+                            <option value="@item.id">@item.lvcoucil_name</option>
+                        }
+                    </select>
+                    @if (showError && string.IsNullOrWhiteSpace(council.lvCouncil_id))
+                    {
+                        <span class="text-danger">Vui lòng chọn cấp hội đồng</span>
+                    }
+                </div>
+                <div>
+                    <label class="labels">Loại hội đồng<span class="text-red">*</span></label>
+                    <select disabled="@isReadOnly" type="text" class="form-control" @bind="@council.tpCouncil_id">
+                        <option value="">Chọn loại hội đồng</option>
+                        @foreach (var item in tpCouncils)
+                        {
+                            <option value="@item.id">@item.tpcouncil_name</option>
+                        }
+                    </select>
+                    @if (showError && string.IsNullOrWhiteSpace(council.tpCouncil_id))
+                    {
+                        <span class="text-danger">Vui lòng chọn loại hội đồng</span>
+                    }
+                </div>
+            </div>
+
+            <!-- Hàng thứ hai -->
+            <div class="auto-cols mt-2">
+                <div>
+                    <label class="labels">Số quyết định</label>
+                    <input readonly="@isReadOnly" type="number" class="form-control" @bind="@council.decision_number">
+                </div>
+                <div>
+                    <label class="labels">Ngày bắt đầu</label>
+                    <input type="date" class="form-control" @bind="@selectedDate" />
+                </div>
+                <div>
+                    <label class="labels">Năm công bố<span class="text-red">*</span></label>
+                    <select disabled="@isReadOnly" class="form-control" @bind="council.year">
+                        <option value="0" selected>Chọn năm</option>
+                        @for (int year = DateTime.Now.Year; year >= 1900; year--)
+                        {
+                            <option value="@year">@year</option>
+                        }
+                    </select>
+                    @if (showError && council.year == 0)
+                    {
+                        <span class="text-danger">Vui lòng chọn năm công bố.</span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex gap-1 mt-2">
+            <div class="text-center">
+                <button class="btn btn-success" type="submit" @onclick="AddCouncil" @onclick:preventDefault>Lưu</button>
+            </div>
+            <div class="text-center">
+                <button class="btn btn-primary" type="button" @onclick="ToggleForm">Hủy</button>
+            </div>
+        </div>
+    </form>
+}
+
+<div class="card shadow my-4">
+    <div class="card-header py-3 d-flex justify-content-between">
+        <h4 class="m-0 font-weight-bold">Danh sách hội đồng</h4>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover pt-2" id="dataTable" width="100%" cellspacing="0">
+                <thead class="top-border">
+                    <tr>
+                        <th>#</th>
+                        <th>Tên hội đồng</th>
+                        <th>Cấp hội đồng</th>
+                        <th>Loại hội đồng</th>
+                        <th>Số quyết định</th>
+                        <th>Ngày lập</th>
+                        <th>Năm</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (councils != null && councils.Count > 0)
+                    {
+                        int i = 1;
+                        foreach (var item in councils)
+                        {
+                            <tr>
+                                <th scope="row">@i</th>
+                                <td>@item?.council_name</td>
+                                <td>@item?.lvCouncil.lvcoucil_name</td>
+                                <td>@item?.tpCouncil.tpcouncil_name</td>
+                                <td>@item?.decision_number</td>
+                                <td>@item?.date.ToShortDateString()</td>
+                                <td>@item?.year</td>
+                                <td>
+                                    <button class="btn btn-warning">Chỉnh sửa</button>
+                                    <button class="btn btn-danger">
+                                        Xóa
+                                    </button>
+                                </td>
+                            </tr>
+                            i++;
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center">Không có dữ liệu</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .auto-cols {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        gap: 16px;
+        justify-content: space-between;
+    }
+
+        .auto-cols > div {
+            flex: 1;
+            min-width: 200px;
+        }
+
+    .d-flex {
+        display: flex;
+        flex-direction: row;
+        justify-content: right;
+    }
+
+    .text-red {
+        color: red;
+    }
+</style>
+
+@code {
+    public bool isAdd { get; set; } = false;
+    public bool isUpdate { get; set; } = false;
+    public bool isReadOnly { get; set; } = true;
+    public bool showError { get; set; } = false;
+
+    private string userName = "";
+    private string userid = "";
+
+    private DateTime selectedDate { get; set; } = DateTime.Now;
+    private string formattedDate => selectedDate.ToString("dd/MM");
+
+    public Models.Council.council council { get; set; } = new();
+    public List<Models.Council.council> councils { get; set; }
+    public List<Models.Category.LvCouncil> lvCouncils { get; set; }
+    public List<Models.Category.TpCouncil> tpCouncils { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var principal = authState.User;
+        if (principal.Identity?.IsAuthenticated == true)
+        {
+            userid = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value.ToString();
+            userName = principal.Identity.Name;
+
+            if (userid != null && userName != null)
+            {
+                councils = await CouncilServices.GetAllCouncilsAsync();
+                lvCouncils = await LvCouncilServices.GetListLvCouncil();
+                tpCouncils = await TpCouncilServices.GetListTpCouncil();
+            }
+            else
+            {
+                NavigationManager.NavigateTo("Account/Login");
+            }
+        }
+        else
+        {
+            NavigationManager.NavigateTo("Account/Login");
+        }
+    }
+
+    // protected override async Task OnAfterRenderAsync(bool firstRender)
+    // {
+    //     if (firstRender)
+    //     {
+    //         await JSRuntime.InvokeVoidAsync("TestDataTablesAdd", "#dataTable");
+    //     }
+    // }
+
+    private void ToggleForm()
+    {
+        isAdd = !isAdd;
+        isReadOnly = !isReadOnly;
+    }
+
+    private async Task AddCouncil()
+    {
+        try
+        {
+            if (council == null || string.IsNullOrWhiteSpace(council.council_name))
+            {
+                showError = true;
+                return;
+            }
+
+            showError = false;
+
+            council.id = Guid.NewGuid().ToString();
+            council.date = selectedDate;
+
+            var result = await CouncilServices.AddCouncilAsync(council);
+            if (result)
+            {
+                councils = await CouncilServices.GetAllCouncilsAsync();
+            }
+
+            isAdd = false;
+            isReadOnly = true;
+            council = new();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"An error occurred: {ex.Message}");
+        }
+    }
+
+}

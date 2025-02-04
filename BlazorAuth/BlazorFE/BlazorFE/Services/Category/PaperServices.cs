@@ -26,8 +26,8 @@ namespace BlazorFE.Services
         public async Task AddPaper(Paper paper)
         {
             paper.id = Guid.NewGuid().ToString();
-            paper.created_at = DateTime.UtcNow;
-            paper.updated_at = DateTime.UtcNow;
+            paper.created_at = DateTime.Now;
+            paper.updated_at = DateTime.Now;
 
             _context.Papers.Add(paper);
             await _context.SaveChangesAsync();
@@ -39,7 +39,7 @@ namespace BlazorFE.Services
             if (existingPaper != null)
             {
                 existingPaper.paper_name = paper.paper_name;
-                existingPaper.updated_at = DateTime.UtcNow;
+                existingPaper.updated_at = DateTime.Now;
 
                 _context.Entry(existingPaper).State = EntityState.Modified;
                 await _context.SaveChangesAsync();

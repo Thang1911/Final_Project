@@ -1,4 +1,5 @@
 using BlazorFE.Models.Category;
+using BlazorFE.Models.ConferenceCouncil;
 using BlazorFE.Models.Conferences;
 using BlazorFE.Models.Council;
 using BlazorFE.Models.Curriculum;
@@ -47,5 +48,8 @@ namespace BlazorFE.Data
         public DbSet<Researcher> Researchers { get; set; }
         public DbSet<Project> Projects { get; set; }
         public DbSet<MagazineScore> MagazineScores { get; set; }
+        public DbSet<CouncilTopics> CouncilTopics { get; set; }
+        public DbSet<ConferenceTopics> ConferenceTopics { get; set; }
+        public DbSet<ConferenceCouncils> ConferenceCouncils { get; set; }
     }
 }

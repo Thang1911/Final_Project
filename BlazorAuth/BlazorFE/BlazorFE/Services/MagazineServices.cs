@@ -191,8 +191,8 @@ namespace BlazorFE.Services
                     role_id = roleId,
                     requestStatus = isJoining ? "Chờ duyệt" : "Đã tham gia",
                     status = isEditable,
-                    created_at = DateTime.UtcNow,
-                    updated_at = DateTime.UtcNow
+                    created_at = DateTime.Now,
+                    updated_at = DateTime.Now
                 };
 
                 await _context.Set<ScientistMagazineRole>().AddAsync(scientistMagazineRole);
@@ -229,7 +229,7 @@ namespace BlazorFE.Services
                 existingMagazine.paper_id = updatedMagazine.paper_id;
                 existingMagazine.magazine_scope = updatedMagazine.magazine_scope;
                 existingMagazine.magazine_score_id = updatedMagazine.magazine_score_id;
-                existingMagazine.updated_at = DateTime.UtcNow;
+                existingMagazine.updated_at = DateTime.Now;
 
                 _context.Set<Magazines>().Update(existingMagazine);
                 await _context.SaveChangesAsync();
@@ -240,7 +240,7 @@ namespace BlazorFE.Services
                 if (scientistMagazineRole != null)
                 {
                     scientistMagazineRole.role_id = roleId;
-                    scientistMagazineRole.updated_at = DateTime.UtcNow;
+                    scientistMagazineRole.updated_at = DateTime.Now;
                     if (isUpdateRequest)
                     {
                         scientistMagazineRole.requestStatus = requestStatus;

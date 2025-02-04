@@ -584,7 +584,7 @@ namespace BlazorFE.Migrations
                     b.Property<DateTime>("created_at")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("tpcouncil_id")
+                    b.Property<string>("tpCouncilId")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -618,6 +618,28 @@ namespace BlazorFE.Migrations
                     b.HasKey("id");
 
                     b.ToTable("Trainings");
+                });
+
+            modelBuilder.Entity("BlazorFE.Models.ConferenceCouncil.ConferenceCouncils", b =>
+                {
+                    b.Property<string>("id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("conference_id")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("council_id")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("id");
+
+                    b.HasIndex("conference_id");
+
+                    b.HasIndex("council_id");
+
+                    b.ToTable("ConferenceCouncils");
                 });
 
             modelBuilder.Entity("BlazorFE.Models.Conferences.Conference", b =>
@@ -676,18 +698,18 @@ namespace BlazorFE.Migrations
                     b.Property<int>("decision_number")
                         .HasColumnType("int");
 
+                    b.Property<string>("lvCouncil_id")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("lvCouncilid")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("lvcouncil_id")
+                    b.Property<string>("tpCouncil_id")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("tpcouncil_id")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("tpcouncilid")
+                    b.Property<string>("tpCouncilid")
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("year")
@@ -697,7 +719,7 @@ namespace BlazorFE.Migrations
 
                     b.HasIndex("lvCouncilid");
 
-                    b.HasIndex("tpcouncilid");
+                    b.HasIndex("tpCouncilid");
 
                     b.ToTable("Council");
                 });
@@ -1102,6 +1124,78 @@ namespace BlazorFE.Migrations
                     b.ToTable("ScientistTopicRoles");
                 });
 
+            modelBuilder.Entity("BlazorFE.Models.Topic.ConferenceTopics", b =>
+                {
+                    b.Property<string>("id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Topicid")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("conference_id")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("created_at")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("presentation_date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("topic_id")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("updated_at")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("id");
+
+                    b.HasIndex("Topicid");
+
+                    b.HasIndex("conference_id");
+
+                    b.ToTable("ConferenceTopics");
+                });
+
+            modelBuilder.Entity("BlazorFE.Models.Topic.CouncilTopics", b =>
+                {
+                    b.Property<string>("id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Topicid")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("council_id")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("created_at")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("decision")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("reviewed_at")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("topic_id")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("updated_at")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("id");
+
+                    b.HasIndex("Topicid");
+
+                    b.HasIndex("council_id");
+
+                    b.ToTable("CouncilTopics");
+                });
+
             modelBuilder.Entity("BlazorFE.Models.Topic.Topics", b =>
                 {
                     b.Property<string>("id")
@@ -1299,6 +1393,25 @@ namespace BlazorFE.Migrations
                     b.Navigation("researcher");
                 });
 
+            modelBuilder.Entity("BlazorFE.Models.ConferenceCouncil.ConferenceCouncils", b =>
+                {
+                    b.HasOne("BlazorFE.Models.Conferences.Conference", "Conference")
+                        .WithMany()
+                        .HasForeignKey("conference_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BlazorFE.Models.Council.council", "Council")
+                        .WithMany()
+                        .HasForeignKey("council_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Conference");
+
+                    b.Navigation("Council");
+                });
+
             modelBuilder.Entity("BlazorFE.Models.Conferences.Conference", b =>
                 {
                     b.HasOne("BlazorFE.Models.Category.Seminar", "Seminar")
@@ -1316,13 +1429,13 @@ namespace BlazorFE.Migrations
                         .WithMany()
                         .HasForeignKey("lvCouncilid");
 
-                    b.HasOne("BlazorFE.Models.Category.TpCouncil", "tpcouncil")
+                    b.HasOne("BlazorFE.Models.Category.TpCouncil", "tpCouncil")
                         .WithMany()
-                        .HasForeignKey("tpcouncilid");
+                        .HasForeignKey("tpCouncilid");
 
                     b.Navigation("lvCouncil");
 
-                    b.Navigation("tpcouncil");
+                    b.Navigation("tpCouncil");
                 });
 
             modelBuilder.Entity("BlazorFE.Models.Curriculum.Curriculums", b =>
@@ -1501,6 +1614,40 @@ namespace BlazorFE.Migrations
                     b.Navigation("Scientist");
 
                     b.Navigation("Topics");
+                });
+
+            modelBuilder.Entity("BlazorFE.Models.Topic.ConferenceTopics", b =>
+                {
+                    b.HasOne("BlazorFE.Models.Topic.Topics", "Topic")
+                        .WithMany()
+                        .HasForeignKey("Topicid");
+
+                    b.HasOne("BlazorFE.Models.Conferences.Conference", "Conference")
+                        .WithMany()
+                        .HasForeignKey("conference_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Conference");
+
+                    b.Navigation("Topic");
+                });
+
+            modelBuilder.Entity("BlazorFE.Models.Topic.CouncilTopics", b =>
+                {
+                    b.HasOne("BlazorFE.Models.Topic.Topics", "Topic")
+                        .WithMany()
+                        .HasForeignKey("Topicid");
+
+                    b.HasOne("BlazorFE.Models.Council.council", "Council")
+                        .WithMany()
+                        .HasForeignKey("council_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Council");
+
+                    b.Navigation("Topic");
                 });
 
             modelBuilder.Entity("BlazorFE.Models.Topic.Topics", b =>

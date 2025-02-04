@@ -563,7 +563,7 @@ namespace BlazorFE.Migrations
                     b.Property<DateTime>("created_at")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("tpcouncil_id")
+                    b.Property<string>("tpCouncil_id")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -658,11 +658,11 @@ namespace BlazorFE.Migrations
                     b.Property<string>("lvCouncilid")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("lvcouncil_id")
+                    b.Property<string>("lvCouncil_id")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("tpcouncil_id")
+                    b.Property<string>("tpCouncil_id")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 

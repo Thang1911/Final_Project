@@ -139,8 +139,8 @@ namespace BlazorFE.Services
                     role_id = roleId,
                     status = isEditable,
                     requestStatus = isJoining ? "Chờ duyệt" : "Đã tham gia",
-                    created_at = DateTime.UtcNow,
-                    updated_at = DateTime.UtcNow
+                    created_at = DateTime.Now,
+                    updated_at = DateTime.Now
                 };
 
                 await _context.Set<scientist_topic_role>().AddAsync(scientistTopicRole);
@@ -175,7 +175,7 @@ namespace BlazorFE.Services
                 existingTopic.lvtopic_id = updatedTopic.lvtopic_id;
                 existingTopic.start_date = updatedTopic.start_date;
                 existingTopic.end_date = updatedTopic.end_date;
-                existingTopic.updated_at = DateTime.UtcNow;
+                existingTopic.updated_at = DateTime.Now;
 
                 _context.Set<Topics>().Update(existingTopic);
                 await _context.SaveChangesAsync();
@@ -186,7 +186,7 @@ namespace BlazorFE.Services
                 if (scientistTopicRole != null)
                 {
                     scientistTopicRole.role_id = roleId;
-                    scientistTopicRole.updated_at = DateTime.UtcNow;
+                    scientistTopicRole.updated_at = DateTime.Now;
                     if(isUpdateRequest) { 
                         scientistTopicRole.requestStatus = requestStatus;
                     }

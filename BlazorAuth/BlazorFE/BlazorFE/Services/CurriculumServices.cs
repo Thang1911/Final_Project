@@ -123,8 +123,8 @@ namespace BlazorFE.Services
                     curriculum_id = newCurriculum.id,
                     role_id = roleId,
                     requestStatus = isJoining ? "Chờ duyệt" : "Đã tham gia",
-                    created_at = DateTime.UtcNow,
-                    updated_at = DateTime.UtcNow
+                    created_at = DateTime.Now,
+                    updated_at = DateTime.Now
                 };
 
                 await _context.Set<ScientistCurriculumRole>().AddAsync(scientistCurriculumRole);
@@ -160,7 +160,7 @@ namespace BlazorFE.Services
                 existingCurriculum.publisher = updatedCurriculum.publisher;
                 existingCurriculum.book_id = updatedCurriculum.book_id;
                 existingCurriculum.training_id = updatedCurriculum.training_id;
-                existingCurriculum.updated_at = DateTime.UtcNow;
+                existingCurriculum.updated_at = DateTime.Now;
 
                 _context.Set<Curriculums>().Update(existingCurriculum);
                 await _context.SaveChangesAsync();
@@ -175,7 +175,7 @@ namespace BlazorFE.Services
                     {
                         scientistCurriculumRole.requestStatus = requestStatus;
                     }
-                    scientistCurriculumRole.updated_at = DateTime.UtcNow;
+                    scientistCurriculumRole.updated_at = DateTime.Now;
                     _context.Set<ScientistCurriculumRole>().Update(scientistCurriculumRole);
                     await _context.SaveChangesAsync();
                 }

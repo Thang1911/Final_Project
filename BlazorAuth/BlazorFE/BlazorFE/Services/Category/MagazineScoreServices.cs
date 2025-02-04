@@ -26,8 +26,8 @@ namespace BlazorFE.Services
         public async Task AddMagazineScore(MagazineScore magazineScore)
         {
             magazineScore.id = Guid.NewGuid().ToString();
-            magazineScore.created_at = DateTime.UtcNow;
-            magazineScore.updated_at = DateTime.UtcNow;
+            magazineScore.created_at = DateTime.Now;
+            magazineScore.updated_at = DateTime.Now;
 
             _context.MagazineScores.Add(magazineScore);
             await _context.SaveChangesAsync();
@@ -39,7 +39,7 @@ namespace BlazorFE.Services
             if (existingMagazineScore != null)
             {
                 existingMagazineScore.magazine_score_name = magazineScore.magazine_score_name;
-                existingMagazineScore.updated_at = DateTime.UtcNow;
+                existingMagazineScore.updated_at = DateTime.Now;
 
                 _context.Entry(existingMagazineScore).State = EntityState.Modified;
                 await _context.SaveChangesAsync();

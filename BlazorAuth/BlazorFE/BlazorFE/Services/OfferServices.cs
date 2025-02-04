@@ -113,8 +113,8 @@ namespace BlazorFE.Services
                     offer_id = newOffer.id,
                     role_id = roleId,
                     requestStatus = isJoining ? "Chờ duyệt" : "Đã tham gia",
-                    created_at = DateTime.UtcNow,
-                    updated_at = DateTime.UtcNow
+                    created_at = DateTime.Now,
+                    updated_at = DateTime.Now
                 };
 
                 await _context.Set<ScientistOfferRole>().AddAsync(scientistOfferRole);
@@ -150,7 +150,7 @@ namespace BlazorFE.Services
                 existingOffer.note = updatedOffer.note;
                 existingOffer.propose_id = updatedOffer.propose_id;
                 existingOffer.status = updatedOffer.status;
-                existingOffer.updated_at = DateTime.UtcNow;
+                existingOffer.updated_at = DateTime.Now;
 
                 _context.Set<Offers>().Update(existingOffer);
                 await _context.SaveChangesAsync();
@@ -165,7 +165,7 @@ namespace BlazorFE.Services
                     {
                         scientistOfferRole.requestStatus = requestStatus;
                     }
-                    scientistOfferRole.updated_at = DateTime.UtcNow;
+                    scientistOfferRole.updated_at = DateTime.Now;
                     _context.Set<ScientistOfferRole>().Update(scientistOfferRole);
                     await _context.SaveChangesAsync();
                 }

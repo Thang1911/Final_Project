@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BlazorFE.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250113101118_addInitialData")]
-    partial class addInitialData
+    [Migration("20250204032645_addTopicCouncil")]
+    partial class addTopicCouncil
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -286,6 +286,30 @@ namespace BlazorFE.Migrations
                     b.ToTable("LvTopics");
                 });
 
+            modelBuilder.Entity("BlazorFE.Models.Category.MagazineScore", b =>
+                {
+                    b.Property<string>("id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("created_at")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("magazine_score_name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("scope")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("updated_at")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("id");
+
+                    b.ToTable("MagazineScores");
+                });
+
             modelBuilder.Entity("BlazorFE.Models.Category.Money", b =>
                 {
                     b.Property<string>("id")
@@ -380,6 +404,38 @@ namespace BlazorFE.Migrations
                     b.HasKey("id");
 
                     b.ToTable("Products");
+                });
+
+            modelBuilder.Entity("BlazorFE.Models.Category.Project", b =>
+                {
+                    b.Property<string>("id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("created_at")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("reseacher_id")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("researcherid")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("updated_by")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("id");
+
+                    b.HasIndex("researcherid");
+
+                    b.ToTable("Projects");
                 });
 
             modelBuilder.Entity("BlazorFE.Models.Category.Propose", b =>
@@ -740,9 +796,18 @@ namespace BlazorFE.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("magazine_scope")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("magazine_score_id")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("paper_id")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("rank")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("updated_at")
                         .HasColumnType("datetime2");
@@ -751,6 +816,8 @@ namespace BlazorFE.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("id");
+
+                    b.HasIndex("magazine_score_id");
 
                     b.HasIndex("paper_id");
 
@@ -918,12 +985,18 @@ namespace BlazorFE.Migrations
                     b.Property<string>("id")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("ScientistRequestid")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<DateTime>("created_at")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("magazine_id")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("requestStatus")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("role_id")
                         .IsRequired()
@@ -933,10 +1006,15 @@ namespace BlazorFE.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<bool?>("status")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime>("updated_at")
                         .HasColumnType("datetime2");
 
                     b.HasKey("id");
+
+                    b.HasIndex("ScientistRequestid");
 
                     b.HasIndex("magazine_id");
 
@@ -1025,6 +1103,78 @@ namespace BlazorFE.Migrations
                     b.HasIndex("topic_id");
 
                     b.ToTable("ScientistTopicRoles");
+                });
+
+            modelBuilder.Entity("BlazorFE.Models.Topic.ConferenceTopics", b =>
+                {
+                    b.Property<string>("id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Topicid")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("conference_id")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("created_at")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("presentation_date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("topic_id")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("updated_at")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("id");
+
+                    b.HasIndex("Topicid");
+
+                    b.HasIndex("conference_id");
+
+                    b.ToTable("ConferenceTopics");
+                });
+
+            modelBuilder.Entity("BlazorFE.Models.Topic.CouncilTopics", b =>
+                {
+                    b.Property<string>("id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Topicid")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("council_id")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("created_at")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("decision")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("reviewed_at")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("topic_id")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("updated_at")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("id");
+
+                    b.HasIndex("Topicid");
+
+                    b.HasIndex("council_id");
+
+                    b.ToTable("CouncilTopics");
                 });
 
             modelBuilder.Entity("BlazorFE.Models.Topic.Topics", b =>
@@ -1215,6 +1365,15 @@ namespace BlazorFE.Migrations
                     b.Navigation("Training");
                 });
 
+            modelBuilder.Entity("BlazorFE.Models.Category.Project", b =>
+                {
+                    b.HasOne("BlazorFE.Models.Category.Researcher", "researcher")
+                        .WithMany()
+                        .HasForeignKey("researcherid");
+
+                    b.Navigation("researcher");
+                });
+
             modelBuilder.Entity("BlazorFE.Models.Conferences.Conference", b =>
                 {
                     b.HasOne("BlazorFE.Models.Category.Seminar", "Seminar")
@@ -1262,11 +1421,17 @@ namespace BlazorFE.Migrations
 
             modelBuilder.Entity("BlazorFE.Models.Magazine.Magazines", b =>
                 {
+                    b.HasOne("BlazorFE.Models.Category.MagazineScore", "MagazineScore")
+                        .WithMany()
+                        .HasForeignKey("magazine_score_id");
+
                     b.HasOne("BlazorFE.Models.Category.Paper", "Paper")
                         .WithMany()
                         .HasForeignKey("paper_id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("MagazineScore");
 
                     b.Navigation("Paper");
                 });
@@ -1328,6 +1493,10 @@ namespace BlazorFE.Migrations
 
             modelBuilder.Entity("BlazorFE.Models.Scientist.ScientistMagazineRole", b =>
                 {
+                    b.HasOne("BlazorFE.Models.Scientist.Scientist", "ScientistRequest")
+                        .WithMany()
+                        .HasForeignKey("ScientistRequestid");
+
                     b.HasOne("BlazorFE.Models.Magazine.Magazines", "Magazines")
                         .WithMany()
                         .HasForeignKey("magazine_id")
@@ -1351,6 +1520,8 @@ namespace BlazorFE.Migrations
                     b.Navigation("Role");
 
                     b.Navigation("Scientist");
+
+                    b.Navigation("ScientistRequest");
                 });
 
             modelBuilder.Entity("BlazorFE.Models.Scientist.ScientistOfferRole", b =>
@@ -1405,6 +1576,40 @@ namespace BlazorFE.Migrations
                     b.Navigation("Scientist");
 
                     b.Navigation("Topics");
+                });
+
+            modelBuilder.Entity("BlazorFE.Models.Topic.ConferenceTopics", b =>
+                {
+                    b.HasOne("BlazorFE.Models.Topic.Topics", "Topic")
+                        .WithMany()
+                        .HasForeignKey("Topicid");
+
+                    b.HasOne("BlazorFE.Models.Conferences.Conference", "Conference")
+                        .WithMany()
+                        .HasForeignKey("conference_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Conference");
+
+                    b.Navigation("Topic");
+                });
+
+            modelBuilder.Entity("BlazorFE.Models.Topic.CouncilTopics", b =>
+                {
+                    b.HasOne("BlazorFE.Models.Topic.Topics", "Topic")
+                        .WithMany()
+                        .HasForeignKey("Topicid");
+
+                    b.HasOne("BlazorFE.Models.Council.council", "Council")
+                        .WithMany()
+                        .HasForeignKey("council_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Council");
+
+                    b.Navigation("Topic");
                 });
 
             modelBuilder.Entity("BlazorFE.Models.Topic.Topics", b =>

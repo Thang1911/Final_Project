@@ -1,0 +1,157 @@
+﻿@page "/Admin/Category/TpCouncils"
+@rendermode InteractiveServer
+
+@using BlazorFE.Models.Category
+@using BlazorFE.Services.Category
+
+@inject TpCouncilServices TpCouncilServices
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<h3>Quản lý loại hội đồng</h3>
+
+<div class="mb-3 d-flex justify-content-end">
+    <button class="btn btn-primary" @onclick="ShowAddForm">Thêm</button>
+</div>
+
+@if (isAdding)
+{
+    <form class="border p-3 mb-3">
+        <div class="d-flex justify-content-between gap-3">
+            <div class="mb-3 col-md-6">
+                <label class="form-label">Mã hội đồng</label>
+                <input type="text" class="form-control" @bind="newTpCouncil.tpCouncilId">
+                @if (showError)
+                {
+                    <span class="text-danger">Mã hội đồng không được để trống.</span>
+                }
+            </div>
+            <div class="mb-3 col-md-6">
+                <label class="form-label">Loại hội đồng</label>
+                <input type="text" class="form-control" @bind="newTpCouncil.tpcouncil_name">
+                @if (showError)
+                {
+                    <span class="text-danger">Loại hội đồng không được để trống.</span>
+                }
+            </div>
+         </div>
+        <div class="d-flex gap-3 justify-content-end">
+            <button class="btn btn-success" @onclick="SaveTpCouncil">Lưu</button>
+            <button class="btn btn-secondary" @onclick="CancelAdd">Hủy</button>
+        </div>
+    </form>
+}
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Mã cấp độ</th>
+            <th>Loại cấp độ</th>
+            <th>Ngày tạo</th>
+            <th>Ngày cập nhật</th>
+            <th>Hành động</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (TpCouncils == null || !TpCouncils.Any())
+        {
+            <tr>
+                <td colspan="6" class="text-center">Không có dữ liệu.</td>
+            </tr>
+        }
+        else
+        {
+            @foreach (var TpCouncil in TpCouncils)
+            {
+                <tr>
+                    <td>@(TpCouncils.IndexOf(TpCouncil) + 1)</td>
+                    <td>@TpCouncil.tpCouncilId</td>
+                    <td>@TpCouncil.tpcouncil_name</td>
+                    <td>@TpCouncil.created_at.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                    <td>@TpCouncil.updated_at.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" @onclick="() => EditTpCouncil(TpCouncil)">Sửa</button>
+                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteTpCouncil(TpCouncil.id)">Xóa</button>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<TpCouncil> TpCouncils;
+    private TpCouncil newTpCouncil = new();
+    private bool isAdding = false;
+    private bool showError = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTpCouncils();
+    }
+
+    private async Task LoadTpCouncils()
+    {
+        TpCouncils = await TpCouncilServices.GetListTpCouncil();
+    }
+
+    private void ShowAddForm()
+    {
+        isAdding = true;
+        newTpCouncil = new TpCouncil();
+    }
+
+    private async Task SaveTpCouncil()
+    {
+        if (string.IsNullOrWhiteSpace(newTpCouncil.tpcouncil_name) || string.IsNullOrWhiteSpace(newTpCouncil.tpCouncilId))
+        {
+            showError = true;
+            return;
+        }
+
+        if (string.IsNullOrEmpty(newTpCouncil.id))
+        {
+            newTpCouncil.id = Guid.NewGuid().ToString();
+            newTpCouncil.created_at = DateTime.Now;
+            newTpCouncil.updated_at = DateTime.Now;
+            await TpCouncilServices.AddTpCouncil(newTpCouncil);
+        }
+        else
+        {
+            newTpCouncil.updated_at = DateTime.Now;
+            await TpCouncilServices.UpdateTpCouncil(newTpCouncil);
+        }
+
+        isAdding = false;
+        await LoadTpCouncils();
+    }
+
+    private void CancelAdd()
+    {
+        isAdding = false;
+    }
+
+    private void EditTpCouncil(TpCouncil editTpCouncil)
+    {
+        isAdding = true;
+        newTpCouncil = new TpCouncil
+            {
+                id = editTpCouncil.id,
+                tpCouncilId = editTpCouncil.tpCouncilId,
+                tpcouncil_name = editTpCouncil.tpcouncil_name,
+                created_at = editTpCouncil.created_at,
+                updated_at = editTpCouncil.updated_at
+            };
+    }
+
+    private async Task DeleteTpCouncil(string id)
+    {
+        var confirm = await JS.InvokeAsync<bool>("confirm", "Bạn có chắc chắn muốn xóa cấp hội đồng này?");
+        if (confirm)
+        {
+            await TpCouncilServices.DeleteTpCouncil(id);
+            await LoadTpCouncils();
+        }
+    }
+}
