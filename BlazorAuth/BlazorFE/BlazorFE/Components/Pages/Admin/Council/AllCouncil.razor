@@ -35,28 +35,28 @@
                 </div>
                 <div>
                     <label class="labels">Cấp hội đồng<span class="text-red">*</span></label>
-                    <select disabled="@isReadOnly" type="text" class="form-control" @bind="@council.lvCouncil_id">
+                    <select disabled="@isReadOnly" type="text" class="form-control" @bind="@council.lvCouncilId">
                         <option value="">Chọn cấp hội đồng</option>
                         @foreach (var item in lvCouncils)
                         {
                             <option value="@item.id">@item.lvcoucil_name</option>
                         }
                     </select>
-                    @if (showError && string.IsNullOrWhiteSpace(council.lvCouncil_id))
+                    @if (showError && string.IsNullOrWhiteSpace(council.lvCouncilId))
                     {
                         <span class="text-danger">Vui lòng chọn cấp hội đồng</span>
                     }
                 </div>
                 <div>
                     <label class="labels">Loại hội đồng<span class="text-red">*</span></label>
-                    <select disabled="@isReadOnly" type="text" class="form-control" @bind="@council.tpCouncil_id">
+                    <select disabled="@isReadOnly" type="text" class="form-control" @bind="@council.tpCouncilId">
                         <option value="">Chọn loại hội đồng</option>
                         @foreach (var item in tpCouncils)
                         {
                             <option value="@item.id">@item.tpcouncil_name</option>
                         }
                     </select>
-                    @if (showError && string.IsNullOrWhiteSpace(council.tpCouncil_id))
+                    @if (showError && string.IsNullOrWhiteSpace(council.tpCouncilId))
                     {
                         <span class="text-danger">Vui lòng chọn loại hội đồng</span>
                     }
