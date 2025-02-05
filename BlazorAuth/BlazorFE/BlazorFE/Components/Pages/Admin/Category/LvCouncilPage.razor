@@ -3,6 +3,7 @@
 
 @using BlazorFE.Models.Category
 @using BlazorFE.Services.Category
+@using BlazorFE.Components.Common
 
 @inject LvCouncilServices LvCouncilServices
 @inject NavigationManager Navigation
@@ -32,41 +33,43 @@
     </form>
 }
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>#</th>
-            <th>Tên cấp độ</th>
-            <th>Ngày tạo</th>
-            <th>Ngày cập nhật</th>
-            <th>Hành động</th>
-        </tr>
-    </thead>
-    <tbody>
-        @if (lvCouncils == null || !lvCouncils.Any())
-        {
+<DataTable Searchable="true">
+    <table class="table table-striped">
+        <thead>
             <tr>
-                <td colspan="5" class="text-center">Không có dữ liệu.</td>
+                <th>#</th>
+                <th>Tên cấp độ</th>
+                <th>Ngày tạo</th>
+                <th>Ngày cập nhật</th>
+                <th>Hành động</th>
             </tr>
-        }
-        else
-        {
-            @foreach (var LvCouncil in lvCouncils)
+        </thead>
+        <tbody>
+            @if (lvCouncils == null || !lvCouncils.Any())
             {
                 <tr>
-                    <td>@(lvCouncils.IndexOf(LvCouncil) + 1)</td>
-                    <td>@LvCouncil.lvcoucil_name</td>
-                    <td>@LvCouncil.created_at.ToString("dd/MM/yyyy HH:mm:ss")</td>
-                    <td>@LvCouncil.updated_at.ToString("dd/MM/yyyy HH:mm:ss")</td>
-                    <td>
-                        <button class="btn btn-warning btn-sm" @onclick="() => EditLvCouncil(LvCouncil)">Sửa</button>
-                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteLvCouncil(LvCouncil.id)">Xóa</button>
-                    </td>
+                    <td colspan="5" class="text-center">Không có dữ liệu.</td>
                 </tr>
             }
-        }
-    </tbody>
-</table>
+            else
+            {
+                @foreach (var LvCouncil in lvCouncils)
+                {
+                    <tr>
+                        <td>@(lvCouncils.IndexOf(LvCouncil) + 1)</td>
+                        <td>@LvCouncil.lvcoucil_name</td>
+                        <td>@LvCouncil.created_at.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                        <td>@LvCouncil.updated_at.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" @onclick="() => EditLvCouncil(LvCouncil)">Sửa</button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => DeleteLvCouncil(LvCouncil.id)">Xóa</button>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</DataTable>
 
 @code {
     private List<LvCouncil> lvCouncils;

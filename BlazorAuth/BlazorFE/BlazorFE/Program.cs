@@ -6,7 +6,6 @@ using BlazorFE.Services.Category;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Soenneker.Blazor.DataTables;
 
 var builder = WebApplication.CreateBuilder(args);
 

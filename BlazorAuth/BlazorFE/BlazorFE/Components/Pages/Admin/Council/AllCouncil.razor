@@ -6,6 +6,7 @@
 @using BlazorFE.Services
 @using BlazorFE.Services.Category
 @using System.ComponentModel.DataAnnotations;
+@using BlazorFE.Components.Common;
 
 @inject ScientistServices ScientistService
 @inject CouncilServices CouncilServices
@@ -15,13 +16,15 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IJSRuntime JSRuntime
 
-<div class="my-2 d-flex justify-content-end">
+
+<div class="my-4 d-flex justify-content-between">
+    <h3>Quản lý hội đồng khoa học</h3>
     <button class="btn btn-outline-primary" @onclick="ToggleForm">Thêm hội đồng</button>
 </div>
 
 @if(isAdd)
 {
-    <form>
+    <form class="mb-4">
         <div class="mt-2">
             <!-- Hàng đầu tiên -->
             <div class="auto-cols">
@@ -101,60 +104,49 @@
     </form>
 }
 
-<div class="card shadow my-4">
-    <div class="card-header py-3 d-flex justify-content-between">
-        <h4 class="m-0 font-weight-bold">Danh sách hội đồng</h4>
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-bordered table-hover pt-2" id="dataTable" width="100%" cellspacing="0">
-                <thead class="top-border">
+
+<DataTable Searchable="@(councils != null && councils.Count > 0 ? true : false)">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Tên hội đồng</th>
+                <th>Cấp hội đồng</th>
+                <th>Loại hội đồng</th>
+                <th>Số quyết định</th>
+                <th>Ngày lập</th>
+                <th>Năm</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (councils != null && councils.Count > 0)
+            {
+                int i = 1;
+                foreach (var item in councils)
+                {
                     <tr>
-                        <th>#</th>
-                        <th>Tên hội đồng</th>
-                        <th>Cấp hội đồng</th>
-                        <th>Loại hội đồng</th>
-                        <th>Số quyết định</th>
-                        <th>Ngày lập</th>
-                        <th>Năm</th>
-                        <th>Thao tác</th>
+                        <th scope="row">@i</th>
+                        <td>@item?.council_name</td>
+                        <td>@item?.lvCouncil?.lvcoucil_name</td>
+                        <td>@item?.tpCouncil?.tpcouncil_name</td>
+                        <td>@item?.decision_number</td>
+                        <td>@item?.date.ToShortDateString()</td>
+                        <td>@item?.year</td>
+                        <td>
+                            <button class="btn btn-warning" @onclick="() => EditCouncil(item?.id)">Chỉnh sửa</button>
+                            <button class="btn btn-danger">
+                                Xóa
+                            </button>
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    @if (councils != null && councils.Count > 0)
-                    {
-                        int i = 1;
-                        foreach (var item in councils)
-                        {
-                            <tr>
-                                <th scope="row">@i</th>
-                                <td>@item?.council_name</td>
-                                <td>@item?.lvCouncil.lvcoucil_name</td>
-                                <td>@item?.tpCouncil.tpcouncil_name</td>
-                                <td>@item?.decision_number</td>
-                                <td>@item?.date.ToShortDateString()</td>
-                                <td>@item?.year</td>
-                                <td>
-                                    <button class="btn btn-warning">Chỉnh sửa</button>
-                                    <button class="btn btn-danger">
-                                        Xóa
-                                    </button>
-                                </td>
-                            </tr>
-                            i++;
-                        }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="8" class="text-center">Không có dữ liệu</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
+                    i++;
+                }
+            }
+        </tbody>
+    </table>
+</DataTable>
+
 
 <style>
     .auto-cols {
@@ -224,18 +216,15 @@
         }
     }
 
-    // protected override async Task OnAfterRenderAsync(bool firstRender)
-    // {
-    //     if (firstRender)
-    //     {
-    //         await JSRuntime.InvokeVoidAsync("TestDataTablesAdd", "#dataTable");
-    //     }
-    // }
-
     private void ToggleForm()
     {
         isAdd = !isAdd;
         isReadOnly = !isReadOnly;
+    }
+
+    private void EditCouncil (string id)
+    {
+        NavigationManager.NavigateTo($"/Admin/Council/{id}");
     }
 
     private async Task AddCouncil()
@@ -256,7 +245,13 @@
             var result = await CouncilServices.AddCouncilAsync(council);
             if (result)
             {
+                bool wasEmpty = councils.Count == 0;
                 councils = await CouncilServices.GetAllCouncilsAsync();
+
+                if (wasEmpty && councils.Count > 0)
+                {
+                    NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+                }
             }
 
             isAdd = false;
@@ -268,5 +263,4 @@
             Console.Error.WriteLine($"An error occurred: {ex.Message}");
         }
     }
-
 }

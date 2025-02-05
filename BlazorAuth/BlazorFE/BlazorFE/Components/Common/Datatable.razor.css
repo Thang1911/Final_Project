@@ -1,0 +1,9 @@
+﻿.dataTables_paginate .pagination .paginate_button:hover {
+    background: #000 !important;
+    color: #fff;
+}
+
+.dataTables_paginate .pagination .paginate_button.current {
+    background-color: #C4F9D8 !important;
+    border: none !important;
+}

@@ -16,30 +16,48 @@
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
     <HeadOutlet />
+
+    <style>
+        .dataTables_paginate {
+            display: flex !important;
+            justify-content: center !important;
+            margin-top: 10px !important;
+        }
+
+            .dataTables_paginate .paginate_button {
+                padding: 10px !important;
+                margin: 2px !important;
+                border: 1px solid #ddd !important;
+                border-radius: 4px !important;
+                background-color: transparent !important;
+                color: #007bff !important;
+                cursor: pointer !important;
+                transition: all 0.3s ease !important;
+            }
+
+                .dataTables_paginate .paginate_button:hover {
+                    background-color: transparent !important;
+                    color: white !important;
+                }
+
+                .dataTables_paginate .paginate_button.current {
+                    background-color: #007bff !important;
+                    color: white !important;
+                    border-color: #0056b3 !important;
+                }
+
+                .dataTables_paginate .paginate_button.disabled {
+                    color: #aaa !important;
+                    cursor: not-allowed !important;
+                }
+
+    </style>
 </head>
 
 <body>
     <Routes />
     <script src="_framework/blazor.web.js"></script>
-
-    <script>
-        window.initializeDataTable = function () {
-            $(document).ready(function () {
-                $('#example').DataTable();
-            });
-        };
-        function TestDataTablesAdd(table) {
-            $(document).ready(function () {
-                $(table).DataTable({
-                    "paging": true,         
-                    "searching": true,      
-                    "ordering": true,       
-                    "lengthChange": true,
-                    "stripe": false
-                });
-            });
-        }
-    </script>
+    <script src="js/site.js"></script>
 </body>
 
 </html>

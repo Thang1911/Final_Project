@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Soenneker.Blazor.DataTables" Version="3.0.1480" />
+    <PackageReference Include="Soenneker.Blazor.DataTables" Version="3.0.1488" />
     <ProjectReference Include="..\BlazorFE.Client\BlazorFE.Client.csproj" />
     <PackageReference Include="Google.Apis" Version="1.69.0" />
     <PackageReference Include="Google.Apis.Auth" Version="1.69.0" />

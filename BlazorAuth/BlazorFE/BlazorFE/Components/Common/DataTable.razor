@@ -1,0 +1,33 @@
+﻿@inject Microsoft.JSInterop.IJSRuntime JSRuntime;
+
+<div id="@id">
+    @ChildContent
+</div>
+
+@code
+{
+    [Parameter]
+    public bool Searchable { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    private string id { get; set; } = "DataTable-" + Guid.NewGuid().ToString();
+
+    private bool isDataUpdated = false;
+
+    protected override void OnParametersSet()
+    {
+        isDataUpdated = true;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender || isDataUpdated)
+        {
+            await JSRuntime.InvokeAsync<string>("AddDataTable", "#" + id + " table", Searchable);
+            isDataUpdated = false;
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+}
