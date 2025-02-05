@@ -43,20 +43,18 @@
     private bool isFileUploading = false;
     private Models.File.File file { get; set; }
 
-    private const string FolderId = "1hdkBV634KcqZH4Chkwk1d6sSoNt4Tu-G";
-
     private async Task HandleUploadFile()
     {
         if (selectedFile == null) return;
 
         try
         {
-            isFileUploading = true;
-            using var stream = selectedFile.OpenReadStream();
-            var fileId = await DriveService.UploadFileAsync(stream, selectedFile.Name, FolderId);
-            await DriveService.MakeFilePublicAsync(fileId);
-            var publicUrl = $"https://drive.google.com/uc?id={fileId}";
-            file.file_path = publicUrl;
+            using var ms = new MemoryStream();
+            await selectedFile.OpenReadStream().CopyToAsync(ms);
+            var fileBytes = ms.ToArray();
+
+            file.file_content = fileBytes;
+
             var result = await FileUploadServices.UploadFileAsync(file);
             if (result)
             {

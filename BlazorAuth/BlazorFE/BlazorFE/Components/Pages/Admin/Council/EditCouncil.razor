@@ -1,6 +1,178 @@
 ﻿@page "/Admin/Council/{CouncilId}"
+@rendermode InteractiveServer
+
+@using System.Security.Claims;
+@using BlazorFE.Models
+@using BlazorFE.Services
+@using BlazorFE.Services.Category
+@using System.ComponentModel.DataAnnotations;
+@using BlazorFE.Components.Common;
+
+@inject ScientistServices ScientistService
+@inject CouncilServices CouncilServices
+@inject LvCouncilServices LvCouncilServices
+@inject TpCouncilServices TpCouncilServices
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IJSRuntime JSRuntime
+
+@if(council != null) {
+    <form class="mb-4">
+        <div class="mt-2">
+            <!-- Hàng đầu tiên -->
+            <div class="auto-cols">
+                <div>
+                    <label class="labels">Tên hội đồng<span class="text-red">*</span></label>
+                    <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Tên hội đồng" @bind="@council.council_name">
+                    @if (showError && string.IsNullOrWhiteSpace(council.council_name))
+                    {
+                        <span class="text-danger">Vui lòng nhập tên hội đồng</span>
+                    }
+                </div>
+                <div>
+                    <label class="labels">Cấp hội đồng<span class="text-red">*</span></label>
+                    <select disabled="@isReadOnly" type="text" class="form-control" @bind="@council.lvCouncilId">
+                        <option value="">Chọn cấp hội đồng</option>
+                        @foreach (var item in lvCouncils)
+                        {
+                            <option value="@item.id">@item.lvcoucil_name</option>
+                        }
+                    </select>
+                    @if (showError && string.IsNullOrWhiteSpace(council.lvCouncilId))
+                    {
+                        <span class="text-danger">Vui lòng chọn cấp hội đồng</span>
+                    }
+                </div>
+                <div>
+                    <label class="labels">Loại hội đồng<span class="text-red">*</span></label>
+                    <select disabled="@isReadOnly" type="text" class="form-control" @bind="@council.tpCouncilId">
+                        <option value="">Chọn loại hội đồng</option>
+                        @foreach (var item in tpCouncils)
+                        {
+                            <option value="@item.id">@item.tpcouncil_name</option>
+                        }
+                    </select>
+                    @if (showError && string.IsNullOrWhiteSpace(council.tpCouncilId))
+                    {
+                        <span class="text-danger">Vui lòng chọn loại hội đồng</span>
+                    }
+                </div>
+            </div>
+
+            <!-- Hàng thứ hai -->
+            <div class="auto-cols mt-2">
+                <div>
+                    <label class="labels">Số quyết định</label>
+                    <input readonly="@isReadOnly" type="number" class="form-control" @bind="@council.decision_number">
+                </div>
+                <div>
+                    <label class="labels">Ngày bắt đầu</label>
+                    <input type="date" class="form-control" @bind="@selectedDate" />
+                </div>
+                <div>
+                    <label class="labels">Năm công bố<span class="text-red">*</span></label>
+                    <select disabled="@isReadOnly" class="form-control" @bind="council.year">
+                        <option value="0" selected>Chọn năm</option>
+                        @for (int year = DateTime.Now.Year; year >= 1900; year--)
+                        {
+                            <option value="@year">@year</option>
+                        }
+                    </select>
+                    @if (showError && council.year == 0)
+                    {
+                        <span class="text-danger">Vui lòng chọn năm công bố.</span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex gap-1 mt-2">
+            @if (isUpdate)
+            {
+                <div class="text-center">
+                    <button class="btn btn-success" type="submit" @onclick:preventDefault>Lưu</button>
+                </div>
+            }
+            else
+            {
+                <div class="text-center">
+                    <button class="btn btn-success" @onclick:preventDefault>Chỉnh sửa</button>
+                </div>
+            }
+            <div class="text-center">
+                <button class="btn btn-primary" type="button">Hủy</button>
+            </div>
+        </div>
+    </form>
+}
+
+<style>
+    .auto-cols {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        gap: 16px;
+        justify-content: space-between;
+    }
+
+        .auto-cols > div {
+            flex: 1;
+            min-width: 200px;
+        }
+
+    .d-flex {
+        display: flex;
+        flex-direction: row;
+        justify-content: right;
+    }
+
+    .text-red {
+        color: red;
+    }
+</style>
 
 @code {
     [Parameter]
     public string CouncilId { get; set; }
+
+    public bool isUpdate { get; set; } = false;
+    public bool isReadOnly { get; set; } = true;
+    public bool showError { get; set; } = false;
+
+    private string userName = "";
+    private string userid = "";
+
+    private DateTime selectedDate { get; set; } = DateTime.Now;
+    private string formattedDate => selectedDate.ToString("dd/MM");
+
+    public Models.Council.council council { get; set; } = new();
+    public List<Models.Council.council> councils { get; set; }
+    public List<Models.Category.LvCouncil> lvCouncils { get; set; }
+    public List<Models.Category.TpCouncil> tpCouncils { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var principal = authState.User;
+        if (principal.Identity?.IsAuthenticated == true)
+        {
+            userid = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value.ToString();
+            userName = principal.Identity.Name;
+
+            if (userid != null && userName != null)
+            {
+                council = await CouncilServices.GetCouncilByIdAsync(CouncilId);
+                lvCouncils = await LvCouncilServices.GetListLvCouncil();
+                tpCouncils = await TpCouncilServices.GetListTpCouncil();
+            }
+            else
+            {
+                NavigationManager.NavigateTo("Account/Login");
+            }
+        }
+        else
+        {
+            NavigationManager.NavigateTo("Account/Login");
+        }
+    }
 }

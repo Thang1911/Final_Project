@@ -236,7 +236,7 @@
                                 <td>@item.original_name</td>
                                 <td>@item.file_type</td>
                                 <td>
-                                    <button class="btn btn-outline-success" @onclick="() => DownloadFile(item.file_path)">Tải tệp đính kèm</button>
+                                    @* <button class="btn btn-outline-success" @onclick="() => DownloadFile(item.file_path)">Tải tệp đính kèm</button> *@
                                     <button class="btn btn-danger" @onclick="() => DeleteFile(item.id)">Xóa</button>
                                 </td>
                             </tr>
@@ -402,7 +402,7 @@
                 throw new InvalidOperationException("Scientist or role information is missing.");
             }
 
-            var result = await TopicServices.AddTopicAndLinkToScientistAsync(scientistTopic.Topics, ScientistId, roleId, true, SelectedPermission);
+            var result = await TopicServices.AddTopicAndLinkToScientistAsync(scientistTopic?.Topics, ScientistId, roleId, false, SelectedPermission);
             if (result)
             {
                 listScientistTopics = await TopicServices.GetListScientistByTopicIdAsync(TopicId);

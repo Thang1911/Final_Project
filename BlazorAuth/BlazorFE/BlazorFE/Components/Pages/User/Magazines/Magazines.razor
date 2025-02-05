@@ -155,52 +155,6 @@
                     }
                 </tbody>
             </table>
-
-            <h3 class="mt-2">Danh sách lời mời: </h3>
-
-            <table class="table table-striped table-hover">
-                <thead>
-                    <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">Tên bài báo</th>
-                        <th scope="col">Năm công bố</th>
-                        <th scope="col">Tên tạp chí</th>
-                        <th scope="col">Loại bài báo</th>
-                        <th scope="col">Người mời</th>
-                        <th scope="col">Vai trò</th>
-                        <th scope="col">Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (requestMagazines != null && requestMagazines.Count > 0)
-                    {
-                        int i = 1;
-                        foreach (var item in requestMagazines)
-                        {
-                            <tr>
-                                <th scope="row">@i</th>
-                                <td>@item?.Magazines?.magazine_name</td>
-                                <td>@item?.Magazines?.year</td>
-                                <td>@item?.Magazines?.journal</td>
-                                <td>@item?.Magazines?.Paper?.paper_name</td>
-                                <td>@item?.ScientistRequest?.profile_name</td>
-                                <td>@item?.Role?.role_name</td>
-                                <td>
-                                    <button class="btn btn-warning" @onclick="() => UpdateRequest(item, true)">Đồng ý</button>
-                                    <button class="btn btn-danger" @onclick="() => UpdateRequest(item, false)">Từ chối</button>
-                                </td>
-                            </tr>
-                            i++;
-                        }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="9" class="text-center">Không có dữ liệu</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
         </div>
     </div>
 </div>

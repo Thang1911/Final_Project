@@ -282,7 +282,7 @@
                                 <td>@item.original_name</td>
                                 <td>@item.file_type</td>
                                 <td>
-                                    <button class="btn btn-outline-success" @onclick="() => DownloadFile(item.file_path)">Tải tệp đính kèm</button>
+                                    @* <button class="btn btn-outline-success" @onclick="() => DownloadFile(item.file_path)">Tải tệp đính kèm</button> *@
                                     <button class="btn btn-danger" @onclick="() => DeleteFile(item.id)">Xóa</button>
                                 </td>
                             </tr>
@@ -428,8 +428,6 @@
                     {
                         roleId = listScientistMagazines.FirstOrDefault(i => i.scientist_id == scientist.id).role_id;
                     }
-                    await Task.Delay(100);
-                    await JSRuntime.InvokeVoidAsync("initializeDataTable");
                 }
             }
             else
@@ -460,7 +458,7 @@
                 throw new InvalidOperationException("Scientist or role information is missing.");
             }
 
-            var result = await MagazineServices.AddMagazineAndLinkToScientistAsync(magazine, ScientistId, roleId, true, SelectedPermission);
+            var result = await MagazineServices.AddMagazineAndLinkToScientistAsync(magazine, ScientistId, roleId, false, SelectedPermission);
             if (result)
             {
                 listScientistMagazines = await MagazineServices.GetListScientistByMagazineIdAsync(MagazineId);

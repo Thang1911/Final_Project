@@ -7,7 +7,7 @@ namespace BlazorFE.Models.File
         [Key]
         public string id { get; set; }
         public string original_name { get; set; }
-        public string file_path { get; set; }
+        public byte[] file_content { get; set; }
         public string file_type { get; set; }
         public string related_id { get; set; }
         public string related_type { get; set; }
