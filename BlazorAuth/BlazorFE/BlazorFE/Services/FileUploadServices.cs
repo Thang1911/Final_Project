@@ -1,22 +1,15 @@
 ﻿using BlazorFE.Data;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace BlazorFE.Services
 {
     public class FileUploadServices
     {
         private readonly ApplicationDbContext _context;
-        private readonly GoogleDriveServices _googleDriveServices;
 
-        public FileUploadServices(ApplicationDbContext context, GoogleDriveServices googleDriveServices)
+        public FileUploadServices(ApplicationDbContext context)
         {
             _context = context;
-            _googleDriveServices = googleDriveServices;
         }
 
         public async Task<bool> UploadFileAsync(Models.File.File newFile)
@@ -51,11 +44,10 @@ namespace BlazorFE.Services
                 .ToListAsync();
         }
 
-        public async Task<bool> DeleteFileAsync(string fileId, string folderId)
+        public async Task<bool> DeleteFileAsync(string fileId)
         {
             try
             {
-                await _googleDriveServices.DeleteFileFromFolderAsync(fileId, folderId);
 
                 var file = await _context.Files.FirstOrDefaultAsync(f => f.id == fileId);
                 if (file != null)
@@ -73,7 +65,5 @@ namespace BlazorFE.Services
                 return false;
             }
         }
-
-
     }
 }

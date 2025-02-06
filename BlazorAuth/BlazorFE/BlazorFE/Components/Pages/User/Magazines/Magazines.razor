@@ -192,13 +192,13 @@
     private string userName = "";
     private string userid = "";
     private string roleId = "";
-    private List<Models.Category.Role> roles { get; set; }
-    private List<Models.Category.Paper> listPapers { get; set; }
-    private Scientist scientist { get; set; }
-    private Models.Magazine.Magazines magazine { get; set; }
-    private List<ScientistMagazineRole> magazines { get; set; }
-    private List<ScientistMagazineRole> requestMagazines { get; set; }
-    private List<string> ListMagazineIds { get; set; }
+    private List<Models.Category.Role> roles { get; set; } = new();
+    private List<Models.Category.Paper> listPapers { get; set; } = new();
+    private Scientist scientist { get; set; } = new();
+    private Models.Magazine.Magazines magazine { get; set; } = new();
+    private List<ScientistMagazineRole> magazines { get; set; } = new();
+    private List<ScientistMagazineRole> requestMagazines { get; set; } = new();
+    private List<string> ListMagazineIds { get; set; } = new();
 
     private void EditMagazine(Models.Magazine.Magazines editMagazine)
     {
@@ -209,7 +209,7 @@
     {
         isAdd = !isAdd;
         isReadOnly = !isReadOnly;
-        magazine = new Models.Magazine.Magazines();
+        magazine = new();
     }
 
     private void NavigateToJoining()
@@ -235,8 +235,8 @@
         var principal = authState.User;
         if (principal.Identity?.IsAuthenticated == true)
         {
-            userid = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value.ToString();
-            userName = principal.Identity.Name;
+            userid = principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value.ToString();
+            userName = principal?.Identity.Name;
 
             if (userid != null && userName != null)
             {
@@ -290,7 +290,7 @@
 
             isAdd = false;
             isReadOnly = true;
-            magazine = null;
+            magazine = new();
         }
         catch (Exception ex)
         {
@@ -323,7 +323,7 @@
 
             isAdd = false;
             isReadOnly = true;
-            magazine = null;
+            magazine = new();
         }
         catch (Exception ex)
         {
@@ -360,7 +360,7 @@
 
             if (confirm && !string.IsNullOrWhiteSpace(requestMagazine?.magazine_id) && !string.IsNullOrWhiteSpace(requestMagazine?.scientist_id) && !string.IsNullOrWhiteSpace(requestMagazine?.role_id))
             {
-                var result = await MagazineServices.UpdateMagazineAndLinkToScientistAsync(requestMagazine.magazine_id, requestMagazine.Magazines, requestMagazine.Scientist.id, requestMagazine.Role.id, isAccept ? "Đã tham gia" : "Bị từ chối", true);
+                var result = await MagazineServices.UpdateMagazineAndLinkToScientistAsync(requestMagazine.magazine_id, requestMagazine?.Magazines, requestMagazine.scientist_id, requestMagazine.role_id, isAccept ? "Đã tham gia" : "Bị từ chối", true);
                 if (result)
                 {
                     ListMagazineIds = magazines.Select(magazine => magazine.id).ToList();

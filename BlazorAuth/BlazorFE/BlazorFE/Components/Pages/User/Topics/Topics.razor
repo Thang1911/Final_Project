@@ -28,7 +28,6 @@
                 <div class="">
                     <div class="d-flex flex-row gap-2">
                         <button class="btn btn-primary" @onclick="ToggleTopics" disabled="@isAdd">Thêm đề tài</button>
-                        <button class="btn btn-success" @onclick="JoinTopics">Thêm thành viên</button>
                     </div>
                     @if (isAdd)
                     {
@@ -92,16 +91,16 @@
     private string userName = "";
     private string userid = "";
     private string roleId = "";
-    private List<Models.Category.Role> roles { get; set; }
-    private List<Models.Category.LvTopics> lvTopics { get; set; }
-    private Scientist scientist { get; set; }
+    private List<Models.Category.Role> roles { get; set; } = new();
+    private List<Models.Category.LvTopics> lvTopics { get; set; } = new();
+    private Scientist scientist { get; set; } = new();
     private Models.Topic.Topics topics { get; set; } = new Models.Topic.Topics
         {
             result = ""
         };
-    private List<scientist_topic_role> ListTopics { get; set; }
-    private List<scientist_topic_role> RequestTopics { get; set; }
-    private List<string> ListTopicIds { get; set; }
+    private List<scientist_topic_role> ListTopics { get; set; } = new();
+    private List<scientist_topic_role> RequestTopics { get; set; } = new();
+    private List<string> ListTopicIds { get; set; } = new();
 
     private void EditTopic(Models.Topic.Topics editTopic)
     {
