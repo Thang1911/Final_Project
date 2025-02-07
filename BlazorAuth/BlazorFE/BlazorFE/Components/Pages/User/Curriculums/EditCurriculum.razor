@@ -1,5 +1,530 @@
-﻿<h3>EditCurriculum</h3>
+﻿@page "/User/Curriculum/Edit/{CurriculumId}"
+@rendermode InteractiveServer
+
+@using System.Security.Claims;
+@using BlazorFE.Models.Scientist
+@using BlazorFE.Services;
+@using BlazorFE.Services.Category;
+@using BlazorFE.Enums;
+@using System.ComponentModel.DataAnnotations;
+@using BlazorFE.Components.Common
+@using Helpers
+
+@inject ScientistServices ProfileServices
+@inject CurriculumServices CurriculumServices
+@inject RoleServices RoleServices
+@inject BookServices BookServices
+@inject TrainingServices TrainingServices
+
+
+@inject CurriculumServices CurriculumServices
+@inject RoleServices RoleServices
+@inject FileUploadServices FileUploadServices
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+
+<div class="bg-white">
+    <div class="justify-content-center">
+        <div class="border-right">
+            <div class="mb-4">
+                @if (scientist != null && scientistCurriculum != null && scientistCurriculum?.Curriculums != null)
+                {
+                    <div class="card shadow rounded">
+                        <div class="p-3">
+                            <form>
+                                <div class="mt-2">
+                                    <!-- Hàng đầu tiên -->
+                                    <div class="auto-cols">
+                                        <div>
+                                            <label class="labels">Tên giáo trình<span class="text-red">*</span></label>
+                                            <input readonly="@IsReadOnly" type="text" class="form-control" placeholder="Tên giáo trình" @bind="@scientistCurriculum.Curriculums.name">
+                                            @if (ShowError && string.IsNullOrWhiteSpace(scientistCurriculum.Curriculums.name))
+                                            {
+                                                <span class="text-danger">Vui lòng nhập tên giáo trình</span>
+                                            }
+                                        </div>
+                                        <div>
+                                            <label class="labels">Tên nhà xuất bản<span class="text-red">*</span></label>
+                                            <input readonly="@IsReadOnly" type="text" class="form-control" placeholder="Tên nhà xuất bản" @bind="@scientistCurriculum.Curriculums.publisher">
+                                            @if (ShowError && string.IsNullOrWhiteSpace(scientistCurriculum.Curriculums.publisher))
+                                            {
+                                                <span class="text-danger">Vui lòng nhập tên nhà xuất bản</span>
+                                            }
+                                        </div>
+                                        <div>
+                                            <label class="labels">Năm xuất bản<span class="text-red">*</span></label>
+                                            <select disabled="@IsReadOnly" class="form-control" @bind="@scientistCurriculum.Curriculums.year">
+                                                <option value="0" selected>Chọn năm</option>
+                                                @for (int year = DateTime.Now.Year; year >= 1900; year--)
+                                                {
+                                                    <option value="@year">@year</option>
+                                                }
+                                            </select>
+                                            @if (ShowError && scientistCurriculum.Curriculums.year == 0)
+                                            {
+                                                <span class="text-danger">Vui lòng chọn năm xuất bản.</span>
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <!-- Hàng thứ hai -->
+                                    <div class="auto-cols mt-2">
+                                        <div>
+                                            <label class="labels">Loại sách<span class="text-red">*</span></label>
+                                            <select disabled="@IsReadOnly" class="form-control" @bind="@scientistCurriculum.Curriculums.book_id">
+                                                <option value="">Chọn loại sách</option>
+                                                @foreach (var item in books)
+                                                {
+                                                    <option value="@item.id">@item.book_name</option>
+                                                }
+                                            </select>
+                                            @if (ShowError && string.IsNullOrWhiteSpace(scientistCurriculum.Curriculums.book_id))
+                                            {
+                                                <span class="text-danger">Vui lòng chọn loại bài báo.</span>
+                                            }
+                                        </div>
+                                        <div>
+                                            <label class="labels">Trình độ đào tạo<span class="text-red">*</span></label>
+                                            <select disabled="@IsReadOnly" class="form-control" @bind="@scientistCurriculum.Curriculums.training_id">
+                                                <option value="">Chọn trình độ đào tạo</option>
+                                                @foreach (var item in trainings)
+                                                {
+                                                    <option value="@item.id">@item.training_name</option>
+                                                }
+                                            </select>
+                                            @if (ShowError && string.IsNullOrWhiteSpace(scientistCurriculum.Curriculums.training_id))
+                                            {
+                                                <span class="text-danger">Vui lòng chọn trình độ đào tạo.</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-1 mt-2">
+                                    @if (isUpdate)
+                                    {
+                                        <div class="text-center">
+                                            <button class="btn btn-success" type="submit" @onclick="SaveCurriculum" @onclick:preventDefault>Lưu</button>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="text-center">
+                                            <button class="btn btn-success" @onclick="ToggleUpdate" @onclick:preventDefault>Chỉnh sửa</button>
+                                        </div>
+                                    }
+                                    <div class="text-center">
+                                        <button class="btn btn-primary" type="button" @onclick="ToggleUpdate">Hủy</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                }
+            </div>
+
+
+            <div class="card shadow rounded my-4">
+                <div class="p-3">
+                    <div class="d-flex gap-2 justify-content-between mb-2">
+                        <h3 class="">Danh sách thành viên: </h3>
+                        <button class="btn btn-outline-primary" @onclick="AddMember" disabled="@(scientistCurriculum?.status ?? true)">Thêm thành viên</button>
+                    </div>
+
+                    @if (isAddMember)
+                    {
+                        <form>
+                            <div class="auto-cols">
+                                <div>
+                                    <label class="labels">Thành viên<span class="text-red">*</span></label>
+                                    <select disabled="@IsReadOnly" type="text" class="form-control" @bind="@ScientistId">
+                                        <option value="">Chọn thành viên</option>
+                                        @foreach (var item in scientists)
+                                        {
+                                            if (!ListScientistIds.Contains(item.id))
+                                            {
+                                                <option value="@item.id">@item.profile_name</option>
+                                            }
+                                        }
+                                    </select>
+                                    @if (ShowError && string.IsNullOrWhiteSpace(ScientistId))
+                                    {
+                                        <span class="text-danger">Vui lòng chọn thành viên.</span>
+                                    }
+                                </div>
+                                <div>
+                                    <label class="labels">Vai trò<span class="text-red">*</span></label>
+                                    <select disabled="@IsReadOnly" class="form-control" @bind="roleId">
+                                        <option value="" selected>Chọn vai trò</option>
+                                        @foreach (var item in roles)
+                                        {
+                                            <option value="@item.id">@item.role_name</option>
+                                        }
+                                    </select>
+                                    @if (ShowError && string.IsNullOrWhiteSpace(roleId))
+                                    {
+                                        <span class="text-danger">Vui lòng chọn vai trò.</span>
+                                    }
+                                </div>
+                                <div>
+                                    <label class="labels">Quyền<span class="text-red">*</span></label>
+                                    <select disabled="@IsReadOnly" class="form-control" @onchange="OnPermissionChange">
+                                        <option value="">Chọn quyền</option>
+                                        <option value="false">Chỉnh sửa</option>
+                                        <option value="true">Đọc</option>
+                                    </select>
+
+                                    @if (ShowError && SelectedPermission == null)
+                                    {
+                                        <span class="text-danger">Vui lòng chọn quyền cho thành viên.</span>
+                                    }
+                                </div>
+                            </div>
+                            <div class="d-flex gap-1 mt-2">
+                                <div class="text-center">
+                                    <button class="btn btn-primary" type="button">Hủy</button>
+                                </div>
+                                <div class="text-center">
+                                    <button class="btn btn-success" type="submit" @onclick="CreateNewRequestCurriculum" @onclick:preventDefault>Lưu</button>
+                                </div>
+                            </div>
+                        </form>
+                    }
+                    <DataTable Searchable="true">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th scope="col">Tên thành viên</th>
+                                    <th scope="col">Vai trò</th>
+                                    <th scope="col">Quyền</th>
+                                    <th scope="col">Trạng thái</th>
+                                    <th scope="col">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (listScientistCurriculum != null && listScientistCurriculum.Count > 0)
+                                {
+                                    int i = 1;
+                                    foreach (var item in listScientistCurriculum)
+                                    {
+                                        <tr>
+                                            <th scope="row">@i</th>
+                                            <td>@item?.Scientist?.profile_name</td>
+                                            <td>@item?.Role?.role_name</td>
+                                            <td>@(item?.status == true ? "Đọc" : "Chỉnh sửa")</td>
+                                            <td>@item?.requestStatus</td>
+                                            <td>
+                                                <button class="btn btn-danger">Xóa</button>
+                                            </td>
+                                        </tr>
+                                        i++;
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </DataTable>
+                </div>
+            </div>
+
+            <div class="card shadow my-4 rounded">
+                <div class="p-3">
+                    <div class="d-flex gap-2 justify-content-between">
+                        <h3 class="">Danh sách tài liệu: </h3>
+                        <button class="btn btn-outline-primary" @onclick="ToggleUploadFile">Thêm tài liệu</button>
+                    </div>
+                    @if (isUpload)
+                    {
+                        <UploadFile relatedId="@CurriculumId" OnSave="LoadFiles" />
+                    }
+                    <DataTable Searchable="false">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th scope="col">Tên tài liệu</th>
+                                    <th scope="col">Loại tài liệu</th>
+                                    <th scope="col">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (listFiles != null && listFiles.Count > 0)
+                                {
+                                    int i = 1;
+                                    foreach (var item in listFiles)
+                                    {
+                                        <tr>
+                                            <th scope="row">@i</th>
+                                            <td>@item.original_name</td>
+                                            <td>@item.file_type</td>
+                                            <td>
+                                                <button class="btn btn-outline-success" @onclick="() => DownloadFile(item)">Tải tệp đính kèm</button>
+                                                <button class="btn btn-danger" @onclick="() => DeleteFile(item.id)">Xóa</button>
+                                            </td>
+                                        </tr>
+                                        i++;
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </DataTable>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .auto-cols {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        gap: 16px;
+        justify-content: space-between;
+    }
+
+        .auto-cols > div {
+            flex: 1;
+            min-width: 200px;
+        }
+
+    .d-flex {
+        display: flex;
+        flex-direction: row;
+        justify-content: right;
+    }
+
+    .text-red {
+        color: red;
+    }
+</style>
 
 @code {
+    [Parameter]
+    public string CurriculumId { get; set; }
+
+    private bool IsReadOnly = true;
+    private bool isAddMember = false;
+    private bool isUpload = false;
+    private bool ShowError = false;
+    private bool isUpdate = false;
+    private string ScientistId { get; set; } = "";
+    private string userName = "";
+    private string userid = "";
+    private string roleId = "";
+    private bool? SelectedPermission { get; set; }
+    private List<Models.Category.Role> roles { get; set; } = new();
+    private Scientist scientist { get; set; } = new();
+
+    // private List<string> ListCurriculumIds { get; set; } = new();
+
+    private List<string> ListScientistIds { get; set; } = new();
+    private List<Scientist> scientists { get; set; } = new();
+    private List<Models.File.File> listFiles { get; set; } = new();
+
+    private List<Models.Category.Book> books { get; set; } = new();
+    private List<Models.Category.Training> trainings { get; set; } = new();
+    private ScientistCurriculumRole scientistCurriculum { get; set; } = new();
+    private List<ScientistCurriculumRole> listScientistCurriculum { get; set; } = new();
+    private List<string> ListCurriculumIds { get; set; } = new();
+
+    private void AddMember()
+    {
+        isAddMember = true;
+        IsReadOnly = false;
+        ListScientistIds = listScientistCurriculum.Select(x => x.scientist_id).ToList();
+    }
+
+    private void ToggleUploadFile()
+    {
+        isUpload = !isUpload;
+    }
+
+    private void ToggleUpdate()
+    {
+        isUpdate = !isUpdate;
+        IsReadOnly = !IsReadOnly;
+    }
+
+    private async Task SaveCurriculum()
+    {
+        await UpdateCurriculum();
+    }
+
+    private async Task LoadFiles()
+    {
+        isUpload = false;
+        listFiles = await FileUploadServices.GetFilesByRelatedIdAsync(CurriculumId);
+    }
+
+    private void OnPermissionChange(ChangeEventArgs e)
+    {
+        if (bool.TryParse(e.Value?.ToString(), out bool result))
+        {
+            SelectedPermission = result;
+        }
+        else
+        {
+            SelectedPermission = null;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var principal = authState.User;
+        if (principal.Identity?.IsAuthenticated == true)
+        {
+            userid = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value.ToString();
+            userName = principal.Identity.Name;
+
+            if (userid != null && userName != null)
+            {
+                var response = await ProfileServices.GetProfileAsync(userid);
+                if (response != null)
+                {
+                    scientist = response;
+                    scientists = await ProfileServices.GetAllScientistIdAsync();
+                    scientistCurriculum = await CurriculumServices.GetScientistCurriculumByIdAsync(CurriculumId, scientist.id);
+                    listScientistCurriculum = await CurriculumServices.GetListCurriculumsByIdAsync(CurriculumId);
+                    books = await BookServices.GetListBook();
+                    trainings = await TrainingServices.GetListTraining();
+                    roles = await RoleServices.GetListRole(RoleType.magazine.ToString());
+                    if (roles.Count > 0)
+                    {
+                        roleId = roles[0].id;
+                    }
+                }
+            }
+            else
+            {
+                NavigationManager.NavigateTo("Account/Login");
+            }
+        }
+        else
+        {
+            NavigationManager.NavigateTo("Account/Login");
+        }
+    }
+
+    private async Task CreateNewRequestCurriculum()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(scientistCurriculum.id))
+            {
+                ShowError = true;
+                return;
+            }
+
+            ShowError = false;
+
+            if (string.IsNullOrEmpty(ScientistId) || string.IsNullOrEmpty(roleId))
+            {
+                throw new InvalidOperationException("Scientist or role information is missing.");
+            }
+
+            var result = await CurriculumServices.AddCurriculumAndLinkToScientistAsync(scientistCurriculum?.Curriculums, ScientistId, roleId, false, SelectedPermission);
+            if (result)
+            {
+                listScientistCurriculum = await CurriculumServices.GetListCurriculumsByIdAsync(CurriculumId);
+            }
+
+            IsReadOnly = true;
+            isAddMember = false;
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"An error occurred: {ex.Message}");
+        }
+    }
+
+    private async Task UpdateCurriculum()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(scientistCurriculum.id))
+            {
+                ShowError = true;
+                return;
+            }
+
+            ShowError = false;
+
+            if (scientist == null || string.IsNullOrEmpty(scientist.id))
+            {
+                throw new InvalidOperationException("Scientist information is missing.");
+            }
+
+            var result = await CurriculumServices.UpdateCurriculumAndLinkToScientistAsync(scientistCurriculum.curriculum_id, scientistCurriculum?.Curriculums, scientist.id, roleId, null, false);
+            if (result)
+            {
+                scientistCurriculum = await CurriculumServices.GetScientistCurriculumByIdAsync(CurriculumId, scientist.id);
+            }
+
+            IsReadOnly = true;
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"An error occurred: {ex.Message}");
+        }
+    }
+
+    private async Task DeleteCurriculum(ScientistCurriculumRole scr)
+    {
+        try
+        {
+            var confirm = await JSRuntime.InvokeAsync<bool>("confirm", new object[] { "Bạn có chắc muốn xóa thành viên này?" });
+
+            if (confirm)
+            {
+                var result = await CurriculumServices.DeleteCurriculumAndLinkFromScientistAsync(scr.curriculum_id, scr.scientist_id);
+                if (result)
+                {
+                    NavigationManager.NavigateTo($"/User/Curriculums/Edit/{CurriculumId}");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"An error occurred while deleting: {ex.Message}");
+        }
+    }
+
+    private async Task DownloadFile(Models.File.File file)
+    {
+        if (file != null)
+        {
+            var fileName = file.original_name;
+            var fileType = file.file_type;
+            var fileContent = file.file_content;
+
+            var base64Data = Convert.ToBase64String(fileContent);
+            var fileUrl = $"data:{fileType};base64,{base64Data}";
+
+            await JSRuntime.InvokeVoidAsync("downloadFile", fileUrl, fileName);
+        }
+    }
+
+    private async Task DeleteFile(string fileId)
+    {
+        var confirmDelete = await JSRuntime.InvokeAsync<bool>("confirm", "Bạn có chắc chắn muốn xóa tệp này?");
+        if (confirmDelete)
+        {
+            var isDeleted = await FileUploadServices.DeleteFileAsync(fileId);
+            if (isDeleted)
+            {
+                StateHasChanged();
+                await JSRuntime.InvokeVoidAsync("alert", "Xóa tệp thành công!");
+                NavigationManager.NavigateTo($"/User/Curriculums/Edit/{CurriculumId}");
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Không thể xóa tệp. Vui lòng thử lại.");
+            }
+        }
+    }
 
 }
+

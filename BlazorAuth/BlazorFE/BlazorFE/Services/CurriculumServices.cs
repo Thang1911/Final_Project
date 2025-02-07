@@ -28,14 +28,39 @@ namespace BlazorFE.Services
             return scientistCurriculums;
         }
 
-        // Get Curriculums by Scientist ID
+        public async Task<Curriculums> GetCurriculumByIdAsync(string curriculumId)
+        {
+            var existingCurriculum = await _context.Curriculums.FindAsync(curriculumId);
+            return existingCurriculum;
+        }
+
+
+        public async Task<ScientistCurriculumRole> GetScientistCurriculumByIdAsync(string curriculumId, string scientistId)
+        {
+            if (string.IsNullOrEmpty(scientistId))
+                throw new ArgumentException("Scientist ID cannot be null or empty", nameof(scientistId));
+
+            var scientistTopic = await _context.Set<ScientistCurriculumRole>()
+                 .Where(scr => scr.scientist_id == scientistId && scr.requestStatus == "Đã tham gia" && scr.curriculum_id == curriculumId)
+                .Include(scr => scr.Curriculums)
+                    .ThenInclude(c => c.Book)
+                .Include(scr => scr.Curriculums)
+                    .ThenInclude(c => c.Training)
+                .Include(scr => scr.Role)
+                .Include(str => str.Scientist)
+                .FirstOrDefaultAsync();
+
+            return scientistTopic;
+        }
+
+            // Get Curriculums by Scientist ID
         public async Task<List<ScientistCurriculumRole>> GetCurriculumsByScientistIdAsync(string scientistId)
         {
             if (string.IsNullOrEmpty(scientistId))
                 throw new ArgumentException("Scientist ID cannot be null or empty", nameof(scientistId));
 
             var scientistCurriculums = await _context.Set<ScientistCurriculumRole>()
-                .Where(scr => scr.scientist_id == scientistId)
+                .Where(scr => scr.scientist_id == scientistId && scr.requestStatus == "Đã tham gia")
                 .Include(scr => scr.Curriculums)
                     .ThenInclude(c => c.Book)
                 .Include(scr => scr.Curriculums)
@@ -46,6 +71,22 @@ namespace BlazorFE.Services
 
             return scientistCurriculums;
         }
+
+        public async Task<List<ScientistCurriculumRole>> GetListCurriculumsByIdAsync(string curriculumId)
+        {
+            var scientistCurriculums = await _context.Set<ScientistCurriculumRole>()
+                .Where(scr => scr.curriculum_id == curriculumId)
+                .Include(scr => scr.Curriculums)
+                    .ThenInclude(c => c.Book)
+                .Include(scr => scr.Curriculums)
+                    .ThenInclude(c => c.Training)
+                .Include(scr => scr.Role)
+                .Include(str => str.Scientist)
+                .ToListAsync();
+
+            return scientistCurriculums;
+        }
+
 
         public async Task<List<ScientistCurriculumRole>> GetJoinRequestsByScientistIdAsync(string scientistId, List<string> curriculumIds)
         {
@@ -102,7 +143,7 @@ namespace BlazorFE.Services
         }
 
         // Add a Curriculum and Link to Scientist
-        public async Task<bool> AddCurriculumAndLinkToScientistAsync(Curriculums newCurriculum, string scientistId, string roleId, bool isJoining)
+        public async Task<bool> AddCurriculumAndLinkToScientistAsync(Curriculums newCurriculum, string scientistId, string roleId, bool isJoining, bool? isEditable)
         {
             if (newCurriculum == null) throw new ArgumentNullException(nameof(newCurriculum));
             if (string.IsNullOrEmpty(scientistId)) throw new ArgumentException("Scientist ID cannot be null or empty", nameof(scientistId));
@@ -122,6 +163,7 @@ namespace BlazorFE.Services
                     scientist_id = scientistId,
                     curriculum_id = newCurriculum.id,
                     role_id = roleId,
+                    status = isEditable,
                     requestStatus = isJoining ? "Chờ duyệt" : "Đã tham gia",
                     created_at = DateTime.Now,
                     updated_at = DateTime.Now
