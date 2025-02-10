@@ -189,7 +189,7 @@ namespace BlazorFE.Services
                     scientist_id = scientistId,
                     magazine_id = newMagazine.id,
                     role_id = roleId,
-                    requestStatus = isJoining ? "Chờ duyệt" : "Đã tham gia",
+                    requestStatus = "Đã tham gia",
                     status = isEditable,
                     created_at = DateTime.Now,
                     updated_at = DateTime.Now

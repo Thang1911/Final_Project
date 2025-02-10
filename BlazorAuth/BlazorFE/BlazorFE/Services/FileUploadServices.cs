@@ -46,18 +46,24 @@ namespace BlazorFE.Services
 
         public async Task<bool> DeleteFileAsync(string fileId)
         {
+            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
+                Console.WriteLine($"DeleteFileAsync called with fileId: {fileId}");
 
                 var file = await _context.Files.FirstOrDefaultAsync(f => f.id == fileId);
-                if (file != null)
+                if (file == null)
                 {
-                    _context.Files.Remove(file);
-                    await _context.SaveChangesAsync();
-                    return true;
+                    Console.WriteLine($"Không tìm thấy file với id: {fileId}");
+                    return false;
                 }
 
-                return false;
+                Console.WriteLine($"Delete file: {file.original_name}");
+                _context.Files.Remove(file);
+                await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+                return true;
             }
             catch (Exception ex)
             {

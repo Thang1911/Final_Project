@@ -352,10 +352,12 @@
         await UpdateCurriculum();
     }
 
+
     private async Task LoadFiles()
     {
         isUpload = false;
         listFiles = await FileUploadServices.GetFilesByRelatedIdAsync(CurriculumId);
+        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
     }
 
     private void OnPermissionChange(ChangeEventArgs e)
@@ -390,7 +392,7 @@
                     listScientistCurriculum = await CurriculumServices.GetListCurriculumsByIdAsync(CurriculumId);
                     books = await BookServices.GetListBook();
                     trainings = await TrainingServices.GetListTraining();
-                    roles = await RoleServices.GetListRole(RoleType.magazine.ToString());
+                    roles = await RoleServices.GetListRole(RoleType.curriculum.ToString());
                     if (roles.Count > 0)
                     {
                         roleId = roles[0].id;
@@ -425,7 +427,7 @@
                 throw new InvalidOperationException("Scientist or role information is missing.");
             }
 
-            var result = await CurriculumServices.AddCurriculumAndLinkToScientistAsync(scientistCurriculum?.Curriculums, ScientistId, roleId, false, SelectedPermission);
+            var result = await CurriculumServices.AddCurriculumAndLinkToScientistAsync(scientistCurriculum?.Curriculums, ScientistId, roleId, true, SelectedPermission);
             if (result)
             {
                 listScientistCurriculum = await CurriculumServices.GetListCurriculumsByIdAsync(CurriculumId);

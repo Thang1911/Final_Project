@@ -17,6 +17,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
+@inject IToastService toastService
 
 
 <div class="bg-white">
@@ -116,7 +117,7 @@
 
                     @if (isAddMember)
                     {
-                        <form>
+                        <form class="mb-3">
                             <div class="auto-cols">
                                 <div>
                                     <label class="labels">Thành viên<span class="text-red">*</span></label>
@@ -307,8 +308,6 @@
     private List<Scientist> scientists { get; set; } = new();
     private List<Models.File.File> listFiles { get; set; } = new();
 
-    private const string FolderId = "1hdkBV634KcqZH4Chkwk1d6sSoNt4Tu-G";
-
     private void AddMember()
     {
         isAddMember = true;
@@ -336,6 +335,12 @@
     {
         isUpload = false;
         listFiles = await FileUploadServices.GetFilesByRelatedIdAsync(TopicId);
+        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+    }
+
+    private void Reload()
+    {
+        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
     }
 
     private void OnPermissionChange(ChangeEventArgs e)
@@ -367,12 +372,15 @@
                     scientist = response;
                     scientists = await ProfileServices.GetAllScientistIdAsync();
                     scientistTopic = await TopicServices.GetScientistTopicByIdAsync(TopicId, scientist.id);
-                    listScientistTopics = await TopicServices.GetListScientistByTopicIdAsync(TopicId);
-                    lvTopics = await LvTopicServices.GetListLvTopics();
-                    roles = await RoleServices.GetListRole(RoleType.magazine.ToString());
-                    if (listScientistTopics.Count > 0)
+                    if(scientistTopic != null)
                     {
-                        roleId = listScientistTopics.FirstOrDefault(i => i.scientist_id == scientist.id).role_id;
+                        listScientistTopics = await TopicServices.GetListScientistByTopicIdAsync(TopicId);
+                        lvTopics = await LvTopicServices.GetListLvTopics();
+                        roles = await RoleServices.GetListRole(RoleType.topic.ToString());
+                        listFiles = await FileUploadServices.GetFilesByRelatedIdAsync(TopicId);
+                    } else
+                    {
+                        NavigationManager.NavigateTo("/User/Topics");
                     }
                 }
             }
@@ -397,17 +405,23 @@
                 return;
             }
 
-            ShowError = false;
-
             if (string.IsNullOrEmpty(ScientistId) || string.IsNullOrEmpty(roleId))
             {
+                ShowError = true;
+                return;
                 throw new InvalidOperationException("Scientist or role information is missing.");
             }
 
-            var result = await TopicServices.AddTopicAndLinkToScientistAsync(scientistTopic?.Topics, ScientistId, roleId, false, SelectedPermission);
+            ShowError = false;
+
+            var result = await TopicServices.AddTopicAndLinkToScientistAsync(scientistTopic.Topics, ScientistId, roleId, true, SelectedPermission);
             if (result)
             {
+                toastService.ShowSuccess("Thêm thành viên thành công!");
                 listScientistTopics = await TopicServices.GetListScientistByTopicIdAsync(TopicId);
+            } else
+            {
+                toastService.ShowError("Thêm thành viên không thành công!");
             }
 
             IsReadOnly = true;
@@ -439,9 +453,14 @@
             var result = await TopicServices.UpdateTopicAndLinkToScientistAsync(scientistTopic.topic_id, scientistTopic?.Topics, scientist.id, roleId, null, false);
             if (result)
             {
+                toastService.ShowSuccess("Chỉnh sửa thông tin đề tài thành công!");
                 scientistTopic = await TopicServices.GetScientistTopicByIdAsync(TopicId, scientist.id);
+            } else
+            {
+                toastService.ShowError("Chỉnh sửa thông tin đề tài không thành công!");
             }
 
+            isUpdate = false;
             IsReadOnly = true;
         }
         catch (Exception ex)
@@ -459,6 +478,11 @@
             if (confirm)
             {
                 var result = await TopicServices.DeleteTopicAndLinkFromScientistAsync(str.topic_id, str.scientist_id);
+                if(result)
+                {
+                    toastService.ShowSuccess("Xóa thành viên thành công!");
+                    Reload();
+                }
             }
         }
         catch (Exception ex)
@@ -490,16 +514,14 @@
             var isDeleted = await FileUploadServices.DeleteFileAsync(fileId);
             if (isDeleted)
             {
-                StateHasChanged();
-                await JSRuntime.InvokeVoidAsync("alert", "Xóa tệp thành công!");
-                NavigationManager.NavigateTo($"/User/Topics/Edit/{TopicId}");
+                toastService.ShowSuccess("Xoá tệp thành công!");
+                await LoadFiles();
             }
             else
             {
-                await JSRuntime.InvokeVoidAsync("alert", "Không thể xóa tệp. Vui lòng thử lại.");
+                toastService.ShowError("Xóa tệp không thành công!");
             }
         }
     }
-
 }
 

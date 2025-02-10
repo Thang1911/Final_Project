@@ -164,7 +164,7 @@ namespace BlazorFE.Services
                     curriculum_id = newCurriculum.id,
                     role_id = roleId,
                     status = isEditable,
-                    requestStatus = isJoining ? "Chờ duyệt" : "Đã tham gia",
+                    requestStatus = "Đã tham gia",
                     created_at = DateTime.Now,
                     updated_at = DateTime.Now
                 };

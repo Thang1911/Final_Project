@@ -357,8 +357,6 @@
     private List<Scientist> scientists { get; set; } = new();
     private List<Models.File.File> listFiles { get; set; } = new();
 
-    private const string FolderId = "1hdkBV634KcqZH4Chkwk1d6sSoNt4Tu-G";
-
     private void AddMember()
     {
         isAddMember = true;
@@ -384,10 +382,12 @@
         await UpdateMagazine();
     }
 
+
     private async Task LoadFiles()
     {
         isUpload = false;
         listFiles = await FileUploadServices.GetFilesByRelatedIdAsync(MagazineId);
+        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
     }
 
     private void OnPermissionChange(ChangeEventArgs e)
@@ -475,7 +475,7 @@
                 throw new InvalidOperationException("Scientist or role information is missing.");
             }
 
-            var result = await MagazineServices.AddMagazineAndLinkToScientistAsync(magazine, ScientistId, roleId, false, SelectedPermission);
+            var result = await MagazineServices.AddMagazineAndLinkToScientistAsync(magazine, ScientistId, roleId, true, SelectedPermission);
             if (result)
             {
                 listScientistMagazines = await MagazineServices.GetListScientistByMagazineIdAsync(MagazineId);

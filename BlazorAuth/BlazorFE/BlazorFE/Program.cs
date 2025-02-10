@@ -1,3 +1,4 @@
+using Blazored.Toast;
 using BlazorFE.Components;
 using BlazorFE.Components.Account;
 using BlazorFE.Data;
@@ -38,7 +39,9 @@ builder.Services.AddScoped<CouncilServices>();
 builder.Services.AddScoped<LvCouncilServices>();
 builder.Services.AddScoped<TpCouncilServices>();
 
-builder.Services.AddSingleton<GoogleDriveServices>();
+builder.Services.AddBlazoredToast();
+
+//builder.Services.AddSingleton<GoogleDriveServices>();
 
 
 builder.Services.AddAuthentication(options =>

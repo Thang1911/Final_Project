@@ -2,8 +2,7 @@
 @using BlazorFE.Services
 
 @inject FileUploadServices FileUploadServices
-@inject GoogleDriveServices DriveService
-
+@inject IToastService toastService
 
 <div>
     <InputFile OnChange="HandleFileSelected" />
@@ -49,6 +48,7 @@
 
         try
         {
+            isFileUploading = true;
             using var ms = new MemoryStream();
             await selectedFile.OpenReadStream().CopyToAsync(ms);
             var fileBytes = ms.ToArray();
@@ -56,11 +56,18 @@
             file.file_content = fileBytes;
 
             var result = await FileUploadServices.UploadFileAsync(file);
+            Console.WriteLine(result);
             if (result)
             {
                 isFileSelected = false;
                 isFileUploading = false;
+                toastService.ShowSuccess("Tải tệp thành công!");
                 await OnSave.InvokeAsync();
+            } else
+            {
+                isFileSelected = false;
+                isFileUploading = false;
+                toastService.ShowError("Tải tệp không thành công!");
             }
         }
         catch (Exception ex)

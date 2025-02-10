@@ -138,7 +138,7 @@ namespace BlazorFE.Services
                     topic_id = newTopic.id,
                     role_id = roleId,
                     status = isEditable,
-                    requestStatus = isJoining ? "Chờ duyệt" : "Đã tham gia",
+                    requestStatus = "Đã tham gia",
                     created_at = DateTime.Now,
                     updated_at = DateTime.Now
                 };
@@ -213,6 +213,9 @@ namespace BlazorFE.Services
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
+                var scientistsTopicRole = await _context.Set<scientist_topic_role>()
+                    .Where(str => str.topic_id == topicId).ToListAsync();
+
                 var scientistTopicRole = await _context.Set<scientist_topic_role>()
                     .FirstOrDefaultAsync(str => str.scientist_id == scientistId && str.topic_id == topicId);
 
@@ -222,11 +225,14 @@ namespace BlazorFE.Services
                     await _context.SaveChangesAsync();
                 }
 
-                var existingTopic = await _context.Set<Topics>().FindAsync(topicId);
-                if (existingTopic != null)
+                if(scientistsTopicRole.Count == 1)
                 {
-                    _context.Set<Topics>().Remove(existingTopic);
-                    await _context.SaveChangesAsync();
+                    var existingTopic = await _context.Set<Topics>().FindAsync(topicId);
+                    if (existingTopic != null)
+                    {
+                        _context.Set<Topics>().Remove(existingTopic);
+                        await _context.SaveChangesAsync();
+                    }
                 }
 
                 await transaction.CommitAsync();
