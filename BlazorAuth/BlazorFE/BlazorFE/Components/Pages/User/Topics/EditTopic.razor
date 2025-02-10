@@ -418,7 +418,7 @@
             if (result)
             {
                 toastService.ShowSuccess("Thêm thành viên thành công!");
-                listScientistTopics = await TopicServices.GetListScientistByTopicIdAsync(TopicId);
+                Reload();
             } else
             {
                 toastService.ShowError("Thêm thành viên không thành công!");
