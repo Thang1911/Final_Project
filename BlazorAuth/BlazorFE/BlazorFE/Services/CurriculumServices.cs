@@ -23,6 +23,7 @@ namespace BlazorFE.Services
                     .ThenInclude(c => c.Training)
                 .Include(scr => scr.Role)
                 .Include(str => str.Scientist)
+                .OrderByDescending(or => or.updated_at)
                 .ToListAsync();
 
             return scientistCurriculums;
@@ -67,6 +68,7 @@ namespace BlazorFE.Services
                     .ThenInclude(c => c.Training)
                 .Include(scr => scr.Role)
                 .Include(str => str.Scientist)
+                .OrderByDescending(or => or.updated_at)
                 .ToListAsync();
 
             return scientistCurriculums;
@@ -82,6 +84,7 @@ namespace BlazorFE.Services
                     .ThenInclude(c => c.Training)
                 .Include(scr => scr.Role)
                 .Include(str => str.Scientist)
+                .OrderByDescending(or => or.updated_at)
                 .ToListAsync();
 
             return scientistCurriculums;

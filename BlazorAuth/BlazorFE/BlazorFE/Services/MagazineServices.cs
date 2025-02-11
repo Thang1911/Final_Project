@@ -22,6 +22,7 @@ namespace BlazorFE.Services
                     .ThenInclude(m => m.Paper)
                 .Include(smr => smr.Role)
                 .Include(str => str.Scientist)
+                .OrderByDescending(or => or.updated_at)
                 .ToListAsync();
 
             return scientistMagazines;
@@ -62,22 +63,7 @@ namespace BlazorFE.Services
                     .ThenInclude(m => m.Paper)
                 .Include(smr => smr.Role)
                 .Include(str => str.Scientist)
-                .ToListAsync();
-
-            return scientistMagazines;
-        }
-
-        public async Task<List<ScientistMagazineRole>> GetRequestMagazinesByScientistIdAsync(string scientistId)
-        {
-            if (string.IsNullOrEmpty(scientistId))
-                throw new ArgumentException("Scientist ID cannot be null or empty", nameof(scientistId));
-
-            var scientistMagazines = await _context.Set<ScientistMagazineRole>()
-                .Where(smr => smr.scientist_id == scientistId && smr.requestStatus == "Chờ duyệt")
-                .Include(smr => smr.Magazines)
-                    .ThenInclude(m => m.Paper)
-                .Include(smr => smr.Role)
-                .Include(str => str.Scientist)
+                .OrderByDescending(or => or.updated_at)
                 .ToListAsync();
 
             return scientistMagazines;
@@ -96,6 +82,7 @@ namespace BlazorFE.Services
                     .ThenInclude(m => m.MagazineScore)
                 .Include(smr => smr.Role)
                 .Include(str => str.Scientist)
+                .OrderByDescending(or => or.updated_at)
                 .ToListAsync();
 
             return scientistMagazines;
@@ -269,6 +256,9 @@ namespace BlazorFE.Services
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
+                var scientistsMagazineRole = await _context.Set<ScientistMagazineRole>()
+                   .Where(smr => smr.magazine_id == magazineId).ToListAsync();
+
                 var scientistMagazineRole = await _context.Set<ScientistMagazineRole>()
                     .FirstOrDefaultAsync(smr => smr.scientist_id == scientistId && smr.magazine_id == magazineId);
 
@@ -279,7 +269,7 @@ namespace BlazorFE.Services
                 }
 
                 var existingMagazine = await _context.Set<Magazines>().FindAsync(magazineId);
-                if (existingMagazine != null)
+                if (existingMagazine != null && scientistsMagazineRole.Count == 1)
                 {
                     _context.Set<Magazines>().Remove(existingMagazine);
                     await _context.SaveChangesAsync();

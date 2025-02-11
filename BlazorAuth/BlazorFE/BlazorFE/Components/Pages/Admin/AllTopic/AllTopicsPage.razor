@@ -1,6 +1,10 @@
 ﻿@page "/Admin/AllTopics"
 @rendermode InteractiveServer
 
+@using Microsoft.AspNetCore.Authorization;
+
+@attribute [Authorize(Roles = "Administrators")]
+
 @using BlazorFE.Models.Scientist
 @using BlazorFE.Services
 @using BlazorFE.Components.Pages.Admin.AllTopic.Components
@@ -10,11 +14,9 @@
 
 @if(listTopics != null)
 {
-    <ListTopicTable TopicsList="@listTopics" />
-}
-else
-{
-    <div>Đang tải dữ liệu ...</div>
+    <DataTable Searchable="true">
+        <ListTopicTable TopicsList="@listTopics" />
+    </DataTable>
 }
 
 @code {

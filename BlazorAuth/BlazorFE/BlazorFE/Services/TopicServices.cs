@@ -21,6 +21,7 @@ namespace BlazorFE.Services
                     .ThenInclude(str => str.LvTopics)
                 .Include(str => str.Role)
                 .Include(str => str.Scientist)
+                .OrderByDescending(or => or.updated_at)
                 .ToListAsync();
 
             return scientistTopics;
@@ -53,6 +54,7 @@ namespace BlazorFE.Services
                     .ThenInclude(str => str.LvTopics)
                 .Include(str => str.Role)
                 .Include(str => str.Scientist)
+                .OrderByDescending(or => or.updated_at)
                 .ToListAsync();
 
             return scientistTopics;
@@ -86,6 +88,7 @@ namespace BlazorFE.Services
                     .ThenInclude(st => st.LvTopics)
                 .Include(str => str.Role)
                 .Include(str => str.Scientist)
+                .OrderByDescending(or => or.updated_at)
                 .ToListAsync();
 
             return scientistTopics;
@@ -225,14 +228,11 @@ namespace BlazorFE.Services
                     await _context.SaveChangesAsync();
                 }
 
-                if(scientistsTopicRole.Count == 1)
+                var existingTopic = await _context.Set<Topics>().FindAsync(topicId);
+                if (existingTopic != null && scientistsTopicRole.Count == 1)
                 {
-                    var existingTopic = await _context.Set<Topics>().FindAsync(topicId);
-                    if (existingTopic != null)
-                    {
-                        _context.Set<Topics>().Remove(existingTopic);
-                        await _context.SaveChangesAsync();
-                    }
+                    _context.Set<Topics>().Remove(existingTopic);
+                    await _context.SaveChangesAsync();
                 }
 
                 await transaction.CommitAsync();

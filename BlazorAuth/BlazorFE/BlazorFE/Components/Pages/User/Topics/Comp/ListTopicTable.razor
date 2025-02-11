@@ -41,21 +41,15 @@
                     <td>@item?.Topics?.end_date?.ToShortDateString()</td>
                     <td><Label Type="@(Helpers.LabelHelper.GetStatusLabel(item?.requestStatus))" Text="@item?.requestStatus" /></td>
                     <td>
-                        <button class="btn btn-warning" @onclick="() => OnEdit.InvokeAsync(item.Topics)" disabled="@(!string.Equals(item?.requestStatus, "đã tham gia", StringComparison.OrdinalIgnoreCase))">Chỉnh sửa</button>
-                        <button class="btn btn-danger"
-                                @onclick="() => OnDelete.InvokeAsync(item.Topics)">
-                            Xóa
-                        </button>
+                            <button class="btn btn-warning" @onclick="() => OnEdit.InvokeAsync(item.Topics)" disabled="@(!string.Equals(item?.requestStatus, "đã tham gia", StringComparison.OrdinalIgnoreCase))">Chỉnh sửa</button>
+                            <button class="btn btn-danger"
+                                    @onclick="() => OnDelete.InvokeAsync(item.Topics)">
+                                Xóa
+                            </button>
                     </td>
                 </tr>
                 i++;
             }
-        }
-        else
-        {
-            <tr>
-                <td colspan="9" class="text-center">Không có dữ liệu</td>
-            </tr>
         }
     </tbody>
 </table>

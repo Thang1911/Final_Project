@@ -35,3 +35,25 @@ function AddDataTable(table, searching) {
     });
 }
 
+function DestroySelect2(select) {
+    if ($(select).hasClass("select2-hidden-accessible")) {
+        $(select).select2('destroy');
+    }
+}
+
+function AddSelect2(select, placeholder = "Chọn một mục", allowClear = true) {
+    DestroySelect2(select);
+
+    if ($(select).length === 0) {
+        console.error("Error: Select element not found.");
+        return;
+    }
+
+    $(select).select2({
+        placeholder: placeholder,
+        allowClear: allowClear,
+        width: '100%'
+    });
+}
+
+

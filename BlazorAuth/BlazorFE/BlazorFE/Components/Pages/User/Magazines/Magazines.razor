@@ -1,6 +1,10 @@
 ﻿@page "/User/Magazines"
 @rendermode InteractiveServer
 
+@using Microsoft.AspNetCore.Authorization;
+
+@attribute [Authorize(Roles = "User")]
+
 @using System.Security.Claims;
 @using BlazorFE.Models.Scientist
 @using BlazorFE.Services;
@@ -16,145 +20,146 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
+@inject IToastService toastService
 
-
-<h3>Danh sách bài báo cá nhân của nhà khoa học </h3>
 
 <div class="bg-white">
     <div class="justify-content-center">
         <div class="border-right">
-            <div class="">
-                <div class="d-flex gap-2 justify-content-end">
-                    <button class="btn btn-success" @onclick="ToggleMagazine">Thêm bài báo</button>
+            <div class="card shadow rounded">
+                <div class="p-3 d-flex flex-column gap-3">
+                    <div class="d-flex gap-2 justify-content-between">
+                        <h3>Danh sách bài báo của @scientist.profile_name </h3>
+                        <button class="btn btn-success" @onclick="ToggleMagazine">Thêm bài báo</button>
+                    </div>
+                    @if (scientist != null && isAdd)
+                    {
+                        <form>
+                            <div class="mt-2">
+                                <!-- Hàng đầu tiên -->
+                                <div class="auto-cols">
+                                    <div>
+                                        <label class="labels">Tên bài báo<span class="text-red">*</span></label>
+                                        <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Tên bài báo" @bind="@magazine.magazine_name">
+                                        @if (showError && string.IsNullOrWhiteSpace(magazine.magazine_name))
+                                        {
+                                            <span class="text-danger">Vui lòng nhập tên bài báo</span>
+                                        }
+                                    </div>
+                                    <div>
+                                        <label class="labels">Tên tạp chí<span class="text-red">*</span></label>
+                                        <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Tên tạp chí" @bind="@magazine.journal">
+                                        @if (showError && string.IsNullOrWhiteSpace(magazine.journal))
+                                        {
+                                            <span class="text-danger">Vui lòng nhập tên tạp chí</span>
+                                        }
+                                    </div>
+                                </div>
+
+                                <!-- Hàng thứ hai -->
+                                <div class="auto-cols mt-2">
+                                    <div>
+                                        <label class="labels">Năm công bố<span class="text-red">*</span></label>
+                                        <select disabled="@isReadOnly" class="form-control" @bind="magazine.year">
+                                            <option value="0" selected>Chọn năm</option>
+                                            @for (int year = DateTime.Now.Year; year >= 1900; year--)
+                                            {
+                                                <option value="@year">@year</option>
+                                            }
+                                        </select>
+                                        @if (showError && magazine.year == 0)
+                                        {
+                                            <span class="text-danger">Vui lòng chọn năm công bố.</span>
+                                        }
+                                    </div>
+                                    <div>
+                                        <label class="labels">Vai trò<span class="text-red">*</span></label>
+                                        <select disabled="@isReadOnly" class="form-control" @bind="roleId">
+                                            <option value="" selected>Chọn vai trò</option>
+                                            @foreach (var item in roles)
+                                            {
+                                                <option value="@item.id">@item.role_name</option>
+                                            }
+                                        </select>
+                                        @if (showError && string.IsNullOrWhiteSpace(roleId))
+                                        {
+                                            <span class="text-danger">Vui lòng chọn vai trò.</span>
+                                        }
+                                    </div>
+                                    <div>
+                                        <label class="labels">Loại bài báo<span class="text-red">*</span></label>
+                                        <select disabled="@isReadOnly" type="text" class="form-control" @bind="@magazine.paper_id">
+                                            <option value="">Chọn loại bài báo</option>
+                                            @foreach (var item in listPapers)
+                                            {
+                                                <option value="@item.id">@item.paper_name</option>
+                                            }
+                                        </select>
+                                        @if (showError && string.IsNullOrWhiteSpace(magazine.paper_id))
+                                        {
+                                            <span class="text-danger">Vui lòng chọn loại bài báo.</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-1 mt-2">
+                                <div class="text-center">
+                                    <button class="btn btn-primary" type="button" @onclick="ToggleMagazine">Hủy</button>
+                                </div>
+                                <div class="text-center">
+                                    <button class="btn btn-success" type="submit" @onclick="SaveMagazine" @onclick:preventDefault>Lưu</button>
+                                </div>
+                            </div>
+                        </form>
+                    }
+               
+                    <DataTable Searchable="true">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th scope="col">Tên bài báo</th>
+                                    <th scope="col">Năm công bố</th>
+                                    <th scope="col">Tên tạp chí</th>
+                                    <th scope="col">Loại bài báo</th>
+                                    <th scope="col">Vai trò</th>
+                                    <th scope="col">Yêu cầu</th>
+                                    <th scope="col">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (magazines != null && magazines.Count > 0)
+                                {
+                                    int i = 1;
+                                    foreach (var item in magazines)
+                                    {
+                                        <tr>
+                                            <th scope="row">@i</th>
+                                            <td>@item?.Magazines?.magazine_name</td>
+                                            <td>@item?.Magazines?.year</td>
+                                            <td>@item?.Magazines?.journal</td>
+                                            <td>@item?.Magazines?.Paper?.paper_name</td>
+                                            <td>@item?.Role?.role_name</td>
+                                            <td><Label Type="@(Helpers.LabelHelper.GetStatusLabel(item?.requestStatus))" Text="@item?.requestStatus" /></td>
+                                            <td>
+                                                <button class="btn btn-warning" @onclick="() => EditMagazine(item.Magazines)" disabled="@(!string.Equals(item?.requestStatus, "đã tham gia", StringComparison.OrdinalIgnoreCase))">
+                                                    <div class="bi-pencil-square-custom" style="width: 20px; height: 20px;"></div>
+                                                </button>
+                                                <button class="btn btn-danger"
+                                                        @onclick="() => DeleteMagazine(item.Magazines)">
+                                                    <div class="bi-trash-custom" style="width: 20px; height: 20px;"></div>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        i++;
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </DataTable>
                 </div>
-                @if (scientist != null && isAdd)
-                {
-                    <form>
-                        <div class="mt-2">
-                            <!-- Hàng đầu tiên -->
-                            <div class="auto-cols">
-                                <div>
-                                    <label class="labels">Tên bài báo<span class="text-red">*</span></label>
-                                    <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Tên bài báo" @bind="@magazine.magazine_name">
-                                    @if (showError && string.IsNullOrWhiteSpace(magazine.magazine_name))
-                                    {
-                                        <span class="text-danger">Vui lòng nhập tên bài báo</span>
-                                    }
-                                </div>
-                                <div>
-                                    <label class="labels">Tên tạp chí<span class="text-red">*</span></label>
-                                    <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Tên tạp chí" @bind="@magazine.journal">
-                                    @if (showError && string.IsNullOrWhiteSpace(magazine.journal))
-                                    {
-                                        <span class="text-danger">Vui lòng nhập tên tạp chí</span>
-                                    }
-                                </div>
-                            </div>
-
-                            <!-- Hàng thứ hai -->
-                            <div class="auto-cols mt-2">
-                                <div>
-                                    <label class="labels">Năm công bố<span class="text-red">*</span></label>
-                                    <select disabled="@isReadOnly" class="form-control" @bind="magazine.year">
-                                        <option value="0" selected>Chọn năm</option>
-                                        @for (int year = DateTime.Now.Year; year >= 1900; year--)
-                                        {
-                                            <option value="@year">@year</option>
-                                        }
-                                    </select>
-                                    @if (showError && magazine.year == 0)
-                                    {
-                                        <span class="text-danger">Vui lòng chọn năm công bố.</span>
-                                    }
-                                </div>
-                                <div>
-                                    <label class="labels">Vai trò<span class="text-red">*</span></label>
-                                    <select disabled="@isReadOnly" class="form-control" @bind="roleId">
-                                        <option value="" selected>Chọn vai trò</option>
-                                        @foreach (var item in roles)
-                                        {
-                                            <option value="@item.id">@item.role_name</option>
-                                        }
-                                    </select>
-                                    @if (showError && string.IsNullOrWhiteSpace(roleId))
-                                    {
-                                        <span class="text-danger">Vui lòng chọn vai trò.</span>
-                                    }
-                                </div>
-                                <div>
-                                    <label class="labels">Loại bài báo<span class="text-red">*</span></label>
-                                    <select disabled="@isReadOnly" type="text" class="form-control" @bind="@magazine.paper_id">
-                                        <option value="">Chọn loại bài báo</option>
-                                        @foreach (var item in listPapers)
-                                        {
-                                            <option value="@item.id">@item.paper_name</option>
-                                        }
-                                    </select>
-                                    @if (showError && string.IsNullOrWhiteSpace(magazine.paper_id))
-                                    {
-                                        <span class="text-danger">Vui lòng chọn loại bài báo.</span>
-                                    }
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="d-flex gap-1 mt-2">
-                            <div class="text-center">
-                                <button class="btn btn-primary" type="button" @onclick="ToggleMagazine">Hủy</button>
-                            </div>
-                            <div class="text-center">
-                                <button class="btn btn-success" type="submit" @onclick="SaveMagazine" @onclick:preventDefault>Lưu</button>
-                            </div>
-                        </div>
-                    </form>
-                }
             </div>
-            <table class="table table-striped table-hover">
-                <thead>
-                    <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">Tên bài báo</th>
-                        <th scope="col">Năm công bố</th>
-                        <th scope="col">Tên tạp chí</th>
-                        <th scope="col">Loại bài báo</th>
-                        <th scope="col">Vai trò</th>
-                        <th scope="col">Yêu cầu</th>
-                        <th scope="col">Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (magazines != null && magazines.Count > 0)
-                    {
-                        int i = 1;
-                        foreach (var item in magazines)
-                        {
-                            <tr>
-                                <th scope="row">@i</th>
-                                <td>@item?.Magazines?.magazine_name</td>
-                                <td>@item?.Magazines?.year</td>
-                                <td>@item?.Magazines?.journal</td>
-                                <td>@item?.Magazines?.Paper?.paper_name</td>
-                                <td>@item?.Role?.role_name</td>
-                                <td><Label Type="@(Helpers.LabelHelper.GetStatusLabel(item?.requestStatus))" Text="@item?.requestStatus" /></td>
-                                <td>
-                                    <button class="btn btn-warning" @onclick="() => EditMagazine(item.Magazines)" disabled="@(!string.Equals(item?.requestStatus, "đã tham gia", StringComparison.OrdinalIgnoreCase))">Chỉnh sửa</button>
-                                    <button class="btn btn-danger"
-                                            @onclick="() => DeleteMagazine(item.Magazines)">
-                                        Xóa
-                                    </button>
-                                </td>
-                            </tr>
-                            i++;
-                        }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="8" class="text-center">Không có dữ liệu</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
         </div>
     </div>
 </div>
@@ -209,24 +214,18 @@
     {
         isAdd = !isAdd;
         isReadOnly = !isReadOnly;
+        showError = false;
         magazine = new();
-    }
-
-    private void NavigateToJoining()
-    {
-        NavigationManager.NavigateTo("/User/JoinMagazines");
     }
 
     private async Task SaveMagazine()
     {
-        if (isUpdate)
-        {
-            await UpdateMagazine();
-        }
-        else
-        {
-            await AddNewScientistMagazine();
-        }
+        await AddNewScientistMagazine();
+    }
+
+    private void Reload()
+    {
+        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
     }
 
     protected override async Task OnInitializedAsync()
@@ -245,7 +244,6 @@
                 {
                     scientist = response;
                     magazines = await MagazineServices.GetMagazinesByScientistIdAsync(scientist.id);
-                    requestMagazines = await MagazineServices.GetRequestMagazinesByScientistIdAsync(scientist.id);
                     listPapers = await PaperServices.GetListPaper();
                     roles = await RoleServices.GetListRole(RoleType.magazine.ToString());
                 }
@@ -265,18 +263,7 @@
     {
         try
         {
-            if (magazine == null || string.IsNullOrWhiteSpace(magazine.magazine_name))
-            {
-                showError = true;
-                return;
-            }
-
-            showError = false;
-
-            if (scientist == null || string.IsNullOrEmpty(scientist.id) || string.IsNullOrEmpty(roleId))
-            {
-                throw new InvalidOperationException("Scientist or role information is missing.");
-            }
+            showError = true;
 
             magazine.id = Guid.NewGuid().ToString();
             magazine.created_at = DateTime.Now;
@@ -285,40 +272,12 @@
             var result = await MagazineServices.AddMagazineAndLinkToScientistAsync(magazine, scientist.id, roleId, false, false);
             if (result)
             {
-                magazines = await MagazineServices.GetMagazinesByScientistIdAsync(scientist.id);
-            }
-
-            isAdd = false;
-            isReadOnly = true;
-            magazine = new();
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"An error occurred: {ex.Message}");
-        }
-    }
-
-    private async Task UpdateMagazine()
-    {
-        try
-        {
-            if (magazine == null || string.IsNullOrWhiteSpace(magazine.magazine_name))
+                toastService.ShowSuccess("Thành công!");
+                await Task.Delay(3000);
+                Reload();
+            } else
             {
-                showError = true;
-                return;
-            }
-
-            showError = false;
-
-            if (scientist == null || string.IsNullOrEmpty(scientist.id) || string.IsNullOrEmpty(roleId))
-            {
-                throw new InvalidOperationException("Scientist or role information is missing.");
-            }
-
-            var result = await MagazineServices.UpdateMagazineAndLinkToScientistAsync(magazine.id, magazine, scientist.id, roleId, null, false);
-            if (result)
-            {
-                magazines = await MagazineServices.GetMagazinesByScientistIdAsync(scientist.id);
+                toastService.ShowError("Thất bại!");
             }
 
             isAdd = false;
@@ -342,29 +301,13 @@
                 var result = await MagazineServices.DeleteMagazineAndLinkFromScientistAsync(magazine.id, scientist.id);
                 if (result)
                 {
-                    magazines = await MagazineServices.GetMagazinesByScientistIdAsync(scientist.id);
+                    toastService.ShowSuccess("Thành công!");
+                    await Task.Delay(3000);
+                    Reload();
                 }
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"An error occurred while deleting: {ex.Message}");
-        }
-    }
-
-    private async Task UpdateRequest(ScientistMagazineRole requestMagazine, bool isAccept)
-    {
-        try
-        {
-            var confirm = await JSRuntime.InvokeAsync<bool>("confirm", new object[] { isAccept ? "Bạn có chắc muốn duyệt yêu cầu này?" : "Bạn có chắc muốn từ chối yêu cầu này?" });
-
-            if (confirm && !string.IsNullOrWhiteSpace(requestMagazine?.magazine_id) && !string.IsNullOrWhiteSpace(requestMagazine?.scientist_id) && !string.IsNullOrWhiteSpace(requestMagazine?.role_id))
-            {
-                var result = await MagazineServices.UpdateMagazineAndLinkToScientistAsync(requestMagazine.magazine_id, requestMagazine?.Magazines, requestMagazine.scientist_id, requestMagazine.role_id, isAccept ? "Đã tham gia" : "Bị từ chối", true);
-                if (result)
+                else
                 {
-                    ListMagazineIds = magazines.Select(magazine => magazine.id).ToList();
-                    requestMagazines = await MagazineServices.GetJoinRequestsByScientistIdAsync(scientist.id, ListMagazineIds);
+                    toastService.ShowError("Thất bại!");
                 }
             }
         }

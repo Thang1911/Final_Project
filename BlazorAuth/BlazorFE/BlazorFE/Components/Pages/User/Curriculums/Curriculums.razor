@@ -1,6 +1,10 @@
 ﻿@page "/User/Curriculums"
 @rendermode InteractiveServer
 
+@using Microsoft.AspNetCore.Authorization;
+
+@attribute [Authorize(Roles = "User")]
+
 @using System.Security.Claims;
 @using BlazorFE.Models.Scientist;
 @using BlazorFE.Components.Pages.User.Curriculums.Components

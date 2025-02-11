@@ -62,6 +62,7 @@
                 isFileSelected = false;
                 isFileUploading = false;
                 toastService.ShowSuccess("Tải tệp thành công!");
+                await Task.Delay(3000);
                 await OnSave.InvokeAsync();
             } else
             {

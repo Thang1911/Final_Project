@@ -7,6 +7,8 @@ using BlazorFE.Services.Category;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Syncfusion.Blazor;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,6 +42,8 @@ builder.Services.AddScoped<LvCouncilServices>();
 builder.Services.AddScoped<TpCouncilServices>();
 
 builder.Services.AddBlazoredToast();
+builder.Services.AddSyncfusionBlazor();
+builder.Services.AddBlazorBootstrap();
 
 //builder.Services.AddSingleton<GoogleDriveServices>();
 
