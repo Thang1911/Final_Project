@@ -20,67 +20,26 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
+@inject IToastService toastService
 
 @if (scientist != null)
 {
-    <h3>Danh sách đề xuất của @scientist.profile_name</h3>
-
     <div class="bg-white mt-3">
         <div class="justify-content-center">
-            <div class="border-right d-flex flex-column gap-4">
-                <div>
-                    <div class="d-flex flex-row gap-2">
-                        <button class="btn btn-success" @onclick="ToggleOffer">Thêm đề xuất</button>
-                        <button class="btn btn-primary" @onclick="JoinOffer">Tham gia</button>
-                    </div>
-                    @if (scientist != null && isAdd)
-                    {
-                        <OfferForm NewOffer="@offer" ListProposes="@proposes" IsReadOnly="@isReadOnly" showError="@showError" OnCancel="ToggleOffer" OnSave="SaveOffer" />
-                    }
+            <div class="card shadow rounded">
+                <div class="p-3 d-flex flex-column gap-3">
+                    <div>
+                        <div class="d-flex justify-content-between">
+                            <h3>Danh sách đề xuất của @scientist.profile_name</h3>
+                            <button class="btn btn-success" @onclick="ToggleOffer">Thêm đề xuất</button>
+                        </div>
+                        @if (isAdd)
+                        {
+                            <OfferForm NewOffer="@offer" ListProposes="@proposes" IsReadOnly="@isReadOnly" showError="@showError" OnCancel="ToggleOffer" OnSave="SaveOffer" />
+                        }
 
-                </div>
-                <ListOffersTable ListOffers="@offers" OnDelete="DeleteOffer" OnEdit="EditOffer" />
-                <div>
-                    <h3>Danh sách yêu cầu tham gia:</h3>
-                    <table class="table table-striped table-hover">
-                        <thead>
-                            <tr>
-                                <th scope="col">#</th>
-                                <th scope="col">Tên đề xuất</th>
-                                <th scope="col">Loại đề xuất</th>
-                                <th scope="col">Người yêu cầu</th>
-                                <th scope="col">Vai trò</th>
-                                <th scope="col">Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (RequestOffers != null && RequestOffers.Count > 0)
-                            {
-                                int i = 1;
-                                foreach (var item in RequestOffers)
-                                {
-                                    <tr>
-                                        <th scope="row">@i</th>
-                                        <td>@item?.Offer?.offer_name</td>
-                                        <td>@item?.Offer?.Propose?.propose_name</td>
-                                        <td>@item?.Scientist?.profile_name</td>
-                                        <td>@item?.Role?.role_name</td>
-                                        <td>
-                                            <button class="btn btn-warning" @onclick="() => UpdateRequest(item, true)">Duyệt</button>
-                                            <button class="btn btn-danger" @onclick="() => UpdateRequest(item, false)">Từ chối</button>
-                                        </td>
-                                    </tr>
-                                    i++;
-                                }
-                            }
-                            else
-                            {
-                                <tr>
-                                    <td colspan="6" class="text-center">Không có yêu cầu tham gia</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+                    </div>
+                    <ListOffersTable ListOffers="@offers" OnDelete="DeleteOffer" OnEdit="EditOffer" />
                 </div>
             </div>
         </div>
@@ -134,10 +93,7 @@
 
     private void EditOffer(Models.Offer.Offers editOffer)
     {
-        isAdd = true;
-        isReadOnly = false;
-        offer = editOffer;
-        isUpdate = true;
+        NavigationManager.NavigateTo($"/User/Offers/Edit/{editOffer.id}");
     }
 
     private void ToggleOffer()
@@ -147,21 +103,14 @@
         offer = new Models.Offer.Offers();
     }
 
-    private void JoinOffer()
-    {
-        NavigationManager.NavigateTo("/User/JoinOffers");
-    }
-
     private async Task SaveOffer()
     {
-        if (isUpdate)
-        {
-            await UpdateOffer();
-        }
-        else
-        {
-            await AddNewScientistOffer();
-        }
+        await AddNewScientistOffer();
+    }
+
+    private void Reload()
+    {
+        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
     }
 
     protected override async Task OnInitializedAsync()
@@ -180,26 +129,8 @@
                 {
                     scientist = response;
                     offers = await OfferServices.GetOffersByScientistIdAsync(scientist.id);
-                    if (offers != null && offers.Any())
-                    {
-                        ListOfferIds = offers
-                            .Where(offer => offer.Role != null && offer.Role.role_name == "Chủ nhiệm dự án")
-                            .Select(offer => offer.offer_id)
-                            .ToList();
-                        RequestOffers = await OfferServices.GetJoinRequestsByScientistIdAsync(scientist.id, ListOfferIds);
-                    }
                     proposes = await ProposeServices.GetListPropose();
                     roles = await RoleServices.GetListRole(RoleType.topic.ToString());
-                    var role = roles.FirstOrDefault(role => role.role_name == "Chủ nhiệm dự án" && role.role_type == RoleType.topic.ToString());
-
-                    if (role != null)
-                    {
-                        roleId = role.id;
-                    }
-                    else
-                    {
-                        Console.WriteLine("Role not found");
-                    }
                 }
             }
             else
@@ -235,7 +166,7 @@
             offer.created_at = DateTime.Now;
             offer.updated_at = DateTime.Now;
 
-            var result = await OfferServices.AddOfferAndLinkToScientistAsync(offer, scientist.id, roleId, false);
+            var result = await OfferServices.AddOfferAndLinkToScientistAsync(offer, scientist.id, roleId, false, false);
             if (result)
             {
                 offers = await OfferServices.GetOffersByScientistIdAsync(scientist.id);
@@ -255,28 +186,19 @@
     {
         try
         {
-            if (offer == null || string.IsNullOrWhiteSpace(offer.offer_name))
-            {
-                showError = true;
-                return;
-            }
-
-            showError = false;
-
-            if (scientist == null || string.IsNullOrEmpty(scientist.id) || string.IsNullOrEmpty(roleId))
-            {
-                throw new InvalidOperationException("Scientist or role information is missing.");
-            }
+            showError = true;
 
             var result = await OfferServices.UpdateOfferAndLinkToScientistAsync(offer.id, offer, scientist.id, roleId, null, false);
             if (result)
             {
-                offers = await OfferServices.GetOffersByScientistIdAsync(scientist.id);
+                toastService.ShowSuccess("Thành công!");
+                await Task.Delay(3000);
+                Reload();
             }
-
-            isAdd = false;
-            isReadOnly = true;
-            offer = new Models.Offer.Offers();
+            else
+            {
+                toastService.ShowError("Thất bại!");
+            }
         }
         catch (Exception ex)
         {
@@ -295,29 +217,13 @@
                 var result = await OfferServices.DeleteOfferAndLinkFromScientistAsync(deleteOffer.id, scientist.id);
                 if (result)
                 {
-                    offers = await OfferServices.GetOffersByScientistIdAsync(scientist.id);
+                    toastService.ShowSuccess("Thành công!");
+                    await Task.Delay(3000);
+                    Reload();
                 }
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"An error occurred while deleting: {ex.Message}");
-        }
-    }
-
-    private async Task UpdateRequest(ScientistOfferRole requestOffer, bool isAccept)
-    {
-        try
-        {
-            var confirm = await JSRuntime.InvokeAsync<bool>("confirm", new object[] { isAccept ? "Bạn có chắc muốn duyệt yêu cầu này?" : "Bạn có chắc muốn từ chối yêu cầu này?" });
-
-            if (confirm && !string.IsNullOrWhiteSpace(requestOffer?.Offer?.id) && !string.IsNullOrWhiteSpace(requestOffer?.Scientist?.id) && !string.IsNullOrWhiteSpace(requestOffer?.Role?.id))
-            {
-                var result = await OfferServices.UpdateOfferAndLinkToScientistAsync(requestOffer.offer_id, requestOffer.Offer, requestOffer.Scientist.id, requestOffer.Role.id, isAccept ? "Đã tham gia" : "Bị từ chối", true);
-                if (result)
+                else
                 {
-                    ListOfferIds = offers.Select(offer => offer.id).ToList();
-                    RequestOffers = await OfferServices.GetJoinRequestsByScientistIdAsync(scientist.id, ListOfferIds);
+                    toastService.ShowError("Thất bại!");
                 }
             }
         }

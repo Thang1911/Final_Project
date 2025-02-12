@@ -21,24 +21,25 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
+@inject IToastService toastService
 
 @if (scientist != null) {
-    <h3>Danh sách giáo trình, sách tham khảo của @scientist.profile_name</h3>
-
     <div class="bg-white">
         <div class="justify-content-center">
             <div class="border-right d-flex flex-column gap-4">
-                <div class="">
-                    <div class="d-flex flex-row gap-2">
-                        <button class="btn btn-success" @onclick="ToggleCurriculum">Thêm giáo trình, sách tham khảo</button>
+                <div class="card shadow rounded">
+                    <div class="p-3 d-flex flex-column gap-3">
+                        <div class="d-flex justify-content-between">
+                            <h3>Danh sách giáo trình, sách tham khảo của @scientist.profile_name</h3>
+                            <button class="btn btn-success" @onclick="ToggleCurriculum">Thêm giáo trình, sách tham khảo</button>
+                        </div>
+                        @if (scientist != null && isAdd)
+                        {
+                            <CurriculumForm NewCurriculum="@curriculum" ListBooks="@books" ListTrainings="@trainings" IsReadOnly="@isReadOnly" showError="@showError" OnCancel="ToggleCurriculum" OnSave="SaveCurriculum" />
+                        }
+                        <TableCurriculum AuthorRoleId="@roleId" ListCurriculums="@curriculums" OnEdit="EditCurriculum" OnDelete="DeleteCurriculum" />
                     </div>
-                    @if (scientist != null && isAdd)
-                    {
-                        <CurriculumForm NewCurriculum="@curriculum" ListBooks="@books" ListTrainings="@trainings" IsReadOnly="@isReadOnly" showError="@showError" OnCancel="ToggleCurriculum" OnSave="SaveCurriculum" />
-                    }
-
                 </div>
-                <TableCurriculum AuthorRoleId="@roleId" ListCurriculums="@curriculums" OnEdit="EditCurriculum" OnDelete="DeleteCurriculum" />
             </div>
         </div>
     </div>
@@ -96,11 +97,11 @@
         isReadOnly = !isReadOnly;
         curriculum = new Models.Curriculum.Curriculums();
     }
-
-    private void JoinCurriculum()
+    private void Reload()
     {
-        NavigationManager.NavigateTo("/User/JoinCurriculums");
+        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
     }
+
 
     private async Task SaveCurriculum()
     {
@@ -168,18 +169,7 @@
     {
         try
         {
-            if (curriculum == null || string.IsNullOrWhiteSpace(curriculum.name))
-            {
-                showError = true;
-                return;
-            }
-
-            showError = false;
-
-            if (scientist == null || string.IsNullOrEmpty(scientist.id) || string.IsNullOrEmpty(roleId))
-            {
-                throw new InvalidOperationException("Scientist or role information is missing.");
-            }
+            showError = true;
 
             curriculum.id = Guid.NewGuid().ToString();
             curriculum.created_at = DateTime.Now;
@@ -188,7 +178,13 @@
             var result = await CurriculumServices.AddCurriculumAndLinkToScientistAsync(curriculum, scientist.id, roleId, false, false);
             if (result)
             {
-                curriculums = await CurriculumServices.GetCurriculumsByScientistIdAsync(scientist.id);
+                toastService.ShowSuccess("Thành công!");
+                await Task.Delay(3000);
+                Reload();
+            }
+            else
+            {
+                toastService.ShowError("Thất bại!");
             }
 
             isAdd = false;
@@ -205,23 +201,18 @@
     {
         try
         {
-            if (curriculum == null || string.IsNullOrWhiteSpace(curriculum.name))
-            {
-                showError = true;
-                return;
-            }
-
-            showError = false;
-
-            if (scientist == null || string.IsNullOrEmpty(scientist.id) || string.IsNullOrEmpty(roleId))
-            {
-                throw new InvalidOperationException("Scientist or role information is missing.");
-            }
+            showError = true;
 
             var result = await CurriculumServices.UpdateCurriculumAndLinkToScientistAsync(curriculum.id, curriculum, scientist.id, roleId, null, false);
             if (result)
             {
-                curriculums = await CurriculumServices.GetCurriculumsByScientistIdAsync(scientist.id);
+                toastService.ShowSuccess("Thành công!");
+                await Task.Delay(3000);
+                Reload();
+            }
+            else
+            {
+                toastService.ShowError("Thất bại!");
             }
 
             isAdd = false;
@@ -246,28 +237,6 @@
                 if (result)
                 {
                     curriculums = await CurriculumServices.GetCurriculumsByScientistIdAsync(scientist.id);
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"An error occurred while deleting: {ex.Message}");
-        }
-    }
-
-    private async Task UpdateRequest(ScientistCurriculumRole requestCurriculum, bool isAccept)
-    {
-        try
-        {
-            var confirm = await JSRuntime.InvokeAsync<bool>("confirm", new object[] { isAccept ? "Bạn có chắc muốn duyệt yêu cầu này?" : "Bạn có chắc muốn từ chối yêu cầu này?" });
-
-            if (confirm && !string.IsNullOrWhiteSpace(requestCurriculum?.Curriculums?.id) && !string.IsNullOrWhiteSpace(requestCurriculum?.Scientist?.id) && !string.IsNullOrWhiteSpace(requestCurriculum?.Role?.id))
-            {
-                var result = await CurriculumServices.UpdateCurriculumAndLinkToScientistAsync(requestCurriculum.Curriculums.id, requestCurriculum.Curriculums, requestCurriculum.Scientist.id, requestCurriculum.Role.id, isAccept ? "Đã tham gia" : "Bị từ chối", true);
-                if (result)
-                {
-                    ListCurriculumIds = curriculums.Select(curriculum => curriculum.id).ToList();
-                    RequestCurriculums = await CurriculumServices.GetJoinRequestsByScientistIdAsync(scientist.id, ListCurriculumIds);
                 }
             }
         }

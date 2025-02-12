@@ -20,9 +20,16 @@ namespace BlazorFE.Services
                     .ThenInclude(o => o.Propose)
                 .Include(scr => scr.Role)
                 .Include(scr => scr.Scientist)
+                .OrderByDescending(or => or.updated_at)
                 .ToListAsync();
 
             return scientistOffers;
+        }
+
+        public async Task<Offers> GetMagazineByIdAsync(string offerId)
+        {
+            var existingOffer = await _context.Offers.FindAsync(offerId);
+            return existingOffer;
         }
 
         // Get Offers by Scientist ID
@@ -32,34 +39,42 @@ namespace BlazorFE.Services
                 throw new ArgumentException("Scientist ID cannot be null or empty", nameof(scientistId));
 
             var scientistOffers = await _context.Set<ScientistOfferRole>()
-                .Where(scr => scr.scientist_id == scientistId)
+                .Where(scr => scr.scientist_id == scientistId && scr.requestStatus == "Đã tham gia")
                 .Include(scr => scr.Offer)
                     .ThenInclude(o => o.Propose)
                 .Include(scr => scr.Role)
                 .Include(scr => scr.Scientist)
+                .OrderByDescending(or => or.updated_at)
                 .ToListAsync();
 
             return scientistOffers;
         }
 
-        public async Task<List<ScientistOfferRole>> GetJoinRequestsByScientistIdAsync(string scientistId, List<string> offerIds)
+        public async Task <ScientistOfferRole> GetOfferByScientistIdAsync(string offerId, string scientistId)
         {
-            if (string.IsNullOrEmpty(scientistId))
-                throw new ArgumentException("Scientist ID cannot be null or empty", nameof(scientistId));
-            if (offerIds == null || !offerIds.Any())
-                return null;
-
-            var joinRequests = await _context.Set<ScientistOfferRole>()
-                .Where(scr => scr.scientist_id != scientistId
-                    && scr.requestStatus == "Chờ duyệt"
-                    && offerIds.Contains(scr.offer_id))
+            var scientistOffer = await _context.Set<ScientistOfferRole>()
+                .Where(scr => scr.scientist_id == scientistId && scr.offer_id == offerId)
                 .Include(scr => scr.Offer)
                     .ThenInclude(o => o.Propose)
                 .Include(scr => scr.Role)
                 .Include(scr => scr.Scientist)
+                .FirstOrDefaultAsync();
+
+            return scientistOffer;
+        }
+
+        public async Task<List<ScientistOfferRole>> GetListScientistByOfferIdAsync(string offerId)
+        {
+            var scientistMagazines = await _context.Set<ScientistOfferRole>()
+                .Where(scr => scr.offer_id == offerId && scr.requestStatus == "Đã tham gia")
+                .Include(scr => scr.Offer)
+                    .ThenInclude(o => o.Propose)
+                .Include(scr => scr.Role)
+                .Include(scr => scr.Scientist)
+                .OrderByDescending(or => or.updated_at)
                 .ToListAsync();
 
-            return joinRequests;
+            return scientistMagazines;
         }
 
         public async Task<List<ScientistOfferRole>> GetRequesOfferAsync(string scientistId, bool isJoining)
@@ -93,7 +108,7 @@ namespace BlazorFE.Services
         }
 
         // Add a Offer and Link to Scientist
-        public async Task<bool> AddOfferAndLinkToScientistAsync(Offers newOffer, string scientistId, string roleId, bool isJoining)
+        public async Task<bool> AddOfferAndLinkToScientistAsync(Offers newOffer, string scientistId, string roleId, bool isJoining, bool? isEditable)
         {
             if (newOffer == null) throw new ArgumentNullException(nameof(newOffer));
             if (string.IsNullOrEmpty(scientistId)) throw new ArgumentException("Scientist ID cannot be null or empty", nameof(scientistId));
@@ -112,7 +127,8 @@ namespace BlazorFE.Services
                     scientist_id = scientistId,
                     offer_id = newOffer.id,
                     role_id = roleId,
-                    requestStatus = isJoining ? "Chờ duyệt" : "Đã tham gia",
+                    requestStatus = "Đã tham gia",
+                    status = isEditable,
                     created_at = DateTime.Now,
                     updated_at = DateTime.Now
                 };
@@ -132,7 +148,7 @@ namespace BlazorFE.Services
         }
 
         // Update a Offer and Link to Scientist
-        public async Task<bool> UpdateOfferAndLinkToScientistAsync(string offerId, Offers updatedOffer, string scientistId, string roleId,string? requestStatus, bool isUpdateRequest)
+        public async Task<bool> UpdateOfferAndLinkToScientistAsync(string offerId, Offers updatedOffer, string scientistId, string roleId,string? requestStatus, bool? isUpdateStatus)
         {
             if (updatedOffer == null) throw new ArgumentNullException(nameof(updatedOffer));
             if (string.IsNullOrEmpty(offerId)) throw new ArgumentException("Curriculum ID cannot be null or empty", nameof(offerId));
@@ -161,10 +177,7 @@ namespace BlazorFE.Services
                 if (scientistOfferRole != null)
                 {
                     scientistOfferRole.role_id = roleId;
-                    if (isUpdateRequest)
-                    {
-                        scientistOfferRole.requestStatus = requestStatus;
-                    }
+                    scientistOfferRole.status = isUpdateStatus;
                     scientistOfferRole.updated_at = DateTime.Now;
                     _context.Set<ScientistOfferRole>().Update(scientistOfferRole);
                     await _context.SaveChangesAsync();

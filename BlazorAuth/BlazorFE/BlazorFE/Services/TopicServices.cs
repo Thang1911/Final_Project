@@ -160,7 +160,7 @@ namespace BlazorFE.Services
             }
         }
 
-        public async Task<bool> UpdateTopicAndLinkToScientistAsync(string topicId, Topics updatedTopic, string scientistId, string roleId, string? requestStatus, bool isUpdateRequest)
+        public async Task<bool> UpdateTopicAndLinkToScientistAsync(string topicId, Topics updatedTopic, string scientistId, string roleId, string? requestStatus, bool? isUpdateStatus)
         {
             if (updatedTopic == null) throw new ArgumentNullException(nameof(updatedTopic));
             if (string.IsNullOrEmpty(topicId)) throw new ArgumentException("Topic ID cannot be null or empty", nameof(topicId));
@@ -190,9 +190,8 @@ namespace BlazorFE.Services
                 {
                     scientistTopicRole.role_id = roleId;
                     scientistTopicRole.updated_at = DateTime.Now;
-                    if(isUpdateRequest) { 
-                        scientistTopicRole.requestStatus = requestStatus;
-                    }
+                    scientistTopicRole.status = isUpdateStatus;
+
                     _context.Set<scientist_topic_role>().Update(scientistTopicRole);
                     await _context.SaveChangesAsync();
                 }

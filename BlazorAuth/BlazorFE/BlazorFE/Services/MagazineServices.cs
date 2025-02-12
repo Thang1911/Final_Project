@@ -197,7 +197,7 @@ namespace BlazorFE.Services
         }
 
         // Update a Magazine and Link to Scientist
-        public async Task<bool> UpdateMagazineAndLinkToScientistAsync(string magazineId, Magazines updatedMagazine, string scientistId, string roleId, string? requestStatus, bool isUpdateRequest)
+        public async Task<bool> UpdateMagazineAndLinkToScientistAsync(string magazineId, Magazines updatedMagazine, string scientistId, string roleId, string? requestStatus, bool? isUpdateStatus)
         {
             if (updatedMagazine == null) throw new ArgumentNullException(nameof(updatedMagazine));
             if (string.IsNullOrEmpty(magazineId)) throw new ArgumentException("Magazine ID cannot be null or empty", nameof(magazineId));
@@ -228,10 +228,7 @@ namespace BlazorFE.Services
                 {
                     scientistMagazineRole.role_id = roleId;
                     scientistMagazineRole.updated_at = DateTime.Now;
-                    if (isUpdateRequest)
-                    {
-                        scientistMagazineRole.requestStatus = requestStatus;
-                    }
+                    scientistMagazineRole.status = isUpdateStatus;
                     _context.Set<ScientistMagazineRole>().Update(scientistMagazineRole);
                     await _context.SaveChangesAsync();
                 }

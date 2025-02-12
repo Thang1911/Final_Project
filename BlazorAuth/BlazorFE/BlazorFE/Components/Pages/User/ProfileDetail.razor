@@ -26,7 +26,7 @@
                         <div class="auto-cols">
                             <div>
                                 <label class="labels">Họ và Tên<span class="text-red">*</span></label>
-                                <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Họ và tên" @bind="@scientist.profile_name">
+                                <input disabled="@isReadOnly" type="text" class="form-control" placeholder="Họ và tên" @bind="@scientist.profile_name">
                                 @if (showError && string.IsNullOrWhiteSpace(scientist.profile_name))
                                 {
                                     <span class="text-danger">Vui lòng nhập họ và tên.</span>
@@ -34,7 +34,7 @@
                             </div>
                             <div>
                                 <label class="labels">Ngày sinh<span class="text-red">*</span></label>
-                                <input readonly="@isReadOnly" type="date" class="form-control" @bind="@scientist.birthday">
+                                <input disabled="@isReadOnly" type="date" class="form-control" @bind="@scientist.birthday">
                                 @if (showError && scientist.birthday == null)
                                 {
                                     <span class="text-danger">Vui lòng nhập ngày sinh.</span>
@@ -59,7 +59,7 @@
                         <div class="auto-cols mt-2">
                             <div>
                                 <label class="labels">Nơi sinh<span class="text-red">*</span></label>
-                                <input readonly="@isReadOnly" type="text" class="form-control" @bind="@scientist.birth_place">
+                                <input disabled="@isReadOnly" type="text" class="form-control" @bind="@scientist.birth_place">
                                 @if (showError && string.IsNullOrWhiteSpace(scientist.birth_place))
                                 {
                                     <span class="text-danger">Vui lòng nhập nơi sinh.</span>
@@ -67,7 +67,7 @@
                             </div>
                             <div>
                                 <label class="labels">Địa chỉ liên lạc</label>
-                                <input readonly="@isReadOnly" type="text" class="form-control" @bind="@scientist.address">
+                                <input disabled="@isReadOnly" type="text" class="form-control" @bind="@scientist.address">
                             </div>
                         </div>
 
@@ -75,7 +75,7 @@
                         <div class="auto-cols mt-2">
                             <div>
                                 <label class="labels">Điện thoại di động<span class="text-red">*</span></label>
-                                <input readonly="@isReadOnly" type="number" class="form-control" placeholder="Điện thoại di động" @bind="@scientist.phone">
+                                <input disabled="@isReadOnly" type="number" class="form-control" placeholder="Điện thoại di động" @bind="@scientist.phone">
                                 @if (showError && scientist.phone == null)
                                 {
                                     <span class="text-danger">Vui lòng nhập số điện thoại di động.</span>
@@ -83,15 +83,15 @@
                             </div>
                             <div>
                                 <label class="labels">Điện thoại nhà riêng</label>
-                                <input readonly="@isReadOnly" type="number" class="form-control" placeholder="Điện thoại nhà riêng" @bind="@scientist.house_phone">
+                                <input disabled="@isReadOnly" type="number" class="form-control" placeholder="Điện thoại nhà riêng" @bind="@scientist.house_phone">
                             </div>
                             <div>
                                 <label class="labels">Điện thoại cơ quan</label>
-                                <input readonly="@isReadOnly" type="number" class="form-control" placeholder="Điện thoại cơ quan" @bind="@scientist.office_phone">
+                                <input disabled="@isReadOnly" type="number" class="form-control" placeholder="Điện thoại cơ quan" @bind="@scientist.office_phone">
                             </div>
                             <div>
                                 <label class="labels">Email<span class="text-red">*</span></label>
-                                <input readonly="true" type="email" class="form-control" placeholder="Email" @bind="@scientist.email">
+                                <input disabled="true" type="email" class="form-control" placeholder="Email" @bind="@scientist.email">
                                 @if (showError && string.IsNullOrWhiteSpace(scientist.email))
                                 {
                                     <span class="text-danger">Vui lòng nhập email.</span>
@@ -130,7 +130,7 @@
                             </div>
                             <div>
                                 <label class="labels">Chức danh khoa học</label>
-                                <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Chức danh khoa học" @bind="@scientist.scientific_title">
+                                <input disabled="@isReadOnly" type="text" class="form-control" placeholder="Chức danh khoa học" @bind="@scientist.scientific_title">
                             </div>
                         </div>
 
@@ -138,11 +138,11 @@
                         <div class="auto-cols mt-2">
                             <div>
                                 <label class="labels">Chức danh nghiên cứu</label>
-                                <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Chức danh nghiên cứu" @bind="@scientist.research_title">
+                                <input disabled="@isReadOnly" type="text" class="form-control" placeholder="Chức danh nghiên cứu" @bind="@scientist.research_title">
                             </div>
                             <div>
                                 <label class="labels">Chức vụ nghiên cứu</label>
-                                <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Chức vụ nghiên cứu" @bind="@scientist.research_position">
+                                <input disabled="@isReadOnly" type="text" class="form-control" placeholder="Chức vụ nghiên cứu" @bind="@scientist.research_position">
                             </div>
                             <div>
                                 <label class="labels">Tên tổ chức<span class="text-red">*</span></label>
@@ -165,7 +165,7 @@
 
                         <div>
                             <label class="labels">Địa chỉ tổ chức<span class="text-red">*</span></label>
-                            <input readonly="true" type="text" class="form-control" placeholder="Địa chỉ tổ chức" @bind="@scientist.address_office">
+                            <input disabled="true" type="text" class="form-control" placeholder="Địa chỉ tổ chức" @bind="@scientist.address_office">
                             @if (showError && string.IsNullOrWhiteSpace(scientist.address_office))
                             {
                                 <span class="text-danger">Vui lòng nhập địa chỉ tổ chức.</span>

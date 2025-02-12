@@ -143,11 +143,11 @@
                                             <td>@item?.Role?.role_name</td>
                                             <td><Label Type="@(Helpers.LabelHelper.GetStatusLabel(item?.requestStatus))" Text="@item?.requestStatus" /></td>
                                             <td>
-                                                <button class="btn btn-warning" @onclick="() => EditMagazine(item.Magazines)" disabled="@(!string.Equals(item?.requestStatus, "đã tham gia", StringComparison.OrdinalIgnoreCase))">
+                                                <button class="btn btn-warning" @onclick="() => EditMagazine(item.Magazines)">
                                                     <div class="bi-pencil-square-custom" style="width: 20px; height: 20px;"></div>
                                                 </button>
                                                 <button class="btn btn-danger"
-                                                        @onclick="() => DeleteMagazine(item.Magazines)">
+                                                        @onclick="() => DeleteMagazine(item.Magazines)" disabled="@(item.status ?? true)">
                                                     <div class="bi-trash-custom" style="width: 20px; height: 20px;"></div>
                                                 </button>
                                             </td>

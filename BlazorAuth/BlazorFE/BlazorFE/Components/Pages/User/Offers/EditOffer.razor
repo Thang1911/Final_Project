@@ -1,9 +1,9 @@
-﻿@page "/User/Topics/Edit/{TopicId}"
+﻿@page "/User/Offers/Edit/{OfferId}"
 @rendermode InteractiveServer
 
 @using Microsoft.AspNetCore.Authorization;
 
-@attribute [Authorize(Roles="User")]
+@attribute [Authorize(Roles = "User")]
 
 @using System.Security.Claims;
 @using BlazorFE.Models.Scientist
@@ -14,9 +14,11 @@
 @using Helpers
 
 @inject ScientistServices ProfileServices
-@inject TopicServices TopicServices
 @inject RoleServices RoleServices
-@inject LvTopicServices LvTopicServices
+
+@inject OfferServices OfferServices
+@inject RoleServices RoleServices
+@inject ProposeServices ProposeServices
 @inject FileUploadServices FileUploadServices
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
@@ -28,63 +30,59 @@
     <div class="justify-content-center">
         <div class="border-right">
             <div class="mb-4">
-                @if (scientist != null && scientistTopic != null && scientistTopic?.Topics != null)
+                @if (scientist != null && scientistOffer != null && scientistOffer?.Offer != null)
                 {
                     <div class="card shadow rounded">
                         <div class="p-3">
                             <form>
                                 <div class="d-flex flex-column gap-3">
-                                    <!-- Hàng đầu tiên -->
-                                    <div class="auto-cols mb-2">
-                                        <div>
-                                            <label class="labels">Tên đề tài<span class="text-red">*</span></label>
-                                            <input disabled="@IsReadOnly" type="text" class="form-control" placeholder="Tên đề tài" @bind="@scientistTopic.Topics.topic_name">
-                                            @if (ShowError && string.IsNullOrWhiteSpace(scientistTopic.Topics.topic_name))
-                                            {
-                                                <span class="text-danger">Vui lòng nhập tên đề tài</span>
-                                            }
-                                        </div>
-                                        <div>
-                                            <label class="labels">Cấp độ đề tài<span class="text-red">*</span></label>
-                                            <select disabled="@IsReadOnly" type="text" class="form-control" @bind="@scientistTopic.Topics.lvtopic_id">
-                                                <option value="" class="text-gray">Chọn cấp độ đề tài</option>
-                                                @foreach (var item in lvTopics)
+                                    <div class="mt-2">
+                                        <!-- Hàng đầu tiên -->
+                                        <div class="auto-cols">
+                                            <div>
+                                                <label class="labels">Tên đề xuất<span class="text-red">*</span></label>
+                                                <input disabled="@IsReadOnly" type="text" class="form-control" placeholder="Tên đề xuất" @bind="@scientistOffer.Offer.offer_name">
+                                                @if (ShowError && string.IsNullOrWhiteSpace(scientistOffer?.Offer.offer_name))
                                                 {
-                                                    <option value="@item.id">@item.lvtopic_name</option>
+                                                    <span class="text-danger">Vui lòng nhập tên đề xuất</span>
                                                 }
-                                            </select>
-                                            @if (ShowError && string.IsNullOrWhiteSpace(scientistTopic.Topics.lvtopic_id))
-                                            {
-                                                <span class="text-danger">Vui lòng chọn cấp độ đề tài.</span>
-                                            }
+                                            </div>
+                                            <div>
+                                                <label class="labels">Ghi chú <span class="text-gray">(Tùy chọn)</span></label>
+                                                <input disabled="@IsReadOnly" type="text" class="form-control" placeholder="Ghi chú" @bind="@scientistOffer.Offer.note">
+                                            </div>
                                         </div>
-                                        <div>
-                                            <label class="labels">Kết quả đánh giá<span class="text-red">*</span></label>
-                                            <select disabled="@IsReadOnly" type="text" class="form-control" @bind="scientistTopic.Topics.result" aria-label="Default select example">
-                                                <option value="0">Chọn kết quả</option>
-                                                @foreach (var option in Enum.GetValues<Result>())
+
+                                        <!-- Hàng thứ hai -->
+                                        <div class="auto-cols mt-2">
+                                            <div>
+                                                <label class="labels">Năm<span class="text-red">*</span></label>
+                                                <select disabled="@IsReadOnly" type="text" class="form-control" @bind="@scientistOffer.Offer.year">
+                                                    <option value="0" selected>Chọn năm</option>
+                                                    @for (int year = DateTime.Now.Year; year >= 1900; year--)
+                                                    {
+                                                        <option value="@year">@year</option>
+                                                    }
+                                                </select>
+                                                @if (ShowError && scientistOffer?.Offer.year == 0)
                                                 {
-                                                    <option value="@(option)">
-                                                        @Helpers.EnumHelper.GetEnumDisplayName(option)
-                                                    </option>
+                                                    <span class="text-danger">Vui lòng chọn năm.</span>
                                                 }
-                                            </select>
-
-                                            @if (ShowError && scientistTopic.Topics.result == "")
-                                            {
-                                                <span class="text-danger">Vui lòng chọn kết quả.</span>
-                                            }
-                                        </div>
-                                    </div>
-                                    <div class="auto-cols">
-
-                                        <div>
-                                            <label class="labels">Ngày bắt đầu</label>
-                                            <input disabled="@IsReadOnly" type="date" class="form-control" @bind="@scientistTopic.Topics.start_date">
-                                        </div>
-                                        <div>
-                                            <label class="labels">Ngày kết thúc</label>
-                                            <input disabled="@IsReadOnly" type="date" class="form-control" @bind="@scientistTopic.Topics.end_date">
+                                            </div>
+                                            <div>
+                                                <label class="labels">Loại đề xuất<span class="text-red">*</span></label>
+                                                <select disabled="@IsReadOnly" type="text" class="form-control" @bind="@scientistOffer.Offer.propose_id">
+                                                    <option value="">Chọn loại đề xuất</option>
+                                                    @foreach (var item in proposes)
+                                                    {
+                                                        <option value="@item.id">@item.propose_name</option>
+                                                    }
+                                                </select>
+                                                @if (ShowError && string.IsNullOrWhiteSpace(scientistOffer?.Offer.propose_id))
+                                                {
+                                                    <span class="text-danger">Vui lòng chọn loại đề xuất.</span>
+                                                }
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -92,13 +90,13 @@
                                     @if (isUpdate)
                                     {
                                         <div class="text-center">
-                                            <button class="btn btn-success" type="submit" @onclick="SaveTopic" @onclick:preventDefault>Lưu</button>
+                                            <button class="btn btn-success" type="submit" @onclick="SaveOffer" @onclick:preventDefault>Lưu</button>
                                         </div>
                                     }
                                     else
                                     {
                                         <div class="text-center">
-                                            <button class="btn btn-success" @onclick="ToggleUpdate" @onclick:preventDefault disabled="@(scientistTopic?.status ?? true)">Chỉnh sửa</button>
+                                            <button class="btn btn-success" @onclick="ToggleUpdate" @onclick:preventDefault disabled="@(scientistOffer?.status ?? true)">Chỉnh sửa</button>
                                         </div>
                                     }
                                     <div class="text-center">
@@ -111,15 +109,15 @@
                 }
             </div>
 
-           
+
             <div class="card shadow rounded my-4">
                 <div class="p-3">
                     <div class="d-flex gap-2 justify-content-between mb-2">
                         <h3 class="">Danh sách thành viên: </h3>
-                        <button class="btn btn-outline-primary" @onclick="AddMember" disabled="@(scientistTopic?.status ?? true)">Thêm thành viên</button>
+                        <button class="btn btn-outline-primary" @onclick="AddMember" disabled="@(scientistOffer?.status ?? true)">Thêm thành viên</button>
                     </div>
 
-                    @if (isAddMember || isUpdateMember)
+                    @if (isAddMember ||isUpdateMember)
                     {
                         <form class="mb-3">
                             <div class="auto-cols">
@@ -153,7 +151,7 @@
                                 <div>
                                     <label class="labels">Quyền<span class="text-red">*</span></label>
                                     <select disabled="@MemberReadOnly" class="form-control" @onchange="OnPermissionChange">
-                                        <option value="">Chọn quyền</option>
+                                        <option value="" selected>Chọn quyền</option>
                                         <option value="false">Chỉnh sửa</option>
                                         <option value="true">Đọc</option>
                                     </select>
@@ -166,7 +164,7 @@
                             </div>
                             <div class="d-flex gap-1 my-2">
                                 <div class="text-center">
-                                    <button class="btn btn-primary" type="button">Hủy</button>
+                                    <button class="btn btn-primary" type="button" @onclick="Cancel">Hủy</button>
                                 </div>
                                 <div class="text-center">
                                     <button class="btn btn-success" type="submit" @onclick="SaveMember" @onclick:preventDefault>Lưu</button>
@@ -187,10 +185,10 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @if (listScientistTopics != null && listScientistTopics.Count > 0)
+                                @if (listscientistOffers != null && listscientistOffers.Count > 0)
                                 {
                                     int i = 1;
-                                    foreach (var item in listScientistTopics)
+                                    foreach (var item in listscientistOffers)
                                     {
                                         <tr>
                                             <th scope="row">@i</th>
@@ -200,7 +198,7 @@
                                             <td>@item?.requestStatus</td>
                                             <td>
                                                 <button class="btn btn-info" @onclick="() => UpdateMember(item)"><div class="bi-pencil-square-custom" style="width: 20px; height: 20px;"></div></button>
-                                                <button class="btn btn-danger" @onclick="() => DeleteTopic(item)" disabled="@(scientistTopic?.status ?? true)"><div class="bi-trash-custom" style="width: 20px; height: 20px;"></div></button>
+                                                <button class="btn btn-danger" @onclick="() => DeleteOffer(item)" disabled="@(scientistOffer?.status ?? true)"><div class="bi-trash-custom" style="width: 20px; height: 20px;"></div></button>
                                             </td>
                                         </tr>
                                         i++;
@@ -216,11 +214,11 @@
                 <div class="p-3">
                     <div class="d-flex gap-2 justify-content-between">
                         <h3 class="">Danh sách tài liệu: </h3>
-                        <button class="btn btn-outline-primary" @onclick="ToggleUploadFile" disabled="@(scientistTopic?.status ?? true)">Thêm tài liệu</button>
+                        <button class="btn btn-outline-primary" @onclick="ToggleUploadFile" disabled="@(scientistOffer?.status ?? true)">Thêm tài liệu</button>
                     </div>
                     @if (isUpload)
                     {
-                        <UploadFile relatedId="@TopicId" OnSave="LoadFiles" />
+                        <UploadFile relatedId="@OfferId" OnSave="LoadFiles" />
                     }
                     <DataTable Searchable="false">
                         <table class="table table-striped table-hover">
@@ -244,7 +242,7 @@
                                             <td>@item.file_type</td>
                                             <td>
                                                 <button class="btn btn-success" @onclick="() => DownloadFile(item)"><div class="bi-download-custom" style="width: 20px; height: 20px;"></div></button>
-                                                <button class="btn btn-danger" disabled="@(scientistTopic?.status ?? true)" @onclick="() => DeleteFile(item.id)"><div class="bi-trash-custom" style="width: 20px; height: 20px;"></div></button>
+                                                <button class="btn btn-danger" disabled="@(scientistOffer?.status ?? true)" @onclick="() => DeleteFile(item.id)"><div class="bi-trash-custom" style="width: 20px; height: 20px;"></div></button>
                                             </td>
                                         </tr>
                                         i++;
@@ -286,15 +284,15 @@
 
 @code {
     [Parameter]
-    public string TopicId { get; set; }
+    public string OfferId { get; set; }
 
     private bool IsReadOnly = true;
     private bool MemberReadOnly = true;
     private bool isAddMember = false;
-    private bool isUpdateMember = false;
     private bool isUpload = false;
     private bool ShowError = false;
     private bool isUpdate = false;
+    private bool isUpdateMember = false;
     private string ScientistId { get; set; } = "";
     private string ScientistName { get; set; } = "";
     private string userName = "";
@@ -302,12 +300,12 @@
     private string roleId = "";
     private bool? SelectedPermission { get; set; }
     private List<Models.Category.Role> roles { get; set; } = new();
-    private List<Models.Category.LvTopics> lvTopics { get; set; } = new();
+    private List<Models.Category.Propose> proposes { get; set; } = new();
     private Scientist scientist { get; set; } = new();
-    private scientist_topic_role scientistTopic { get; set; } = new();
-    private List<scientist_topic_role> requestTopics { get; set; } = new();
-    private List<scientist_topic_role> listScientistTopics { get; set; } = new();
-    private List<string> ListTopicIds { get; set; } = new();
+    private ScientistOfferRole scientistOffer { get; set; } = new();
+
+    private List<ScientistOfferRole> listscientistOffers { get; set; } = new();
+    private List<string> ListOfferIds { get; set; } = new();
     private List<string> ListScientistIds { get; set; } = new();
     private List<Scientist> scientists { get; set; } = new();
     private List<Models.File.File> listFiles { get; set; } = new();
@@ -329,7 +327,7 @@
         IsReadOnly = !IsReadOnly;
     }
 
-    private void UpdateMember(scientist_topic_role editScientist)
+    private void UpdateMember(ScientistOfferRole editScientist)
     {
         isUpdateMember = true;
         MemberReadOnly = false;
@@ -343,9 +341,8 @@
     {
         if (isUpdateMember)
         {
-            await UpdateMemberTopic();
-        }
-        else
+            await UpdateMemberOffer();
+        } else
         {
             await CreateNewRequest();
         }
@@ -361,15 +358,15 @@
         roleId = "";
     }
 
-    private async Task SaveTopic()
+    private async Task SaveOffer()
     {
-        await UpdateTopic();
+        await UpdateOffer();
     }
 
     private async Task LoadFiles()
     {
         isUpload = false;
-        listFiles = await FileUploadServices.GetFilesByRelatedIdAsync(TopicId);
+        listFiles = await FileUploadServices.GetFilesByRelatedIdAsync(OfferId);
         NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
     }
 
@@ -410,7 +407,7 @@
     private async Task<List<Scientist>> LoadScientists()
     {
         var listScientist = await ProfileServices.GetAllScientistIdAsync();
-        ListScientistIds = listScientistTopics.Select(x => x.scientist_id).ToList();
+        ListScientistIds = listscientistOffers.Select(x => x.scientist_id).ToList();
 
         return listScientist
             .Where(scientist => !ListScientistIds.Contains(scientist.id))
@@ -433,16 +430,17 @@
                 {
                     scientist = response;
                     scientists = await ProfileServices.GetAllScientistIdAsync();
-                    scientistTopic = await TopicServices.GetScientistTopicByIdAsync(TopicId, scientist.id);
-                    if(scientistTopic != null)
+                    scientistOffer = await OfferServices.GetOfferByScientistIdAsync(OfferId, scientist.id);
+                    if (scientistOffer != null)
                     {
-                        listScientistTopics = await TopicServices.GetListScientistByTopicIdAsync(TopicId);
-                        lvTopics = await LvTopicServices.GetListLvTopics();
+                        listscientistOffers = await OfferServices.GetListScientistByOfferIdAsync(OfferId);
+                        proposes = await ProposeServices.GetListPropose();
                         roles = await RoleServices.GetListRole(RoleType.topic.ToString());
-                        listFiles = await FileUploadServices.GetFilesByRelatedIdAsync(TopicId);
-                    } else
+                        listFiles = await FileUploadServices.GetFilesByRelatedIdAsync(OfferId);
+                    }
+                    else
                     {
-                        NavigationManager.NavigateTo("/User/Topics");
+                        NavigationManager.NavigateTo("/User/Offers");
                     }
                 }
             }
@@ -461,28 +459,16 @@
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(scientistTopic.id))
-            {
-                ShowError = true;
-                return;
-            }
+            ShowError = true;
 
-            if (string.IsNullOrEmpty(ScientistId) || string.IsNullOrEmpty(roleId))
-            {
-                ShowError = true;
-                return;
-                throw new InvalidOperationException("Scientist or role information is missing.");
-            }
-
-            ShowError = false;
-
-            var result = await TopicServices.AddTopicAndLinkToScientistAsync(scientistTopic.Topics, ScientistId, roleId, true, SelectedPermission);
+            var result = await OfferServices.AddOfferAndLinkToScientistAsync(scientistOffer.Offer, ScientistId, roleId, true, SelectedPermission);
             if (result)
             {
                 toastService.ShowSuccess("Thêm thành viên thành công!");
                 await Task.Delay(3000);
                 Reload();
-            } else
+            }
+            else
             {
                 toastService.ShowError("Thêm thành viên không thành công!");
             }
@@ -496,18 +482,17 @@
         }
     }
 
-    private async Task UpdateTopic()
+    private async Task UpdateOffer()
     {
         try
         {
-            ShowError = true;
-
-            var result = await TopicServices.UpdateTopicAndLinkToScientistAsync(scientistTopic.topic_id, scientistTopic?.Topics, scientist.id, roleId, null, false);
+            var result = await OfferServices.UpdateOfferAndLinkToScientistAsync(scientistOffer.offer_id, scientistOffer?.Offer, scientist.id, scientistOffer.role_id, null, false);
             if (result)
             {
                 toastService.ShowSuccess("Chỉnh sửa thông tin đề tài thành công!");
-                scientistTopic = await TopicServices.GetScientistTopicByIdAsync(TopicId, scientist.id);
-            } else
+                scientistOffer = await OfferServices.GetOfferByScientistIdAsync(OfferId, scientist.id);
+            }
+            else
             {
                 toastService.ShowError("Chỉnh sửa thông tin đề tài không thành công!");
             }
@@ -521,11 +506,11 @@
         }
     }
 
-    private async Task UpdateMemberTopic()
+    private async Task UpdateMemberOffer()
     {
         try
         {
-            var result = await TopicServices.UpdateTopicAndLinkToScientistAsync(scientistTopic.topic_id, scientistTopic?.Topics, ScientistId, roleId, null, SelectedPermission);
+            var result = await OfferServices.UpdateOfferAndLinkToScientistAsync(scientistOffer.offer_id, scientistOffer?.Offer, ScientistId, roleId, null, SelectedPermission);
             if (result)
             {
                 toastService.ShowSuccess("Chỉnh sửa thông tin thành viên thành công!");
@@ -546,7 +531,7 @@
         }
     }
 
-    private async Task DeleteTopic(scientist_topic_role str)
+    private async Task DeleteOffer(ScientistOfferRole str)
     {
         try
         {
@@ -554,8 +539,8 @@
 
             if (confirm)
             {
-                var result = await TopicServices.DeleteTopicAndLinkFromScientistAsync(str.topic_id, str.scientist_id);
-                if(result)
+                var result = await OfferServices.DeleteOfferAndLinkFromScientistAsync(str.offer_id, str.scientist_id);
+                if (result)
                 {
                     toastService.ShowSuccess("Xóa thành viên thành công!");
                     await Task.Delay(3000);

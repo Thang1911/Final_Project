@@ -187,7 +187,7 @@ namespace BlazorFE.Services
         }
 
         // Update a Curriculum and Link to Scientist
-        public async Task<bool> UpdateCurriculumAndLinkToScientistAsync(string curriculumId, Curriculums updatedCurriculum, string scientistId, string roleId, string? requestStatus, bool isUpdateRequest)
+        public async Task<bool> UpdateCurriculumAndLinkToScientistAsync(string curriculumId, Curriculums updatedCurriculum, string scientistId, string roleId, string? requestStatus, bool? isUpdateStatus)
         {
             if (updatedCurriculum == null) throw new ArgumentNullException(nameof(updatedCurriculum));
             if (string.IsNullOrEmpty(curriculumId)) throw new ArgumentException("Curriculum ID cannot be null or empty", nameof(curriculumId));
@@ -216,10 +216,7 @@ namespace BlazorFE.Services
                 if (scientistCurriculumRole != null)
                 {
                     scientistCurriculumRole.role_id = roleId;
-                    if (isUpdateRequest)
-                    {
-                        scientistCurriculumRole.requestStatus = requestStatus;
-                    }
+                    scientistCurriculumRole.status = isUpdateStatus;
                     scientistCurriculumRole.updated_at = DateTime.Now;
                     _context.Set<ScientistCurriculumRole>().Update(scientistCurriculumRole);
                     await _context.SaveChangesAsync();

@@ -39,7 +39,7 @@
                                     <div class="auto-cols">
                                         <div>
                                             <label class="labels">Tên bài báo<span class="text-red">*</span></label>
-                                            <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Tên bài báo" @bind="@magazine.magazine_name">
+                                            <input disabled="@isReadOnly" type="text" class="form-control" placeholder="Tên bài báo" @bind="@magazine.magazine_name">
                                             @if (showError && string.IsNullOrWhiteSpace(magazine.magazine_name))
                                             {
                                                 <span class="text-danger">Vui lòng nhập tên bài báo</span>
@@ -47,7 +47,7 @@
                                         </div>
                                         <div>
                                             <label class="labels">Tên tạp chí<span class="text-red">*</span></label>
-                                            <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Tên tạp chí" @bind="@magazine.journal">
+                                            <input disabled="@isReadOnly" type="text" class="form-control" placeholder="Tên tạp chí" @bind="@magazine.journal">
                                             @if (showError && string.IsNullOrWhiteSpace(magazine.journal))
                                             {
                                                 <span class="text-danger">Vui lòng nhập tên tạp chí</span>
@@ -166,7 +166,7 @@
                         <button class="btn btn-outline-primary" @onclick="AddMember" disabled="@(scientistMagazine?.status ?? true)">Thêm thành viên</button>
                     </div>
 
-                    @if(isAddMember) {
+                    @if(isAddMember || isUpdateMember) {
                         <form class="my-2">
                             <div class="auto-cols">
                                 <div>
@@ -184,7 +184,7 @@
                                 </div>
                                 <div>
                                     <label class="labels">Vai trò<span class="text-red">*</span></label>
-                                    <select disabled="@isReadOnly" class="form-control" @bind="roleId">
+                                    <select disabled="@memberReadOnly" class="form-control" @bind="roleId">
                                         <option value="" selected>Chọn vai trò</option>
                                         @foreach (var item in roles)
                                         {
@@ -198,7 +198,7 @@
                                 </div>
                                 <div>
                                     <label class="labels">Quyền<span class="text-red">*</span></label>
-                                    <select disabled="@isReadOnly" class="form-control" @onchange="OnPermissionChange">
+                                    <select disabled="@memberReadOnly" class="form-control" @onchange="OnPermissionChange">
                                         <option value="">Chọn quyền</option>
                                         <option value="false">Chỉnh sửa</option>
                                         <option value="true">Đọc</option>
@@ -210,12 +210,12 @@
                                     }
                                 </div>
                             </div>
-                            <div class="d-flex gap-1 mt-2">
+                            <div class="d-flex gap-1 my-2">
                                 <div class="text-center">
-                                    <button class="btn btn-primary" type="button">Hủy</button>
+                                    <button class="btn btn-primary" type="button" @onclick="Cancel">Hủy</button>
                                 </div>
                                 <div class="text-center">
-                                    <button class="btn btn-success" type="submit" @onclick="CreateNewRequestMagazine" @onclick:preventDefault>Lưu</button>
+                                    <button class="btn btn-success" type="submit" @onclick="SaveMember" @onclick:preventDefault>Lưu</button>
                                 </div>
                             </div>
                         </form>
@@ -246,7 +246,8 @@
                                             <td>@(item?.status == true ? "Đọc" : "Chỉnh sửa")</td>
                                             <td>@item?.requestStatus</td>
                                             <td>
-                                                <button class="btn btn-danger" @onclick="() => DeleteMagazine(item)" disabled="@(item?.status ?? true)"><div class="bi-trash-custom" style="width: 20px; height: 20px;"></div></button>
+                                                <button class="btn btn-info" @onclick="() => UpdateMember(item)"><div class="bi-pencil-square-custom" style="width: 20px; height: 20px;"></div></button>
+                                                <button class="btn btn-danger" @onclick="() => DeleteMagazine(item)" disabled="@(scientistMagazine?.status ?? true)"><div class="bi-trash-custom" style="width: 20px; height: 20px;"></div></button>
                                             </td>
                                         </tr>
                                         i++;
@@ -290,7 +291,7 @@
                                             <td>@item.file_type</td>
                                             <td>
                                                 <button class="btn btn-success" @onclick="() => DownloadFile(item)"><div class="bi-download-custom" style="width: 20px; height: 20px;"></div></button>
-                                                <button class="btn btn-danger" @onclick="() => DeleteFile(item.id)"><div class="bi-trash-custom" style="width: 20px; height: 20px;"></div></button>
+                                                <button class="btn btn-danger" disabled="@(scientistMagazine?.status ?? true)" @onclick="() => DeleteFile(item.id)"><div class="bi-trash-custom" style="width: 20px; height: 20px;"></div></button>
                                             </td>
                                         </tr>
                                         i++;
@@ -335,7 +336,9 @@
     public string MagazineId { get; set; }
 
     private bool isReadOnly = true;
+    private bool memberReadOnly = true;
     private bool isAddMember = false;
+    private bool isUpdateMember = false;
     private bool isUpload = false;
     private bool showError = false;
     private bool isUpdate = false;
@@ -361,7 +364,7 @@
     private void AddMember()
     {
         isAddMember = true;
-        isReadOnly = false;
+        memberReadOnly = false;
     }
 
     private void ToggleUploadFile()
@@ -380,10 +383,35 @@
         await UpdateMagazine();
     }
 
-    private void OnAutoCompleteChanged(Scientist scientist)
+    private void UpdateMember(ScientistMagazineRole editScientist)
     {
-        ScientistName = scientist.profile_name;
-        ScientistId = scientist.id;
+        isUpdateMember = true;
+        memberReadOnly = false;
+        ScientistId = editScientist.scientist_id;
+        ScientistName = editScientist.Scientist.profile_name;
+        roleId = editScientist.role_id;
+        SelectedPermission = editScientist.status;
+    }
+
+    private async Task SaveMember()
+    {
+        if (isUpdateMember)
+        {
+            await UpdateMemberMagazine();
+        } else
+        {
+            await CreateNewRequest();
+        }
+    }
+
+    private void Cancel()
+    {
+        isAddMember = false;
+        isUpdateMember = false;
+        memberReadOnly = true;
+        ScientistId = "";
+        ScientistName = "";
+        roleId = "";
     }
 
     private async Task LoadFiles()
@@ -407,6 +435,15 @@
         else
         {
             SelectedPermission = null;
+        }
+    }
+
+    private void OnAutoCompleteChanged(Scientist selectedScientist)
+    {
+        if (selectedScientist != null)
+        {
+            ScientistName = selectedScientist.profile_name;
+            ScientistId = selectedScientist.id;
         }
     }
 
@@ -477,7 +514,7 @@
         }
     }
 
-    private async Task CreateNewRequestMagazine()
+    private async Task CreateNewRequest()
     {
         try
         {
@@ -532,7 +569,7 @@
                 throw new InvalidOperationException("Scientist information is missing.");
             }
 
-            var result = await MagazineServices.UpdateMagazineAndLinkToScientistAsync(MagazineId, magazine, scientist.id, roleId, null, false);
+            var result = await MagazineServices.UpdateMagazineAndLinkToScientistAsync(MagazineId, magazine, scientist.id, scientistMagazine.role_id, null, false);
             if (result)
             {
                 toastService.ShowSuccess("Chỉnh sửa thông tin bài báo thành công!");
@@ -540,6 +577,32 @@
             } else
             {
                 toastService.ShowError("Chỉnh sửa thông tin bài báo không thành công!");
+            }
+
+            isReadOnly = true;
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"An error occurred: {ex.Message}");
+        }
+    }
+
+    private async Task UpdateMemberMagazine()
+    {
+        try
+        {
+            showError = true;
+
+            var result = await MagazineServices.UpdateMagazineAndLinkToScientistAsync(MagazineId, magazine, ScientistId, roleId, null, SelectedPermission);
+            if (result)
+            {
+                toastService.ShowSuccess("Chỉnh sửa thông tin thành viên thành công!");
+                await Task.Delay(3000);
+                Reload();
+            }
+            else
+            {
+                toastService.ShowError("Chỉnh sửa thông tin thành viên không thành công!");
             }
 
             isReadOnly = true;
