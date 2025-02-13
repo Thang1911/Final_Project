@@ -1,6 +1,10 @@
 ﻿@using Helpers
 @using BlazorFE.Enums
 @using BlazorFE.Models.Scientist
+@using BlazorFE.Models.Offer
+
+
+@inject NavigationManager NavigationManager
 
 <table class="table table-striped table-hover">
     <thead>
@@ -37,22 +41,21 @@
                         @string.Join(", ", scientists.Select(s => $"{s.profile_name} ({s.RoleName})"))
                     </td>
                     <td>
-                        <button class="btn btn-outline-info">Xem thông tin</button>
+                        <button class="btn btn-info" @onclick="() => ViewOffer(offer)"><div class="bi-eye-fill-custom" style="width: 20px; height: 20px;"></div></button>
                     </td>
                 </tr>
                 i++;
             }
-        }
-        else
-        {
-            <tr>
-                <td colspan="7" class="text-center">Không có dữ liệu</td>
-            </tr>
         }
     </tbody>
 </table>
 
 @code {
     [Parameter] public List<ScientistOfferRole> OffersList { get; set; }
+
+    private void ViewOffer(Offers offer)
+    {
+        NavigationManager.NavigateTo($"/Admin/AllOffers/Edit/{offer.id}");
+    }
 }
 

@@ -26,10 +26,29 @@ namespace BlazorFE.Services
             return scientistOffers;
         }
 
-        public async Task<Offers> GetMagazineByIdAsync(string offerId)
+        public async Task<Offers> GetOfferByIdAsync(string offerId)
         {
             var existingOffer = await _context.Offers.FindAsync(offerId);
             return existingOffer;
+        }
+
+        public async Task<bool> UpdateOffer(Offers offer)
+        {
+            var existingOffer = await _context.Offers.FindAsync(offer.id);
+            if (existingOffer != null)
+            {
+                existingOffer.offer_name = offer.offer_name;
+                existingOffer.year = offer.year;
+                existingOffer.note = offer.note;
+                existingOffer.propose_id = offer.propose_id;
+                existingOffer.status = offer.status;
+                existingOffer.updated_at = DateTime.Now;
+
+                _context.Entry(existingOffer).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            return false;
         }
 
         // Get Offers by Scientist ID

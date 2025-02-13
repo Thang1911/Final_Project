@@ -2,6 +2,7 @@
 using BlazorFE.Models.Topic;
 using BlazorFE.Models.Scientist;
 using Microsoft.EntityFrameworkCore;
+using BlazorFE.Models.Category;
 
 namespace BlazorFE.Services
 {
@@ -25,6 +26,32 @@ namespace BlazorFE.Services
                 .ToListAsync();
 
             return scientistTopics;
+        }
+
+        public async Task<Topics> GetTopicByIdAsync(string TopicId)
+        {
+            var topic = await _context.Topics.FirstOrDefaultAsync(t => t.id == TopicId);
+
+            return topic;
+        }
+
+        public async Task<bool> UpdateTopic(Topics topics)
+        {
+            var existingTopic = await _context.Topics.FindAsync(topics.id);
+            if (existingTopic != null)
+            {
+                existingTopic.topic_name = topics.topic_name;
+                existingTopic.result = topics.result;
+                existingTopic.lvtopic_id = topics.lvtopic_id;
+                existingTopic.start_date = topics.start_date;
+                existingTopic.end_date = topics.end_date;
+                existingTopic.updated_at = DateTime.Now;
+
+                _context.Entry(existingTopic).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            return false;
         }
 
         public async Task<scientist_topic_role> GetScientistTopicByIdAsync(string topicId, string scientistId)

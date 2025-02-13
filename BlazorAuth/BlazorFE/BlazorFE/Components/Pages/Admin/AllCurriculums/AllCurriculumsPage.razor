@@ -1,6 +1,10 @@
 ﻿@page "/Admin/AllCurriculums"
 @rendermode InteractiveServer
 
+@using Microsoft.AspNetCore.Authorization;
+
+@attribute [Authorize(Roles = "Administrators")]
+
 @using BlazorFE.Models.Scientist
 @using BlazorFE.Services
 @using BlazorFE.Components.Pages.Admin.AllCurriculums.Components
@@ -9,12 +13,14 @@
 @inject NavigationManager NavigationManager
 
 @if (listCurriculums != null)
-{
-    <AllCurriculumsTable CurriculumsList="@listCurriculums" />
-}
-else
-{
-    <div>Đang tải dữ liệu ...</div>
+{   
+    <div class="card shadow rounded">
+        <div class="p-3">
+            <DataTable Searchable="true">
+                <AllCurriculumsTable CurriculumsList="@listCurriculums" />
+            </DataTable>
+        </div>
+    </div>
 }
 
 @code {

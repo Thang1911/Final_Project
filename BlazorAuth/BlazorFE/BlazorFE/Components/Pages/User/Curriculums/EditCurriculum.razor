@@ -112,7 +112,7 @@
                                     else
                                     {
                                         <div class="text-center">
-                                            <button class="btn btn-success" @onclick="ToggleUpdate" @onclick:preventDefault>Chỉnh sửa</button>
+                                            <button class="btn btn-success" @onclick="ToggleUpdate" disabled="@(scientistCurriculum?.status ?? true)" @onclick:preventDefault>Chỉnh sửa</button>
                                         </div>
                                     }
                                     <div class="text-center">
@@ -180,7 +180,7 @@
                             </div>
                             <div class="d-flex gap-1 my-2">
                                 <div class="text-center">
-                                    <button class="btn btn-primary" type="button">Hủy</button>
+                                    <button class="btn btn-primary" type="button" @onclick="Cancel">Hủy</button>
                                 </div>
                                 <div class="text-center">
                                     <button class="btn btn-success" type="submit" @onclick="SaveMember" @onclick:preventDefault>Lưu</button>
@@ -213,7 +213,7 @@
                                             <td>@(item?.status == true ? "Đọc" : "Chỉnh sửa")</td>
                                             <td>@item?.requestStatus</td>
                                             <td>
-                                                <button class="btn btn-info" @onclick="() => UpdateMember(item)"><div class="bi-pencil-square-custom" style="width: 20px; height: 20px;"></div></button>
+                                                <button class="btn btn-info" @onclick="() => UpdateMember(item)" disabled="@(scientistCurriculum?.status ?? true)"><div class="bi-pencil-square-custom" style="width: 20px; height: 20px;"></div></button>
                                                 <button class="btn btn-danger" @onclick="() => DeleteCurriculum(item)" disabled="@(scientistCurriculum?.status ?? true)"><div class="bi-trash-custom" style="width: 20px; height: 20px;"></div></button>
                                             </td>
                                         </tr>
@@ -230,7 +230,7 @@
                 <div class="p-3">
                     <div class="d-flex gap-2 justify-content-between">
                         <h3 class="">Danh sách tài liệu: </h3>
-                        <button class="btn btn-outline-primary" @onclick="ToggleUploadFile">Thêm tài liệu</button>
+                        <button class="btn btn-outline-primary" @onclick="ToggleUploadFile" disabled="@(scientistCurriculum?.status ?? true)">Thêm tài liệu</button>
                     </div>
                     @if (isUpload)
                     {

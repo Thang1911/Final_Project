@@ -91,7 +91,7 @@
                             </div>
                             <div>
                                 <label class="labels">Email<span class="text-red">*</span></label>
-                                <input disabled="true" type="email" class="form-control" placeholder="Email" @bind="@scientist.email">
+                                <input disabled type="email" class="form-control" placeholder="Email" @bind="@scientist.email">
                                 @if (showError && string.IsNullOrWhiteSpace(scientist.email))
                                 {
                                     <span class="text-danger">Vui lòng nhập email.</span>
@@ -165,7 +165,7 @@
 
                         <div>
                             <label class="labels">Địa chỉ tổ chức<span class="text-red">*</span></label>
-                            <input disabled="true" type="text" class="form-control" placeholder="Địa chỉ tổ chức" @bind="@scientist.address_office">
+                            <input disabled type="text" class="form-control" placeholder="Địa chỉ tổ chức" @bind="@scientist.address_office">
                             @if (showError && string.IsNullOrWhiteSpace(scientist.address_office))
                             {
                                 <span class="text-danger">Vui lòng nhập địa chỉ tổ chức.</span>

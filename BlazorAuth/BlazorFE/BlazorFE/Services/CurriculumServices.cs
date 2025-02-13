@@ -36,6 +36,25 @@ namespace BlazorFE.Services
         }
 
 
+        public async Task<bool> UpdateMagazine(Curriculums curriculum)
+        {
+            var existingCurriculum = await _context.Curriculums.FindAsync(curriculum.id);
+            if (existingCurriculum != null)
+            {
+                existingCurriculum.name = curriculum.name;
+                existingCurriculum.year = curriculum.year;
+                existingCurriculum.publisher = curriculum.publisher;
+                existingCurriculum.book_id = curriculum.book_id;
+                existingCurriculum.training_id = curriculum.training_id;
+                existingCurriculum.updated_at = DateTime.Now;
+
+                _context.Entry(existingCurriculum).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            return false;
+        }
+
         public async Task<ScientistCurriculumRole> GetScientistCurriculumByIdAsync(string curriculumId, string scientistId)
         {
             if (string.IsNullOrEmpty(scientistId))

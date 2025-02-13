@@ -166,7 +166,7 @@
                             </div>
                             <div class="d-flex gap-1 my-2">
                                 <div class="text-center">
-                                    <button class="btn btn-primary" type="button">Hủy</button>
+                                    <button class="btn btn-primary" type="button" @onclick="Cancel">Hủy</button>
                                 </div>
                                 <div class="text-center">
                                     <button class="btn btn-success" type="submit" @onclick="SaveMember" @onclick:preventDefault>Lưu</button>
@@ -199,7 +199,7 @@
                                             <td>@(item?.status == true ? "Đọc" : "Chỉnh sửa")</td>
                                             <td>@item?.requestStatus</td>
                                             <td>
-                                                <button class="btn btn-info" @onclick="() => UpdateMember(item)"><div class="bi-pencil-square-custom" style="width: 20px; height: 20px;"></div></button>
+                                                <button class="btn btn-info" @onclick="() => UpdateMember(item)" disabled="@(scientistTopic?.status ?? true)"><div class="bi-pencil-square-custom" style="width: 20px; height: 20px;"></div></button>
                                                 <button class="btn btn-danger" @onclick="() => DeleteTopic(item)" disabled="@(scientistTopic?.status ?? true)"><div class="bi-trash-custom" style="width: 20px; height: 20px;"></div></button>
                                             </td>
                                         </tr>

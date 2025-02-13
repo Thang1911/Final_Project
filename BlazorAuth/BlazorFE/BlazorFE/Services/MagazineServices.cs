@@ -1,6 +1,7 @@
 ﻿using BlazorFE.Data;
-using BlazorFE.Models.Category;
+using BlazorFE.Migrations;
 using BlazorFE.Models.Magazine;
+using BlazorFE.Models.Offer;
 using BlazorFE.Models.Scientist;
 using Microsoft.EntityFrameworkCore;
 
@@ -32,6 +33,26 @@ namespace BlazorFE.Services
         {
             var existingMagazine = await _context.Magazines.FindAsync(magazineId);
             return existingMagazine;
+        }
+
+        public async Task<bool> UpdateMagazine(Magazines magazine)
+        {
+            var existingMagazine = await _context.Magazines.FindAsync(magazine.id);
+            if (existingMagazine != null)
+            {
+                existingMagazine.magazine_name = magazine.magazine_name;
+                existingMagazine.year = magazine.year;
+                existingMagazine.journal = magazine.journal;
+                existingMagazine.paper_id = magazine.paper_id;
+                existingMagazine.magazine_scope = magazine.magazine_scope;
+                existingMagazine.magazine_score_id = magazine.magazine_score_id;
+                existingMagazine.updated_at = DateTime.Now;
+
+                _context.Entry(existingMagazine).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            return false;
         }
 
         public async Task<ScientistMagazineRole> GetMagazineByScientistIdAsync(string magazineId, string scientistId)

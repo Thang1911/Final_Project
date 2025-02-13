@@ -246,7 +246,7 @@
                                             <td>@(item?.status == true ? "Đọc" : "Chỉnh sửa")</td>
                                             <td>@item?.requestStatus</td>
                                             <td>
-                                                <button class="btn btn-info" @onclick="() => UpdateMember(item)"><div class="bi-pencil-square-custom" style="width: 20px; height: 20px;"></div></button>
+                                                <button class="btn btn-info" @onclick="() => UpdateMember(item)" disabled="@(scientistMagazine?.status ?? true)"><div class="bi-pencil-square-custom" style="width: 20px; height: 20px;"></div></button>
                                                 <button class="btn btn-danger" @onclick="() => DeleteMagazine(item)" disabled="@(scientistMagazine?.status ?? true)"><div class="bi-trash-custom" style="width: 20px; height: 20px;"></div></button>
                                             </td>
                                         </tr>
