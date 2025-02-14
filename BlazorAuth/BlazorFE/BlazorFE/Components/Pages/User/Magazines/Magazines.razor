@@ -17,6 +17,7 @@
 @inject MagazineServices MagazineServices
 @inject RoleServices RoleServices
 @inject PaperServices PaperServices
+@inject MagazineScoreServices MagazineScoreServices
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
@@ -54,6 +55,23 @@
                                             <span class="text-danger">Vui lòng nhập tên tạp chí</span>
                                         }
                                     </div>
+                                    <div>
+                                        <label class="labels">Phạm vi bài báo<span class="text-red">*</span></label>
+                                        <select type="text" class="form-control" @bind="@magazine.magazine_scope" @bind:event="oninput" @onchange="UpdateScore" aria-label="Default select example" disabled="@isReadOnly">
+                                            <option value="0">Chọn phạm vi</option>
+                                            @foreach (var scope in Enum.GetValues<BlazorFE.Enums.Magazine.MagazineScope>())
+                                            {
+                                                <option value="@(scope)">
+                                                    @Helpers.EnumHelper.GetEnumDisplayName(scope)
+                                                </option>
+                                            }
+                                        </select>
+
+                                        @if (showError && magazine.magazine_scope == "")
+                                        {
+                                            <span class="text-danger">Vui lòng chọn phạm vi bài báo.</span>
+                                        }
+                                    </div>
                                 </div>
 
                                 <!-- Hàng thứ hai -->
@@ -86,6 +104,21 @@
                                             <span class="text-danger">Vui lòng chọn vai trò.</span>
                                         }
                                     </div>
+                                    <div>
+                                        <label class="labels">Xếp hạng bài báo</label>
+                                        <select type="text" class="form-control" @bind="@magazine.rank" aria-label="Default select example" disabled="@isReadOnly">
+                                            <option value="">Chọn xếp hạng</option>
+                                            @foreach (var rk in Enum.GetValues<BlazorFE.Enums.Magazine.MagazineRank>())
+                                            {
+                                                <option value="@(rk)">
+                                                    @Helpers.EnumHelper.GetEnumDisplayName(rk)
+                                                </option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="auto-cols">
                                     <div>
                                         <label class="labels">Loại bài báo<span class="text-red">*</span></label>
                                         <select disabled="@isReadOnly" type="text" class="form-control" @bind="@magazine.paper_id">
@@ -201,8 +234,9 @@
     private List<Models.Category.Paper> listPapers { get; set; } = new();
     private Scientist scientist { get; set; } = new();
     private Models.Magazine.Magazines magazine { get; set; } = new();
-    private List<ScientistMagazineRole> magazines { get; set; } = new();
-    private List<ScientistMagazineRole> requestMagazines { get; set; } = new();
+    private List<ScientistMagazineRole> magazines { get; set; } = new(); 
+    private List<Models.Category.MagazineScore> AlllistMagazineScore { get; set; } = new();
+    private List<Models.Category.MagazineScore> listMagazineScore { get; set; } = new();
     private List<string> ListMagazineIds { get; set; } = new();
 
     private void EditMagazine(Models.Magazine.Magazines editMagazine)
@@ -246,6 +280,11 @@
                     magazines = await MagazineServices.GetMagazinesByScientistIdAsync(scientist.id);
                     listPapers = await PaperServices.GetListPaper();
                     roles = await RoleServices.GetListRole(RoleType.magazine.ToString());
+                    AlllistMagazineScore = await MagazineScoreServices.GetListMagazineScore();
+                    if (AlllistMagazineScore.Count > 0)
+                    {
+                        listMagazineScore = AlllistMagazineScore;
+                    }
                 }
             }
             else
@@ -314,6 +353,16 @@
         catch (Exception ex)
         {
             Console.Error.WriteLine($"An error occurred while deleting: {ex.Message}");
+        }
+    }
+
+    private void UpdateScore(ChangeEventArgs e)
+    {
+        var selectedScope = e.Value?.ToString();
+        var selectedScore = AlllistMagazineScore?.Where(m => m.scope == selectedScope).ToList();
+        if (selectedScore != null)
+        {
+            listMagazineScore = selectedScore;
         }
     }
 }

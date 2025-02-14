@@ -35,9 +35,9 @@
                         </div>
                         @if (scientist != null && isAdd)
                         {
-                            <CurriculumForm NewCurriculum="@curriculum" ListBooks="@books" ListTrainings="@trainings" IsReadOnly="@isReadOnly" showError="@showError" OnCancel="ToggleCurriculum" OnSave="SaveCurriculum" />
+                            <CurriculumForm NewCurriculum="@curriculum" ListBooks="@books" ListTrainings="@trainings" IsReadOnly="@isReadOnly" showError="@showError" OnCancel="ToggleCurriculum" OnSave="SaveCurriculum" roleId="@roleId" roles="@roles" />
                         }
-                        <TableCurriculum AuthorRoleId="@roleId" ListCurriculums="@curriculums" OnEdit="EditCurriculum" OnDelete="DeleteCurriculum" />
+                        <TableCurriculum ListCurriculums="@curriculums" OnEdit="EditCurriculum" OnDelete="DeleteCurriculum" />
                     </div>
                 </div>
             </div>
@@ -105,14 +105,7 @@
 
     private async Task SaveCurriculum()
     {
-        if (isUpdate)
-        {
-            await UpdateCurriculum();
-        }
-        else
-        {
-            await AddNewScientistCurriculum();
-        }
+        await AddNewScientistCurriculum();
     }
 
     protected override async Task OnInitializedAsync()
@@ -131,27 +124,9 @@
                 {
                     scientist = response;
                     curriculums = await CurriculumServices.GetCurriculumsByScientistIdAsync(scientist.id);
-                    if (curriculums != null && curriculums.Any())
-                    {
-                        ListCurriculumIds = curriculums
-                            .Where(curriculum => curriculum.Role != null && curriculum.Role.role_name == "Tác giả")
-                            .Select(curriculum => curriculum.curriculum_id)
-                            .ToList();
-                        RequestCurriculums = await CurriculumServices.GetJoinRequestsByScientistIdAsync(scientist.id, ListCurriculumIds);
-                    }
                     books = await BookServices.GetListBook();
                     trainings = await TrainingServices.GetListTraining();
                     roles = await RoleServices.GetListRole(RoleType.curriculum.ToString());
-                    var role = roles.FirstOrDefault(role => role.role_name == "Tác giả");
-
-                    if (role != null)
-                    {
-                        roleId = role.id;
-                    }
-                    else
-                    {
-                        Console.WriteLine("Role not found");
-                    }
                 }
             }
             else
@@ -176,34 +151,6 @@
             curriculum.updated_at = DateTime.Now;
 
             var result = await CurriculumServices.AddCurriculumAndLinkToScientistAsync(curriculum, scientist.id, roleId, false, false);
-            if (result)
-            {
-                toastService.ShowSuccess("Thành công!");
-                await Task.Delay(3000);
-                Reload();
-            }
-            else
-            {
-                toastService.ShowError("Thất bại!");
-            }
-
-            isAdd = false;
-            isReadOnly = true;
-            curriculum = null;
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"An error occurred: {ex.Message}");
-        }
-    }
-
-    private async Task UpdateCurriculum()
-    {
-        try
-        {
-            showError = true;
-
-            var result = await CurriculumServices.UpdateCurriculumAndLinkToScientistAsync(curriculum.id, curriculum, scientist.id, roleId, null, false);
             if (result)
             {
                 toastService.ShowSuccess("Thành công!");

@@ -14,6 +14,20 @@
                 <label class="labels">Ghi chú <span class="text-gray">(Tùy chọn)</span></label>
                 <input readonly="@IsReadOnly" type="text" class="form-control" placeholder="Ghi chú" @bind="@NewOffer.note">
             </div>
+            <div>
+                <label class="labels">Vai trò<span class="text-red">*</span></label>
+                <select disabled="@IsReadOnly" type="text" class="form-control" @bind="@roleId">
+                    <option value="">Chọn vai trò</option>
+                    @foreach (var item in roles)
+                    {
+                        <option value="@item.id">@item.role_name</option>
+                    }
+                </select>
+                @if (showError && string.IsNullOrWhiteSpace(roleId))
+                {
+                    <span class="text-danger">Vui lòng chọn vai tró.</span>
+                }
+            </div>
         </div>
 
         <!-- Hàng thứ hai -->
@@ -60,6 +74,8 @@
 </form>
 
 @code {
+    [Parameter] public string roleId { get; set; }
+    [Parameter] public List<Models.Category.Role> roles { get; set; }
     [Parameter] public Models.Offer.Offers NewOffer { get; set; }
     [Parameter] public List<Models.Category.Propose> ListProposes { get; set; }
     [Parameter] public bool IsReadOnly { get; set; }

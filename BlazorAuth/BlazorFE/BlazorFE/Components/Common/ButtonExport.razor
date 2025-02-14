@@ -1,0 +1,28 @@
+﻿@rendermode InteractiveServer
+
+@inject PdfServices PdfServices
+@inject IJSRuntime JS
+
+<button @onclick="ExportDynamicPdf">Xuất PDF Động</button>
+
+@code {
+    private async Task ExportDynamicPdf()
+    {
+        // ** Định nghĩa cột **
+        List<string> headers = new List<string> { "ID", "Tên Sản Phẩm", "Giá", "Số Lượng" };
+
+        // ** Dữ liệu động **
+        List<List<string>> data = new List<List<string>>
+        {
+            new List<string> { "1", "Sản phẩm A", "10000 VND", "5" },
+            new List<string> { "2", "Sản phẩm B", "15000 VND", "10" },
+            new List<string> { "3", "Sản phẩm C", "20000 VND", "2" }
+        };
+
+        // ** Tạo PDF **
+        var pdfBytes = PdfServices.GeneratePdfWithDynamicTable(headers, data);
+        var base64 = Convert.ToBase64String(pdfBytes);
+        var fileUrl = $"data:application/pdf;base64,{base64}";
+        Console.WriteLine(fileUrl);
+    }
+}

@@ -41,6 +41,9 @@ builder.Services.AddScoped<CouncilServices>();
 builder.Services.AddScoped<LvCouncilServices>();
 builder.Services.AddScoped<TpCouncilServices>();
 
+builder.Services.AddScoped<PdfServices>();
+
+
 builder.Services.AddBlazoredToast();
 builder.Services.AddSyncfusionBlazor();
 builder.Services.AddBlazorBootstrap();

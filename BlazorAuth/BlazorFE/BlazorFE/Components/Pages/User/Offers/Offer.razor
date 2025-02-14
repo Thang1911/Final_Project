@@ -35,7 +35,7 @@
                         </div>
                         @if (isAdd)
                         {
-                            <OfferForm NewOffer="@offer" ListProposes="@proposes" IsReadOnly="@isReadOnly" showError="@showError" OnCancel="ToggleOffer" OnSave="SaveOffer" />
+                            <OfferForm NewOffer="@offer" ListProposes="@proposes" IsReadOnly="@isReadOnly" showError="@showError" OnCancel="ToggleOffer" OnSave="SaveOffer" roleId="@roleId" roles="@roles" />
                         }
 
                     </div>
@@ -175,30 +175,6 @@
             isAdd = false;
             isReadOnly = true;
             offer = new Models.Offer.Offers();
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"An error occurred: {ex.Message}");
-        }
-    }
-
-    private async Task UpdateOffer()
-    {
-        try
-        {
-            showError = true;
-
-            var result = await OfferServices.UpdateOfferAndLinkToScientistAsync(offer.id, offer, scientist.id, roleId, null, false);
-            if (result)
-            {
-                toastService.ShowSuccess("Thành công!");
-                await Task.Delay(3000);
-                Reload();
-            }
-            else
-            {
-                toastService.ShowError("Thất bại!");
-            }
         }
         catch (Exception ex)
         {

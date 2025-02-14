@@ -145,11 +145,11 @@
                                     } else
                                     {
                                         <div class="text-center">
-                                            <button class="btn btn-success" @onclick="ToggleUpdate" @onclick:preventDefault disabled="@(scientistMagazine?.status ?? true)">Chỉnh sửa</button>
+                                            <button class="btn btn-success" @onclick="ToggleEdit" @onclick:preventDefault disabled="@(scientistMagazine?.status ?? true)">Chỉnh sửa</button>
                                         </div>
                                     }
                                     <div class="text-center">
-                                        <button class="btn btn-primary" type="button" @onclick="ToggleUpdate">Hủy</button>
+                                        <button class="btn btn-primary" type="button" @onclick="Reload" disabled="@(scientistMagazine?.status ?? true)">Hủy</button>
                                     </div>
                                 </div>
                             </form>
@@ -340,8 +340,8 @@
     private bool isAddMember = false;
     private bool isUpdateMember = false;
     private bool isUpload = false;
-    private bool showError = false;
     private bool isUpdate = false;
+    private bool showError = false;
     private string ScientistId { get; set; } = "";
     private string ScientistName { get; set; } = "";
     private string userName = "";
@@ -372,10 +372,10 @@
         isUpload = !isUpload;
     }
 
-    private void ToggleUpdate()
+    private void ToggleEdit()
     {
-        isUpdate = !isUpdate;
-        isReadOnly = !isReadOnly;
+        isReadOnly = false;
+        isUpdate = true;
     }
 
     private async Task SaveMagazine()
