@@ -49,7 +49,15 @@
                                     </div>
                                     <div>
                                         <label class="labels">Tên tạp chí<span class="text-red">*</span></label>
-                                        <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Tên tạp chí" @bind="@magazine.journal">
+                                        <AutoComplete @bind-Value="magazine.journal"
+                                                      TItem="Journal"
+                                                      DataProvider="JournalProvider"
+                                                      PropertyName="journal_name"
+                                                      Placeholder="Tên tạp chí"
+                                                      AllowCustomValue="true"
+                                                      OnChanged="HandleJournalChange"
+                                                      @onchange="HandleInputChange"
+                                                      Disabled="@isReadOnly" />
                                         @if (showError && string.IsNullOrWhiteSpace(magazine.journal))
                                         {
                                             <span class="text-danger">Vui lòng nhập tên tạp chí</span>
@@ -238,6 +246,7 @@
     private List<Models.Category.MagazineScore> AlllistMagazineScore { get; set; } = new();
     private List<Models.Category.MagazineScore> listMagazineScore { get; set; } = new();
     private List<string> ListMagazineIds { get; set; } = new();
+    private List<Journal> ListJournals { get; set; } = new();
 
     private void EditMagazine(Models.Magazine.Magazines editMagazine)
     {
@@ -260,6 +269,39 @@
     private void Reload()
     {
         NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+    }
+
+    private async Task<AutoCompleteDataProviderResult<Journal>> JournalProvider(AutoCompleteDataProviderRequest<Journal> request)
+    {
+        if (ListJournals == null || ListJournals.Count == 0)
+        {
+            var journalNames = await MagazineServices.GetAllJournalsAsync().ConfigureAwait(false);
+
+            ListJournals = journalNames
+                .Select(name => new Journal { journal_name = name })
+                .ToList();
+        }
+
+        return request.ApplyTo(ListJournals.OrderBy(journal => journal.journal_name));
+    }
+
+    private void HandleJournalChange(Journal journal)
+    {
+        if (journal != null)
+        {
+            magazine.journal = journal.journal_name;
+        }
+    }
+
+    private void HandleInputChange(ChangeEventArgs e)
+    {
+        string inputValue = e.Value?.ToString() ?? string.Empty;
+        Console.WriteLine(inputValue);
+
+        if (!string.IsNullOrWhiteSpace(inputValue))
+        {
+            magazine.journal = inputValue;
+        }
     }
 
     protected override async Task OnInitializedAsync()
@@ -364,5 +406,10 @@
         {
             listMagazineScore = selectedScore;
         }
+    }
+
+    private class Journal
+    {
+        public string journal_name { get; set; }
     }
 }

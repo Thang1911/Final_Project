@@ -30,4 +30,9 @@
         }
         await base.OnAfterRenderAsync(firstRender);
     }
+
+    private async Task ExportToPDF()
+    {
+        await JSRuntime.InvokeVoidAsync("exportTableToPDF", "#" + id + " table");
+    }
 }

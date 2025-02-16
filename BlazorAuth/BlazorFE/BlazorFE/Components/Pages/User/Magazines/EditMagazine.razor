@@ -1,4 +1,5 @@
-﻿@page "/User/Magazines/Edit/{MagazineId}"
+﻿
+@page "/User/Magazines/Edit/{MagazineId}"
 @rendermode InteractiveServer
 
 @using Microsoft.AspNetCore.Authorization;
@@ -47,7 +48,15 @@
                                         </div>
                                         <div>
                                             <label class="labels">Tên tạp chí<span class="text-red">*</span></label>
-                                            <input disabled="@isReadOnly" type="text" class="form-control" placeholder="Tên tạp chí" @bind="@magazine.journal">
+                                            <AutoComplete @bind-Value="magazine.journal"
+                                            TItem="Journal"
+                                            DataProvider="JournalProvider"
+                                            PropertyName="journal_name"
+                                            Placeholder="Tên tạp chí"
+                                            AllowCustomValue="true"
+                                            OnChanged="HandleJournalChange"
+                                            @onchange="HandleInputChange"
+                                            Disabled="@isReadOnly"/>
                                             @if (showError && string.IsNullOrWhiteSpace(magazine.journal))
                                             {
                                                 <span class="text-danger">Vui lòng nhập tên tạp chí</span>
@@ -172,11 +181,11 @@
                                 <div>
                                     <label class="labels">Thành viên<span class="text-red">*</span></label>
                                     <AutoComplete @bind-Value="ScientistName"
-                                                  TItem="Scientist"
-                                                  DataProvider="ScientistsDataProvider"
-                                                  PropertyName="profile_name"
-                                                  Placeholder="Tên thành viên"
-                                                  OnChanged="(Scientist scientist) => OnAutoCompleteChanged(scientist)" />
+                                    TItem="Scientist"
+                                    DataProvider="ScientistsDataProvider"
+                                    PropertyName="profile_name"
+                                    Placeholder="Tên thành viên"
+                                    OnChanged="(Scientist scientist) => OnAutoCompleteChanged(scientist)" />
                                     @if (showError && string.IsNullOrWhiteSpace(ScientistId))
                                     {
                                         <span class="text-danger">Vui lòng chọn thành viên.</span>
@@ -358,6 +367,7 @@
     private List<ScientistMagazineRole> listScientistMagazines { get; set; } = new();
     private List<string> ListMagazineIds { get; set; } = new();
     private List<string> ListScientistIds { get; set; } = new();
+    private List<Journal> ListJournals { get; set; } = new();
     private List<Scientist> scientists { get; set; } = new();
     private List<Models.File.File> listFiles { get; set; } = new();
 
@@ -455,15 +465,47 @@
         return await Task.FromResult(request.ApplyTo(scientists.OrderBy(customer => customer.profile_name)));
     }
 
+    private async Task<AutoCompleteDataProviderResult<Journal>> JournalProvider(AutoCompleteDataProviderRequest<Journal> request)
+    {
+        if (ListJournals == null || ListJournals.Count == 0)
+        {
+            var journalNames = await MagazineServices.GetAllJournalsAsync().ConfigureAwait(false);
+
+            ListJournals = journalNames
+                .Select(name => new Journal { journal_name = name })
+                .ToList();
+        }
+
+        return request.ApplyTo(ListJournals.OrderBy(journal => journal.journal_name));
+    }
 
     private async Task<List<Scientist>> LoadScientists()
     {
-        var listScientist = await ProfileServices.GetAllScientistIdAsync();
+        var listScientist = await ProfileServices.GetAllScientistByOfficeIdAsync(scientist.office_id);
         ListScientistIds = listScientistMagazines.Select(x => x.scientist_id).ToList();
 
         return listScientist
             .Where(scientist => !ListScientistIds.Contains(scientist.id))
             .ToList();
+    }
+
+    private void HandleJournalChange(Journal journal)
+    {
+        if (journal != null)
+        {
+            magazine.journal = journal.journal_name;
+        }
+    }
+
+    private void HandleInputChange(ChangeEventArgs e)
+    {
+        string inputValue = e.Value?.ToString() ?? string.Empty;
+        Console.WriteLine(inputValue);
+
+        if (!string.IsNullOrWhiteSpace(inputValue))
+        {
+            magazine.journal = inputValue;
+        }
     }
 
     protected override async Task OnInitializedAsync()
@@ -573,7 +615,8 @@
             if (result)
             {
                 toastService.ShowSuccess("Chỉnh sửa thông tin bài báo thành công!");
-                magazine = await MagazineServices.GetMagazineByIdAsync(MagazineId);
+                await Task.Delay(3000);
+                Reload();
             } else
             {
                 toastService.ShowError("Chỉnh sửa thông tin bài báo không thành công!");
@@ -683,4 +726,10 @@
         }
     }
 
+    private class Journal
+    {
+        public string journal_name   { get; set; }
+    }
 }
+
+

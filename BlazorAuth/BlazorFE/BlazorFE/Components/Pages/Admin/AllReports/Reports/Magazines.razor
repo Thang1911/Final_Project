@@ -1,0 +1,187 @@
+﻿@page "/Admin/AllReports/Magazines"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Roles = "Administrators")]
+
+@using BlazorFE.Models.Scientist
+@using BlazorFE.Models.Category
+@using BlazorFE.Services
+
+@inject MagazineServices MagazineServices
+@inject OfficeServices OfficeServices
+@inject PaperServices PaperServices
+@inject NavigationManager NavigationManager
+
+@if (listMagazines != null)
+{
+    <div class="card shadow rounded">
+        <div class="p-3">
+            <div>
+                <h4 class="text-center">Lọc</h4>
+            </div>
+            <div>
+                <div class="d-flex auto-cols">
+                    <div class="d-flex flex-column gap-2">
+                        <label for="office" class="form-label">Cơ quan</label>
+                        <select class="form-select" id="office" @bind="selectedOfficeId">
+                            <option value="">Tất cả</option>
+                            @foreach (var office in listOffices)
+                            {
+                                <option value="@office.office_id">@office.office_name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        <label for="year" class="form-label">Năm công bố</label>
+                        <select class="form-select" id="year" @bind="selectedYear">
+                            <option value="0" selected>Chọn năm</option>
+                            @for (int year = DateTime.Now.Year; year >= 1900; year--)
+                            {
+                                <option value="@year">@year</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        <label for="paper" class="form-label">Loại bài báo</label>
+                        <select class="form-select" id="paper" @bind="selectedPaperId">
+                            <option value="">Tất cả</option>
+                            @foreach (var paper in listPapers)
+                            {
+                                <option value="@paper.id">@paper.paper_name</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-3 mt-3">
+                    <button class="btn btn-primary" @onclick="ApplyFilter">Áp dụng bộ lọc</button>
+                    <button class="btn btn-secondary" @onclick="ResetFilter">Xóa bộ lọc</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="card shadow rounded mt-3">
+        <div class="p-3 d-flex flex-column gap-2">
+            <div>
+                <h4 class="text-center">Danh sách bài báo khoa học</h4>
+            </div>
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Tên bài báo</th>
+                        <th scope="col">Năm công bố</th>
+                        <th scope="col">Tên tạp chí</th>
+                        <th scope="col">Loại bài báo</th>
+                        <th scope="col">Người tham gia</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (listMagazines != null && listMagazines.Count > 0)
+                    {
+                        int i = 1;
+                        var groupedByMagazine = listMagazines.GroupBy(x => x.magazine_id).ToList();
+
+                        foreach (var group in groupedByMagazine)
+                        {
+                            var magazine = group.First().Magazines;
+                            var scientists = group.Select(x => new { x.Scientist?.profile_name, RoleName = x.Role?.role_name }).ToList();
+
+                            <tr>
+                                <th scope="row">@i</th>
+                                <td>@magazine?.magazine_name</td>
+                                <td>@magazine?.year</td>
+                                <td>@magazine?.journal</td>
+                                <td>@magazine?.Paper?.paper_name</td>
+                                <td>
+                                    @string.Join(", ", scientists.Select(s => $"{s.profile_name} ({s.RoleName})"))
+                                </td>
+                            </tr>
+                            i++;
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+<style>
+    .auto-cols {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    gap: 16px;
+    justify-content: space-between;
+    }
+
+    .auto-cols > div {
+    flex: 1;
+    min-width: 200px;
+    }
+
+    .d-flex {
+    display: flex;
+    flex-direction: row;
+    justify-content: right;
+    }
+
+    .text-red {
+    color: red;
+    }
+</style>
+
+@code {
+    public List<ScientistMagazineRole> listMagazines { get; set; } = new();
+    public List<Office> listOffices { get; set; } = new();
+    public List<Paper> listPapers { get; set; } = new();
+    private List<ScientistMagazineRole> allMagazines { get; set; } = new();
+
+    private string selectedOfficeId { get; set; } = "";
+    private int selectedYear { get; set; } = 0;
+    private string selectedPaperId { get; set; } = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadScientists();
+        await LoadOffices();
+        await LoadPapers();
+    }
+
+    private async Task LoadScientists()
+    {
+        allMagazines = (await MagazineServices.GetAllMagazinesAsync())
+            .Where(smr => smr.requestStatus == "Đã tham gia")
+            .ToList();
+        listMagazines = new List<ScientistMagazineRole>(allMagazines);
+    }
+
+    private async Task LoadOffices()
+    {
+        listOffices = await OfficeServices.GetListOffices();
+    }
+
+    private async Task LoadPapers()
+    {
+        listPapers = await PaperServices.GetListPaper();
+    }
+
+    private void ApplyFilter()
+    {
+        listMagazines = allMagazines
+            .Where(m => (string.IsNullOrEmpty(selectedOfficeId) || m.Scientist?.office_id == selectedOfficeId)
+                        && (selectedYear == 0 || m.Magazines?.year == selectedYear)
+                        && (string.IsNullOrEmpty(selectedPaperId) || m.Magazines?.Paper?.id == selectedPaperId))
+            .ToList();
+    }
+
+    private void ResetFilter()
+    {
+        selectedOfficeId = "";
+        selectedYear = 0;
+        selectedPaperId = "";
+        listMagazines = new List<ScientistMagazineRole>(allMagazines);
+    }
+}

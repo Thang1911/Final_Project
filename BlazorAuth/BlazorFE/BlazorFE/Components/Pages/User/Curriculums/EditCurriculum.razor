@@ -48,7 +48,15 @@
                                         </div>
                                         <div>
                                             <label class="labels">Tên nhà xuất bản<span class="text-red">*</span></label>
-                                            <input disabled="@IsReadOnly" type="text" class="form-control" placeholder="Tên nhà xuất bản" @bind="@scientistCurriculum.Curriculums.publisher">
+                                            <AutoComplete @bind-Value="scientistCurriculum.Curriculums.publisher"
+                                                          TItem="Publisher"
+                                                          DataProvider="PublisherProvider"
+                                                          PropertyName="journal_name"
+                                                          Placeholder="Tên nhà xuất bản"
+                                                          AllowCustomValue="true"
+                                                          OnChanged="HandleJournalChange"
+                                                          @onchange="HandleInputChange"
+                                                          Disabled="@IsReadOnly" />
                                             @if (ShowError && string.IsNullOrWhiteSpace(scientistCurriculum.Curriculums.publisher))
                                             {
                                                 <span class="text-danger">Vui lòng nhập tên nhà xuất bản</span>
@@ -327,6 +335,8 @@
     private ScientistCurriculumRole scientistCurriculum { get; set; } = new();
     private List<ScientistCurriculumRole> listScientistCurriculum { get; set; } = new();
     private List<string> ListCurriculumIds { get; set; } = new();
+    private List<Publisher> ListPublishers { get; set; } = new();
+
 
     private void AddMember()
     {
@@ -426,12 +436,44 @@
 
     private async Task<List<Scientist>> LoadScientists()
     {
-        var listScientist = await ProfileServices.GetAllScientistIdAsync();
+        var listScientist = await ProfileServices.GetAllScientistByOfficeIdAsync(scientist.office_id);
         ListScientistIds = listScientistCurriculum.Select(x => x.scientist_id).ToList();
 
         return listScientist
             .Where(scientist => !ListScientistIds.Contains(scientist.id))
             .ToList();
+    }
+
+    private async Task<AutoCompleteDataProviderResult<Publisher>> PublisherProvider(AutoCompleteDataProviderRequest<Publisher> request)
+    {
+        if (ListPublishers == null || ListPublishers.Count == 0)
+        {
+            var journalNames = await CurriculumServices.GetAllPublisherAsync().ConfigureAwait(false);
+
+            ListPublishers = journalNames
+                .Select(name => new Publisher { publisher_name = name })
+                .ToList();
+        }
+
+        return request.ApplyTo(ListPublishers.OrderBy(publisher => publisher.publisher_name));
+    }
+
+    private void HandleJournalChange(Publisher publisher)
+    {
+        if (publisher != null)
+        {
+            scientistCurriculum.Curriculums.publisher = publisher.publisher_name;
+        }
+    }
+
+    private void HandleInputChange(ChangeEventArgs e)
+    {
+        string inputValue = e.Value?.ToString() ?? string.Empty;
+
+        if (!string.IsNullOrWhiteSpace(inputValue))
+        {
+            scientistCurriculum.Curriculums.publisher = inputValue;
+        }
     }
 
     protected override async Task OnInitializedAsync()
@@ -449,7 +491,7 @@
                 if (response != null)
                 {
                     scientist = response;
-                    scientists = await ProfileServices.GetAllScientistIdAsync();
+                    scientists = await ProfileServices.GetAllScientistByOfficeIdAsync(scientist.office_id);
                     scientistCurriculum = await CurriculumServices.GetScientistCurriculumByIdAsync(CurriculumId, scientist.id);
                     if (scientistCurriculum != null)
                     {
@@ -523,7 +565,8 @@
             if (result)
             {
                 toastService.ShowSuccess("Chỉnh sửa thông tin đề tài thành công!");
-                scientistCurriculum = await CurriculumServices.GetScientistCurriculumByIdAsync(CurriculumId, scientist.id);
+                await Task.Delay(3000);
+                Reload();
             } else
             {
                 toastService.ShowError("Chỉnh sửa thông tin đề tài không thành công!");
@@ -621,5 +664,9 @@
         }
     }
 
+    private class Publisher
+    {
+        public string publisher_name { get; set; }
+    }
 }
 

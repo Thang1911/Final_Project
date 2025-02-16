@@ -55,6 +55,21 @@ namespace BlazorFE.Services
             return false;
         }
 
+        public async Task<List<string>> GetAllJournalsAsync()
+        {
+            var journals = await _context.Magazines
+                .Where(m => !string.IsNullOrEmpty(m.journal))
+                .Select(m => new { Original = m.journal, Normalized = m.journal.Trim().ToLower() })
+                .ToListAsync();
+
+            var groupedJournals = journals
+                .GroupBy(j => j.Normalized)
+                .Select(g => g.First().Original)
+                .ToList();
+
+            return groupedJournals;
+        }
+
         public async Task<ScientistMagazineRole> GetMagazineByScientistIdAsync(string magazineId, string scientistId)
         {
             if (string.IsNullOrEmpty(scientistId))
@@ -144,36 +159,6 @@ namespace BlazorFE.Services
                 .ToListAsync();
 
             return joinRequests;
-        }
-
-        public async Task<List<ScientistMagazineRole>> GetRequestMagazineAsync(string scientistId, bool isJoining)
-        {
-            if (string.IsNullOrEmpty(scientistId))
-                throw new ArgumentException("Scientist ID cannot be null or empty", nameof(scientistId));
-
-            const string ProjectLeaderRole = "Tác giả đứng đầu";
-
-            var query = _context.Set<ScientistMagazineRole>().AsQueryable();
-
-            if (isJoining)
-            {
-                query = query.Where(str => str.scientist_id != scientistId
-                                           && str.Role != null
-                                           && str.Role.role_name == ProjectLeaderRole);
-            }
-            else
-            {
-                query = query.Where(str => str.scientist_id == scientistId);
-            }
-
-            var scientistMagazines = await query
-                .Include(smr => smr.Magazines)
-                    .ThenInclude(m => m.Paper)
-                .Include(smr => smr.Role)
-                .Include(str => str.Scientist)
-                .ToListAsync();
-
-            return scientistMagazines;
         }
 
         // Add a Magazine and Link to Scientist

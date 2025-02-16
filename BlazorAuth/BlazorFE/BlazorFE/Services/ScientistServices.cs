@@ -23,6 +23,17 @@ namespace BlazorFE.Services
             return allScientist;
         }
 
+        public async Task<List<Scientist>> GetAllScientistByOfficeIdAsync(string officeId)
+        {
+            var allScientist = await _context.Set<Scientist>()
+                .Where(sct => sct.office_id == officeId)
+                .Include(sct => sct.Degree)
+                .Include(sct => sct.Office)
+                .ToListAsync();
+
+            return allScientist;
+        }
+
         public async Task<Scientist> GetProfileAsync(string userId)
         {
             return await _context.Scientists

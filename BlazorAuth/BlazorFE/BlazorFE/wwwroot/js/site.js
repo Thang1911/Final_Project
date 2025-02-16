@@ -31,29 +31,23 @@ function AddDataTable(table, searching) {
                 "next": "Tiếp",
                 "previous": "Trước"
             }
-        }
+        },
+        "dom": "Bfrtip",
+        "buttons": [
+            {
+                extend: "pdfHtml5",
+                text: "Xuất PDF",
+                title: "Danh sách",
+                className: "btn btn-success",
+                exportOptions: {
+                    columns: ':not(:last-child)'
+                }
+            }
+        ]
     });
 }
 
-function DestroySelect2(select) {
-    if ($(select).hasClass("select2-hidden-accessible")) {
-        $(select).select2('destroy');
-    }
+function exportTableToPDF(table) {
+    $(table).DataTable().buttons(0, 0).trigger();
 }
-
-function AddSelect2(select, placeholder = "Chọn một mục", allowClear = true) {
-    DestroySelect2(select);
-
-    if ($(select).length === 0) {
-        console.error("Error: Select element not found.");
-        return;
-    }
-
-    $(select).select2({
-        placeholder: placeholder,
-        allowClear: allowClear,
-        width: '100%'
-    });
-}
-
 

@@ -35,6 +35,20 @@ namespace BlazorFE.Services
             return existingCurriculum;
         }
 
+        public async Task<List<string>> GetAllPublisherAsync()
+        {
+            var publishers = await _context.Curriculums
+                    .Where(m => !string.IsNullOrEmpty(m.publisher))
+                    .Select(m => new { Original = m.publisher, Normalized = m.publisher.Trim().ToLower() })
+                    .ToListAsync();
+
+            var groupedPublishers = publishers
+                .GroupBy(p => p.Normalized)
+                .Select(g => g.First().Original)
+                .ToList();
+
+            return groupedPublishers;
+        }
 
         public async Task<bool> UpdateMagazine(Curriculums curriculum)
         {
