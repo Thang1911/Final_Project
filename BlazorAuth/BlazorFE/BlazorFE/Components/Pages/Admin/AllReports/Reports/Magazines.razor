@@ -12,6 +12,7 @@
 @inject OfficeServices OfficeServices
 @inject PaperServices PaperServices
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 
 @if (listMagazines != null)
 {
@@ -52,11 +53,20 @@
                             }
                         </select>
                     </div>
+                    <div class="d-flex flex-column gap-2">
+                        <label for="scope" class="form-label">Phạm vi</label>
+                        <select class="form-select" id="scope" @bind="selectedScope">
+                            <option value="">Tất cả</option>
+                            <option value="Trong_nước">Trong nước</option>
+                            <option value="Quốc_tế">Quốc tế</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="d-flex gap-3 mt-3">
                     <button class="btn btn-primary" @onclick="ApplyFilter">Áp dụng bộ lọc</button>
                     <button class="btn btn-secondary" @onclick="ResetFilter">Xóa bộ lọc</button>
+                    <button class="btn btn-success" @onclick="ExportToPdf">Xuất PDF</button>
                 </div>
 
             </div>
@@ -67,7 +77,8 @@
             <div>
                 <h4 class="text-center">Danh sách bài báo khoa học</h4>
             </div>
-            <table class="table table-striped table-hover">
+
+            <table class="table table-bordered table-hover" id="tableMagazines">
                 <thead>
                     <tr>
                         <th scope="col">#</th>
@@ -75,6 +86,9 @@
                         <th scope="col">Năm công bố</th>
                         <th scope="col">Tên tạp chí</th>
                         <th scope="col">Loại bài báo</th>
+                        <th scope="col">Phạm vi</th>
+                        <th scope="col">Chỉ số</th>
+                        <th scope="col">Xếp hạng</th>
                         <th scope="col">Người tham gia</th>
                     </tr>
                 </thead>
@@ -96,6 +110,25 @@
                                 <td>@magazine?.journal</td>
                                 <td>@magazine?.Paper?.paper_name</td>
                                 <td>
+                                    @{
+                                        MagazineScope enumValue;
+                                        string displayName = Enum.TryParse(@magazine?.magazine_scope, out enumValue)
+                                        ? Helpers.EnumHelper.GetEnumDisplayName(enumValue)
+                                        : "";
+                                    }
+                                    @displayName
+                                </td>
+                                <td>@magazine?.MagazineScore?.magazine_score_name</td>
+                                <td>
+                                    @{
+                                        MagazineRank enumValueRank;
+                                        string displayRank = Enum.TryParse(@magazine?.rank, out enumValueRank)
+                                        ? Helpers.EnumHelper.GetEnumDisplayName(enumValueRank)
+                                        : "";
+                                    }
+                                    @displayRank
+                                </td>
+                                <td>
                                     @string.Join(", ", scientists.Select(s => $"{s.profile_name} ({s.RoleName})"))
                                 </td>
                             </tr>
@@ -104,6 +137,12 @@
                     }
                 </tbody>
             </table>
+
+            <div class="d-flex justify-content-center mt-3">
+                <button class="btn btn-secondary" @onclick="PreviousPage" disabled="@((currentPage == 1))">Trang trước</button>
+                <span class="mx-2 d-flex align-items-center">Trang @currentPage / @totalPages</span>
+                <button class="btn btn-secondary" @onclick="NextPage" disabled="@((currentPage == totalPages))">Trang sau</button>
+            </div>
         </div>
     </div>
 }
@@ -131,6 +170,7 @@
     .text-red {
     color: red;
     }
+
 </style>
 
 @code {
@@ -142,6 +182,11 @@
     private string selectedOfficeId { get; set; } = "";
     private int selectedYear { get; set; } = 0;
     private string selectedPaperId { get; set; } = "";
+    private string selectedScope { get; set; } = "";
+
+    private int currentPage = 1;
+    private int pageSize = 10;
+    private int totalPages => (int)Math.Ceiling((double)listMagazines.Count / pageSize);
 
     protected override async Task OnInitializedAsync()
     {
@@ -173,7 +218,8 @@
         listMagazines = allMagazines
             .Where(m => (string.IsNullOrEmpty(selectedOfficeId) || m.Scientist?.office_id == selectedOfficeId)
                         && (selectedYear == 0 || m.Magazines?.year == selectedYear)
-                        && (string.IsNullOrEmpty(selectedPaperId) || m.Magazines?.Paper?.id == selectedPaperId))
+                        && (string.IsNullOrEmpty(selectedPaperId) || m.Magazines?.Paper?.id == selectedPaperId)
+                        && (string.IsNullOrEmpty(selectedScope) || m.Magazines?.magazine_scope == selectedScope))
             .ToList();
     }
 
@@ -182,6 +228,42 @@
         selectedOfficeId = "";
         selectedYear = 0;
         selectedPaperId = "";
+        selectedScope = "";
         listMagazines = new List<ScientistMagazineRole>(allMagazines);
     }
+
+    private List<ScientistMagazineRole> GetPaginatedMagazines()
+    {
+        return listMagazines.Skip((currentPage - 1) * pageSize).Take(pageSize).ToList();
+    }
+
+    private void GoToPage(int pageNumber)
+    {
+        if (pageNumber >= 1 && pageNumber <= totalPages)
+        {
+            currentPage = pageNumber;
+        }
+    }
+
+    private void NextPage()
+    {
+        if (currentPage < totalPages)
+        {
+            currentPage++;
+        }
+    }
+
+    private void PreviousPage()
+    {
+        if (currentPage > 1)
+        {
+            currentPage--;
+        }
+    }
+
+    private async Task ExportToPdf()
+    {
+        await JSRuntime.InvokeVoidAsync("exportToPdf", "tableMagazines");
+    }
+
 }

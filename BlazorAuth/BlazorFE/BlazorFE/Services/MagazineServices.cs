@@ -21,6 +21,8 @@ namespace BlazorFE.Services
             var scientistMagazines = await _context.Set<ScientistMagazineRole>()
                 .Include(smr => smr.Magazines)
                     .ThenInclude(m => m.Paper)
+                .Include(smr => smr.Magazines)
+                    .ThenInclude(m => m.MagazineScore)
                 .Include(smr => smr.Role)
                 .Include(str => str.Scientist)
                 .OrderByDescending(or => or.updated_at)
