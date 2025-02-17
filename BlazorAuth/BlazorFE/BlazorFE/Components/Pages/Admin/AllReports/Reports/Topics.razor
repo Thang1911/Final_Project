@@ -1,0 +1,274 @@
+﻿@page "/Admin/AllReports/Topics"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Roles = "Administrators")]
+
+@using BlazorFE.Models.Scientist
+@using BlazorFE.Models.Category
+@using BlazorFE.Services
+
+@inject TopicServices TopicServices
+@inject OfficeServices OfficeServices
+@inject LvTopicServices LvTopicServices
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+@if (TopicsList != null)
+{
+    <div class="card shadow rounded">
+        <div class="p-3">
+            <div>
+                <h4 class="text-center">Lọc</h4>
+            </div>
+            <div>
+                <div class="d-flex auto-cols">
+                    <div class="d-flex flex-column gap-2">
+                        <label for="office" class="form-label">Cơ quan</label>
+                        <select class="form-select" id="office" @bind="selectedOfficeId">
+                            <option value="">Tất cả</option>
+                            @foreach (var office in listOffices)
+                            {
+                                <option value="@office.office_id">@office.office_name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        <label for="lvtopic" class="form-label">Cấp độ</label>
+                        <select class="form-select" id="lvtopic" @bind="selectedLvTopicId">
+                            <option value="">Tất cả</option>
+                            @foreach (var lvtopic in listLvTopics)
+                            {
+                                <option value="@lvtopic.id">@lvtopic.lvtopic_name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        <label for="startdate" class="form-label">Ngày bắt đầu</label>
+                        <InputDate @bind-Value="selectedStartDate" class="form-control" id="startdate" />
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        <label for="enddate" class="form-label">Ngày kết thúc</label>
+                        <InputDate @bind-Value="selectedEndDate" class="form-control" id="enddate" />
+                    </div>
+                </div>
+
+                <div class="d-flex gap-3 mt-3">
+                    <button class="btn btn-primary" @onclick="ApplyFilter">Áp dụng bộ lọc</button>
+                    <button class="btn btn-secondary" @onclick="ResetFilter">Xóa bộ lọc</button>
+                    <button class="btn btn-success" @onclick="ExportToPdf">Xuất PDF</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="card shadow rounded mt-3">
+        <div class="p-3 d-flex flex-column gap-2">
+            <div>
+                <h4 class="text-center">Danh sách đề tài</h4>
+            </div>
+
+            <table class="table table-bordered table-hover" id="tableMagazines">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Tên đề tài</th>
+                        <th scope="col">Kết quả</th>
+                        <th scope="col">Cấp độ</th>
+                        <th scope="col">Ngày bắt đầu</th>
+                        <th scope="col">Ngày kết thúc</th>
+                        <th scope="col">Người tham gia</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (TopicsList != null && TopicsList.Count > 0)
+                    {
+                        int i = 1;
+                        var groupedByTopic = TopicsList
+                        .GroupBy(x => x.topic_id)
+                        .ToList();
+
+                        foreach (var group in groupedByTopic)
+                        {
+                            var topic = group.First().Topics;
+                            var scientists = group.Select(x => new { x.Scientist?.profile_name, RoleName = x.Role?.role_name }).ToList();
+
+                            <tr>
+                                <th scope="row">@i</th>
+                                <td>@topic?.topic_name</td>
+                                <td>@topic?.LvTopics?.lvtopic_name</td>
+                                <td>
+                                    @{
+                                        Result enumValue;
+                                        string displayName = Enum.TryParse(@topic?.result, out enumValue)
+                                        ? Helpers.EnumHelper.GetEnumDisplayName(enumValue)
+                                        : "Không xác định";
+                                    }
+                                    @displayName
+                                </td>
+                                <td>@topic?.start_date?.ToShortDateString()</td>
+                                <td>@topic?.end_date?.ToShortDateString()</td>
+                                <td>
+                                    @string.Join(", ", scientists.Select(s => $"{s.profile_name} ({s.RoleName})"))
+                                </td>
+                            </tr>
+                            i++;
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+<style>
+    .auto-cols {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        gap: 16px;
+        justify-content: space-between;
+    }
+
+        .auto-cols > div {
+            flex: 1;
+            min-width: 200px;
+        }
+
+    .d-flex {
+        display: flex;
+        flex-direction: row;
+        justify-content: right;
+    }
+
+    .text-red {
+        color: red;
+    }
+
+</style>
+
+@code {
+    public List<scientist_topic_role> TopicsList { get; set; }
+    public List<scientist_topic_role> AllTopicsList { get; set; }
+    public List<Office> listOffices { get; set; } = new();
+    public List<LvTopics> listLvTopics { get; set; } = new();
+    private List<ScientistMagazineRole> allMagazines { get; set; } = new();
+
+    private string selectedOfficeId { get; set; } = "";
+    private string selectedLvTopicId { get; set; } = "";
+    private DateTime? selectedStartDate { get; set; } = null;
+    private DateTime? selectedEndDate { get; set; } = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadScientists();
+        await LoadOffices();
+        await LoadLvTopics();
+    }
+
+    private async Task LoadScientists()
+    {
+        AllTopicsList = (await TopicServices.GetAllTopicAsync())
+            .Where(smr => smr.requestStatus == "Đã tham gia")
+            .ToList();
+        TopicsList = new List<scientist_topic_role>(AllTopicsList);
+    }
+
+    private async Task LoadOffices()
+    {
+        listOffices = await OfficeServices.GetListOffices();
+    }
+
+    private async Task LoadLvTopics()
+    {
+        listLvTopics = await LvTopicServices.GetListLvTopics();
+    }
+
+    private void ApplyFilter()
+    {
+        TopicsList = AllTopicsList
+            .Where(t => (string.IsNullOrEmpty(selectedOfficeId) || t.Scientist?.office_id == selectedOfficeId)
+                        && (string.IsNullOrEmpty(selectedLvTopicId) || t?.Topics?.lvtopic_id == selectedLvTopicId)
+                        && (selectedStartDate == null || t?.Topics?.start_date >= selectedStartDate)
+                        && (selectedEndDate == null || t?.Topics?.end_date <= selectedEndDate))
+            .ToList();
+    }
+
+    private void ResetFilter()
+    {
+        selectedOfficeId = "";
+        selectedLvTopicId = "";
+        selectedStartDate = null;
+        selectedEndDate = null;
+        TopicsList = new List<scientist_topic_role>(AllTopicsList);
+    }
+
+    public async void ExportToPdf()
+    {
+        using (MemoryStream ms = new MemoryStream())
+        {
+            // Tạo PDF writer
+            PdfWriter writer = new PdfWriter(ms);
+            PdfDocument pdf = new PdfDocument(writer);
+            Document document = new Document(pdf);
+
+            string fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "fonts", "Tinos-Regular.TTF"); // Example for Arial Unicode
+            PdfFont vietnameseFont = PdfFontFactory.CreateFont(fontPath);
+
+            // Thêm tiêu đề cho PDF
+            document.Add(new Paragraph("Danh sách đề tài")
+                .SetFont(vietnameseFont) // Sử dụng font bold
+                .SetFontSize(16));
+
+            // Tạo bảng
+            Table table = new Table(7, true);
+
+            // Thêm tiêu đề bảng
+            table.AddHeaderCell("").SetFont(vietnameseFont);
+            table.AddHeaderCell("Tên đề tài").SetFont(vietnameseFont);
+            table.AddHeaderCell("Kết quả").SetFont(vietnameseFont);
+            table.AddHeaderCell("Cấp độ").SetFont(vietnameseFont);
+            table.AddHeaderCell("Ngày bắt đầu").SetFont(vietnameseFont);
+            table.AddHeaderCell("Ngày kết thúc").SetFont(vietnameseFont);
+            table.AddHeaderCell("Người tham gia");
+
+            // Duyệt qua danh sách và thêm dữ liệu vào bảng
+            int i = 1;
+            var groupedByMagazine = TopicsList.GroupBy(x => x.topic_id).ToList();
+            foreach (var group in groupedByMagazine)
+            {
+                var topic = group.First().Topics;
+                var scientists = group.Select(x => new { x.Scientist?.profile_name, RoleName = x.Role?.role_name }).ToList();
+
+                table.AddCell(i.ToString()).SetFont(vietnameseFont);
+                table.AddCell(topic.topic_name ?? "").SetFont(vietnameseFont);
+                table.AddCell(topic.result ?? "").SetFont(vietnameseFont);
+                table.AddCell(topic.LvTopics?.lvtopic_name ?? "").SetFont(vietnameseFont); // Access LvTopics name safely
+                table.AddCell(topic.start_date?.ToString("dd/MM/yyyy") ?? "").SetFont(vietnameseFont);
+                table.AddCell(topic.end_date?.ToString("dd/MM/yyyy") ?? "").SetFont(vietnameseFont);
+                table.AddCell(string.Join(", ", scientists.Select(s => $"{s.profile_name} ({s.RoleName})"))).SetFont(vietnameseFont);
+
+                i++;
+            }
+
+            // Thêm bảng vào tài liệu
+            document.Add(table);
+
+            // Lưu tệp PDF vào ổ đĩa hoặc tải về
+            pdf.Close();
+
+            // Sau khi tạo xong PDF, có thể lưu vào file hoặc trả về cho người dùng
+            var pdfBytes = ms.ToArray();
+            // Ví dụ trả về file PDF cho người dùng trong Blazor
+            var fileName = "Topics.pdf";
+            var contentType = "application/pdf";
+            await SaveAsFile(pdfBytes, fileName, contentType);
+        }
+    }
+
+    private async Task SaveAsFile(byte[] content, string fileName, string contentType)
+    {
+        var base64File = Convert.ToBase64String(content);
+        await JSRuntime.InvokeVoidAsync("downloadFilePDF", fileName, base64File, contentType);
+    }
+}

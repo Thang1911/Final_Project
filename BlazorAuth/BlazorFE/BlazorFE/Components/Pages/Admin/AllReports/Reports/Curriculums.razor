@@ -1,0 +1,286 @@
+﻿@page "/Admin/AllReports/Curriculumd"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Roles = "Administrators")]
+
+@using BlazorFE.Models.Scientist
+@using BlazorFE.Models.Category
+@using BlazorFE.Services
+@using BlazorFE.Services.Category
+
+@inject CurriculumServices CurriculumServices
+@inject OfficeServices OfficeServices
+@inject BookServices BookServices
+@inject TrainingServices TrainingServices
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+@if (CurriculumsList != null) // Corrected: Check CurriculumsList
+{
+    // ... (Filter section - mostly the same, but use correct data bindings)
+    <div class="card shadow rounded">
+        <div class="p-3">
+            <div>
+                <h4 class="text-center">Lọc</h4>
+            </div>
+            <div>
+                <div class="d-flex auto-cols">
+                    <div class="d-flex flex-column gap-2">
+                        <label for="office" class="form-label">Cơ quan</label>
+                        <select class="form-select" id="office" @bind="selectedOfficeId">
+                            <option value="">Tất cả</option>
+                            @foreach (var office in listOffices)
+                            {
+                                <option value="@office.office_id">@office.office_name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        <label for="year" class="form-label">Năm</label>
+                        <select class="form-select" id="year" @bind="selectedYear">
+                            <option value="0">Chọn năm</option>
+                            @for (int year = DateTime.Now.Year; year >= 1900; year--)
+                            {
+                                <option value="@year">@year</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        <label for="book" class="form-label">Loại sách</label>
+                        <select class="form-select" id="book" @bind="selectedBookId">
+                            <option value="">Tất cả</option>
+                            @foreach (var book in listBooks)
+                            {
+                                <option value="@book.id">@book.book_name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        <label for="training" class="form-label">Loại hình đào tạo</label>
+                        <select class="form-select" id="training" @bind="selectedTrainingId">
+                            <option value="">Tất cả</option>
+                            @foreach (var training in listTrainings)
+                            {
+                                <option value="@training.id">@training.training_name</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-3 mt-3">
+                    <button class="btn btn-primary" @onclick="ApplyFilter">Áp dụng bộ lọc</button>
+                    <button class="btn btn-secondary" @onclick="ResetFilter">Xóa bộ lọc</button>
+                    <button class="btn btn-success" @onclick="ExportToPdf">Xuất PDF</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow rounded mt-3">
+        <div class="p-3 d-flex flex-column gap-2">
+            <div>
+                <h4 class="text-center">Danh sách giáo trình</h4>
+            </div>
+
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Tên giáo trình</th>
+                        <th scope="col">Năm xuất bản</th>
+                        <th scope="col">Nhà xuất bản</th>
+                        <th scope="col">Loại sách</th>
+                        <th scope="col">Trình độ đào tạo</th>
+                        <th scope="col">Người tham gia</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (CurriculumsList != null && CurriculumsList.Count > 0)
+                    {
+                        int i = 1;
+                        var groupedByCurriculum = CurriculumsList
+                        .GroupBy(x => x.curriculum_id)
+                        .ToList();
+
+                        foreach (var group in groupedByCurriculum)
+                        {
+                            var curriculum = group.First().Curriculums;
+                            var scientists = group.Select(x => new { x.Scientist?.profile_name, RoleName = x.Role?.role_name }).ToList();
+
+                            <tr>
+                                <th scope="row">@i</th>
+                                <td>@curriculum?.name</td>
+                                <td>@curriculum?.year</td>
+                                <td>@curriculum?.publisher</td>
+                                <td>@curriculum?.Book?.book_name</td>
+                                <td>@curriculum?.Training?.training_name</td>
+                                <td>
+                                    @string.Join(", ", scientists.Select(s => $"{s.profile_name} ({s.RoleName})"))
+                                </td>
+                            </tr>
+                            i++;
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+<style>
+    .auto-cols {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        gap: 16px;
+        justify-content: space-between;
+    }
+
+        .auto-cols > div {
+            flex: 1;
+            min-width: 200px;
+        }
+
+    .d-flex {
+        display: flex;
+        flex-direction: row;
+        justify-content: right;
+    }
+
+    .text-red {
+        color: red;
+    }
+
+</style>
+
+@code {
+    public List<ScientistCurriculumRole> CurriculumsList { get; set; } = new();
+    public List<ScientistCurriculumRole> AllCurriculumsList { get; set; } = new();
+    public List<Office> listOffices { get; set; } = new();
+    public List<Book> listBooks { get; set; } = new(); // List for Books
+    public List<Training> listTrainings { get; set; } = new(); // List for Trainings
+
+    private string selectedOfficeId { get; set; } = "";
+    private int selectedYear { get; set; } = 0;
+    private string selectedBookId { get; set; } = "";
+    private string selectedTrainingId { get; set; } = "";
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCurriculums();
+        await LoadOffices();
+        await LoadBooks();
+        await LoadTrainings();
+    }
+
+    private async Task LoadCurriculums()
+    {
+        AllCurriculumsList = (await CurriculumServices.GetAllCurriculumsAsync());
+        CurriculumsList = new List<ScientistCurriculumRole>(AllCurriculumsList);
+    }
+
+    private async Task LoadOffices()
+    {
+        listOffices = await OfficeServices.GetListOffices();
+    }
+
+    private async Task LoadBooks()
+    {
+        listBooks = await BookServices.GetListBook();
+    }
+
+    private async Task LoadTrainings()
+    {
+        listTrainings = await TrainingServices.GetListTraining();
+    }
+
+    private void ApplyFilter()
+    {
+        CurriculumsList = AllCurriculumsList
+            .Where(c => (string.IsNullOrEmpty(selectedOfficeId) || c?.Scientist?.office_id == selectedOfficeId)
+                        && (selectedYear == 0 || c.Curriculums?.year == selectedYear)
+                        && (string.IsNullOrEmpty(selectedBookId) || c.Curriculums?.Book?.id == selectedBookId)
+                        && (string.IsNullOrEmpty(selectedTrainingId) || c.Curriculums?.Training?.id == selectedTrainingId))
+            .ToList();
+    }
+
+    private void ResetFilter()
+    {
+        selectedOfficeId = "";
+        selectedYear = 0;
+        selectedBookId = "";
+        selectedTrainingId = "";
+        CurriculumsList = new List<ScientistCurriculumRole>(AllCurriculumsList);
+    }
+
+    public async void ExportToPdf()
+    {
+        using (MemoryStream ms = new MemoryStream())
+        {
+            // Tạo PDF writer
+            PdfWriter writer = new PdfWriter(ms);
+            PdfDocument pdf = new PdfDocument(writer);
+            Document document = new Document(pdf);
+
+            string fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "fonts", "Tinos-Regular.TTF"); // Example for Arial Unicode
+            PdfFont vietnameseFont = PdfFontFactory.CreateFont(fontPath);
+
+            // Thêm tiêu đề cho PDF
+            document.Add(new Paragraph("Danh sách giáo trình")
+                .SetFont(vietnameseFont) // Sử dụng font bold
+                .SetFontSize(16));
+
+            // Tạo bảng
+            Table table = new Table(7, true);
+
+            // Thêm tiêu đề bảng
+            table.AddHeaderCell("#").SetFont(vietnameseFont);
+            table.AddHeaderCell("Tên").SetFont(vietnameseFont);
+            table.AddHeaderCell("Năm").SetFont(vietnameseFont);
+            table.AddHeaderCell("Nhà xuất bản").SetFont(vietnameseFont);
+            table.AddHeaderCell("Loại sách").SetFont(vietnameseFont);
+            table.AddHeaderCell("Loại hình đào tạo").SetFont(vietnameseFont);
+            table.AddHeaderCell("Người tham gia").SetFont(vietnameseFont);
+
+            int i = 1;
+            var groupedByCurriculum = CurriculumsList.GroupBy(x => x.curriculum_id).ToList();
+            foreach (var group in groupedByCurriculum)
+            {
+                var curriculem = group.First().Curriculums;
+                var scientists = group.Select(x => new { x.Scientist?.profile_name, RoleName = x.Role?.role_name }).ToList();
+
+
+                table.AddCell(i.ToString()).SetFont(vietnameseFont);
+                table.AddCell(curriculem?.name ?? "").SetFont(vietnameseFont);
+                table.AddCell(curriculem?.year.ToString() ?? "").SetFont(vietnameseFont);
+                table.AddCell(curriculem?.publisher ?? "").SetFont(vietnameseFont);
+                table.AddCell(curriculem?.Book?.book_name ?? "").SetFont(vietnameseFont);
+                table.AddCell(curriculem?.Training?.training_name ?? "").SetFont(vietnameseFont);
+                table.AddCell(string.Join(", ", scientists.Select(s => $"{s.profile_name} ({s.RoleName})"))).SetFont(vietnameseFont);
+
+                i++;
+            }
+
+            // Thêm bảng vào tài liệu
+            document.Add(table);
+
+            // Lưu tệp PDF vào ổ đĩa hoặc tải về
+            pdf.Close();
+
+            // Sau khi tạo xong PDF, có thể lưu vào file hoặc trả về cho người dùng
+            var pdfBytes = ms.ToArray();
+            // Ví dụ trả về file PDF cho người dùng trong Blazor
+            var fileName = "Curriculums.pdf";
+            var contentType = "application/pdf";
+            await SaveAsFile(pdfBytes, fileName, contentType);
+        }
+    }
+
+    private async Task SaveAsFile(byte[] content, string fileName, string contentType)
+    {
+        var base64File = Convert.ToBase64String(content);
+        await JSRuntime.InvokeVoidAsync("downloadFilePDF", fileName, base64File, contentType);
+    }
+}

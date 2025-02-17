@@ -154,6 +154,13 @@ namespace BlazorFE.Services
             if (string.IsNullOrEmpty(scientistId)) throw new ArgumentException("Scientist ID cannot be null or empty", nameof(scientistId));
             if (string.IsNullOrEmpty(roleId)) throw new ArgumentException("Role ID cannot be null or empty", nameof(roleId));
 
+            var existingTopic = await _context.Set<Topics>().FirstOrDefaultAsync(t => t.topic_name == newTopic.topic_name);
+
+            if (existingTopic != null)
+            {
+                return false;
+            }
+
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
@@ -193,6 +200,13 @@ namespace BlazorFE.Services
             if (string.IsNullOrEmpty(topicId)) throw new ArgumentException("Topic ID cannot be null or empty", nameof(topicId));
             if (string.IsNullOrEmpty(scientistId)) throw new ArgumentException("Scientist ID cannot be null or empty", nameof(scientistId));
             if (string.IsNullOrEmpty(roleId)) throw new ArgumentException("Role ID cannot be null or empty", nameof(roleId));
+
+            var existingTopicName = await _context.Set<Topics>().FirstOrDefaultAsync(t => t.topic_name == updatedTopic.topic_name);
+
+            if (existingTopicName != null)
+            {
+                return false;
+            }
 
             using var transaction = await _context.Database.BeginTransactionAsync();
             try

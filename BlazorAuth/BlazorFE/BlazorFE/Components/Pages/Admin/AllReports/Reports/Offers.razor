@@ -1,0 +1,277 @@
+﻿@page "/Admin/AllReports/Offers"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Roles = "Administrators")]
+
+@using BlazorFE.Models.Scientist
+@using BlazorFE.Models.Category
+@using BlazorFE.Services
+
+@inject TopicServices TopicServices
+@inject OfferServices OfferServices
+@inject OfficeServices OfficeServices
+@inject LvTopicServices LvTopicServices
+@inject ProposeServices ProposeServices
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+@if (OffersList != null)
+{
+    <div class="card shadow rounded">
+        <div class="p-3">
+            <div>
+                <h4 class="text-center">Lọc</h4>
+            </div>
+            <div>
+                <div class="d-flex auto-cols">
+                    <div class="d-flex flex-column gap-2">
+                        <label for="office" class="form-label">Cơ quan</label>
+                        <select class="form-select" id="office" @bind="selectedOfficeId">
+                            <option value="">Tất cả</option>
+                            @foreach (var office in listOffices)
+                            {
+                                <option value="@office.office_id">@office.office_name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        <label for="year" class="form-label">Năm</label>
+                        <select class="form-select" id="year" @bind="selectedYear">
+                            <option value="0" selected>Chọn năm</option>
+                            @for (int year = DateTime.Now.Year; year >= 1900; year--)
+                            {
+                                <option value="@year">@year</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        <label for="propose" class="form-label">Loại hình đề xuất</label>
+                        <select class="form-select" id="propose" @bind="selectedProposeId">
+                            <option value="">Tất cả</option>
+                            @foreach (var propose in listProposes)
+                            {
+                                <option value="@propose.id">@propose.propose_name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        <label for="status" class="form-label">Trạng thái</label>
+                        <select class="form-select" id="status" @bind="selectedStatus">
+                            <option value="">Tất cả</option>
+                            <option value="Đã duyệt">Đã duyệt</option>
+                            <option value="Chưa duyệt">Chưa duyệt</option>
+                            <option value="Từ chối">Từ chối</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-3 mt-3">
+                    <button class="btn btn-primary" @onclick="ApplyFilter">Áp dụng bộ lọc</button>
+                    <button class="btn btn-secondary" @onclick="ResetFilter">Xóa bộ lọc</button>
+                    <button class="btn btn-success" @onclick="ExportToPdf">Xuất PDF</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="card shadow rounded mt-3">
+        <div class="p-3 d-flex flex-column gap-2">
+            <div>
+                <h4 class="text-center">Danh sách đề xuất</h4>
+            </div>
+
+
+            <table class="table table-bordered table-hover" id="tableOffers">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Năm</th>
+                        <th scope="col">Tên đề xuất</th>
+                        <th scope="col">Loại hình đề xuất</th>
+                        <th scope="col">Trạng thái</th>
+                        <th scope="col">Ghi chú</th>
+                        <th scope="col">Người tham gia</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (OffersList != null && OffersList.Count > 0)
+                    {
+                        int i = 1;
+
+                        var groupedByOffer = OffersList.GroupBy(x => x.offer_id).ToList();
+
+                        foreach (var group in groupedByOffer)
+                        {
+                            var offer = group.First().Offer;
+                            var scientists = group.Select(x => new { x.Scientist?.profile_name, RoleName = x.Role?.role_name }).ToList();
+
+                            <tr>
+                                <th scope="row">@i</th>
+                                <td>@offer?.year</td>
+                                <td>@offer?.offer_name</td>
+                                <td>@offer?.Propose?.propose_name</td>
+                                <td>@offer?.status</td>
+                                <td>@offer?.note</td>
+                                <td>@string.Join(", ", scientists.Select(s => $"{s.profile_name} ({s.RoleName})"))</td>
+                            </tr>
+                            i++;
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+<style>
+    .auto-cols {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        gap: 16px;
+        justify-content: space-between;
+    }
+
+        .auto-cols > div {
+            flex: 1;
+            min-width: 200px;
+        }
+
+    .d-flex {
+        display: flex;
+        flex-direction: row;
+        justify-content: right;
+    }
+
+    .text-red {
+        color: red;
+    }
+
+</style>
+
+@code {
+    public List<ScientistOfferRole> OffersList { get; set; } = new();
+    public List<ScientistOfferRole> AllOffersList { get; set; } = new();
+    public List<Office> listOffices { get; set; } = new();
+    public List<Propose> listProposes { get; set; } = new();
+
+    private string selectedOfficeId { get; set; } = "";
+    private int selectedYear { get; set; } = 0;
+    private string selectedProposeId { get; set; } = "";
+    private string selectedStatus { get; set; } = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadOffers();
+        await LoadOffices();
+        await LoadProposes(); // Load Proposes
+    }
+
+    private async Task LoadOffers()
+    {
+        AllOffersList = (await OfferServices.GetAllOffersAsync())
+            .Where(smr => smr.requestStatus == "Đã tham gia")
+            .ToList();
+        OffersList = new List<ScientistOfferRole>(AllOffersList);
+    }
+
+    private async Task LoadOffices()
+    {
+        listOffices = await OfficeServices.GetListOffices();
+    }
+
+    private async Task LoadProposes()
+    {
+        listProposes = await ProposeServices.GetListPropose(); // Get Proposes
+    }
+
+
+    private void ApplyFilter()
+    {
+        OffersList = AllOffersList
+            .Where(t => (string.IsNullOrEmpty(selectedOfficeId) || t.Scientist?.office_id == selectedOfficeId)
+                        && (selectedYear == 0 || t?.Offer?.year == selectedYear)
+                        && (string.IsNullOrEmpty(selectedProposeId) || t?.Offer?.Propose?.id == selectedProposeId)
+                        && (string.IsNullOrEmpty(selectedStatus) || t?.Offer?.status == selectedStatus))
+            .ToList();
+    }
+
+    private void ResetFilter()
+    {
+        selectedOfficeId = "";
+        selectedYear = 0;
+        selectedProposeId = "";
+        selectedStatus = "";
+        OffersList = new List<ScientistOfferRole>(AllOffersList);
+    }
+
+    public async void ExportToPdf()
+    {
+        using (MemoryStream ms = new MemoryStream())
+        {
+            // Tạo PDF writer
+            PdfWriter writer = new PdfWriter(ms);
+            PdfDocument pdf = new PdfDocument(writer);
+            Document document = new Document(pdf);
+
+            string fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "fonts", "Tinos-Regular.TTF"); // Example for Arial Unicode
+            PdfFont vietnameseFont = PdfFontFactory.CreateFont(fontPath);
+
+            // Thêm tiêu đề cho PDF
+            document.Add(new Paragraph("Danh sách đề xuất")
+                .SetFont(vietnameseFont) // Sử dụng font bold
+                .SetFontSize(16));
+
+            // Tạo bảng
+            Table table = new Table(7, true);
+
+            // Thêm tiêu đề bảng
+            table.AddHeaderCell("").SetFont(vietnameseFont);
+            table.AddHeaderCell("Năm").SetFont(vietnameseFont);
+            table.AddHeaderCell("Tên đề xuất").SetFont(vietnameseFont);
+            table.AddHeaderCell("Loại hình đề xuất").SetFont(vietnameseFont);
+            table.AddHeaderCell("Trạng thái").SetFont(vietnameseFont);
+            table.AddHeaderCell("Ghi chú").SetFont(vietnameseFont);
+            table.AddHeaderCell("Người tham gia").SetFont(vietnameseFont);
+
+            int i = 1;
+            var groupedByOffer = OffersList.GroupBy(x => x.offer_id).ToList();
+            foreach (var group in groupedByOffer)
+            {
+                var offer = group.First().Offer;
+                var scientists = group.Select(x => new { x.Scientist?.profile_name, RoleName = x.Role?.role_name }).ToList();
+
+
+                table.AddCell(i.ToString()).SetFont(vietnameseFont);
+                table.AddCell(offer?.year.ToString() ?? "").SetFont(vietnameseFont);
+                table.AddCell(offer?.offer_name ?? "").SetFont(vietnameseFont);
+                table.AddCell(offer?.Propose?.propose_name ?? "").SetFont(vietnameseFont);
+                table.AddCell(offer?.status ?? "").SetFont(vietnameseFont);
+                table.AddCell(offer?.note ?? "").SetFont(vietnameseFont);
+                table.AddCell(string.Join(", ", scientists.Select(s => $"{s.profile_name} ({s.RoleName})"))).SetFont(vietnameseFont);
+
+                i++;
+            }
+
+            // Thêm bảng vào tài liệu
+            document.Add(table);
+
+            // Lưu tệp PDF vào ổ đĩa hoặc tải về
+            pdf.Close();
+
+            // Sau khi tạo xong PDF, có thể lưu vào file hoặc trả về cho người dùng
+            var pdfBytes = ms.ToArray();
+            // Ví dụ trả về file PDF cho người dùng trong Blazor
+            var fileName = "Offers.pdf";
+            var contentType = "application/pdf";
+            await SaveAsFile(pdfBytes, fileName, contentType);
+        }
+    }
+
+    private async Task SaveAsFile(byte[] content, string fileName, string contentType)
+    {
+        var base64File = Convert.ToBase64String(content);
+        await JSRuntime.InvokeVoidAsync("downloadFilePDF", fileName, base64File, contentType);
+    }
+}

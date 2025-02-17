@@ -4,11 +4,11 @@
         <div class="auto-cols">
             <div>
                 <label class="labels">Họ và Tên<span class="text-red">*</span></label>
-                <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Họ và tên" @bind="@scientist.profile_name">
+                <input disable="@isReadOnly" type="text" class="form-control" placeholder="Họ và tên" @bind="@scientist.profile_name">
             </div>
             <div>
                 <label class="labels">Ngày sinh<span class="text-red">*</span></label>
-                <input readonly="@isReadOnly" type="date" class="form-control" @bind="@scientist.birthday">
+                <input disable="@isReadOnly" type="date" class="form-control" @bind="@scientist.birthday">
             </div>
             <div>
                 <label class="labels">Giới tính<span class="text-red">*</span></label>
@@ -25,11 +25,11 @@
         <div class="auto-cols mt-2">
             <div>
                 <label class="labels">Nơi sinh<span class="text-red">*</span></label>
-                <input readonly="@isReadOnly" type="text" class="form-control" @bind="@scientist.birth_place">
+                <input disable="@isReadOnly" type="text" class="form-control" @bind="@scientist.birth_place">
             </div>
             <div>
                 <label class="labels">Địa chỉ liên lạc</label>
-                <input readonly="@isReadOnly" type="text" class="form-control" @bind="@scientist.address">
+                <input disable="@isReadOnly" type="text" class="form-control" @bind="@scientist.address">
             </div>
         </div>
 
@@ -37,19 +37,19 @@
         <div class="auto-cols mt-2">
             <div>
                 <label class="labels">Điện thoại di động<span class="text-red">*</span></label>
-                <input readonly="@isReadOnly" type="number" class="form-control" placeholder="Điện thoại di động" @bind="@scientist.phone">
+                <input disable="@isReadOnly" type="number" class="form-control" placeholder="Điện thoại di động" @bind="@scientist.phone">
             </div>
             <div>
                 <label class="labels">Điện thoại nhà riêng</label>
-                <input readonly="@isReadOnly" type="number" class="form-control" placeholder="Điện thoại nhà riêng" @bind="@scientist.house_phone">
+                <input disable="@isReadOnly" type="number" class="form-control" placeholder="Điện thoại nhà riêng" @bind="@scientist.house_phone">
             </div>
             <div>
                 <label class="labels">Điện thoại cơ quan</label>
-                <input readonly="@isReadOnly" type="number" class="form-control" placeholder="Điện thoại cơ quan" @bind="@scientist.office_phone">
+                <input disable="@isReadOnly" type="number" class="form-control" placeholder="Điện thoại cơ quan" @bind="@scientist.office_phone">
             </div>
             <div>
                 <label class="labels">Email<span class="text-red">*</span></label>
-                <input readonly="true" type="email" class="form-control" placeholder="Email" @bind="@scientist.email">
+                <input disable="true" type="email" class="form-control" placeholder="Email" @bind="@scientist.email">
             </div>
         </div>
 
@@ -80,7 +80,7 @@
             </div>
             <div>
                 <label class="labels">Chức danh khoa học</label>
-                <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Chức danh khoa học" @bind="@scientist.scientific_title">
+                <input disable="@isReadOnly" type="text" class="form-control" placeholder="Chức danh khoa học" @bind="@scientist.scientific_title">
             </div>
         </div>
 
@@ -88,11 +88,11 @@
         <div class="auto-cols mt-2">
             <div>
                 <label class="labels">Chức danh nghiên cứu</label>
-                <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Chức danh nghiên cứu" @bind="@scientist.research_title">
+                <input disable="@isReadOnly" type="text" class="form-control" placeholder="Chức danh nghiên cứu" @bind="@scientist.research_title">
             </div>
             <div>
                 <label class="labels">Chức vụ nghiên cứu</label>
-                <input readonly="@isReadOnly" type="text" class="form-control" placeholder="Chức vụ nghiên cứu" @bind="@scientist.research_position">
+                <input disable="@isReadOnly" type="text" class="form-control" placeholder="Chức vụ nghiên cứu" @bind="@scientist.research_position">
             </div>
             <div>
                 <label class="labels">Tên tổ chức<span class="text-red">*</span></label>
@@ -111,7 +111,7 @@
 
         <div>
             <label class="labels">Địa chỉ tổ chức<span class="text-red">*</span></label>
-            <input readonly="true" type="text" class="form-control" placeholder="Địa chỉ tổ chức" @bind="@scientist.address_office">
+            <input disable="true" type="text" class="form-control" placeholder="Địa chỉ tổ chức" @bind="@scientist.address_office">
         </div>
     </div>
 </form>

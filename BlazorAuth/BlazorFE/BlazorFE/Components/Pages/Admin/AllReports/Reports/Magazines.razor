@@ -137,12 +137,6 @@
                     }
                 </tbody>
             </table>
-
-            <div class="d-flex justify-content-center mt-3">
-                <button class="btn btn-secondary" @onclick="PreviousPage" disabled="@((currentPage == 1))">Trang trước</button>
-                <span class="mx-2 d-flex align-items-center">Trang @currentPage / @totalPages</span>
-                <button class="btn btn-secondary" @onclick="NextPage" disabled="@((currentPage == totalPages))">Trang sau</button>
-            </div>
         </div>
     </div>
 }
@@ -232,38 +226,86 @@
         listMagazines = new List<ScientistMagazineRole>(allMagazines);
     }
 
-    private List<ScientistMagazineRole> GetPaginatedMagazines()
+    public async void ExportToPdf()
     {
-        return listMagazines.Skip((currentPage - 1) * pageSize).Take(pageSize).ToList();
-    }
-
-    private void GoToPage(int pageNumber)
-    {
-        if (pageNumber >= 1 && pageNumber <= totalPages)
+        using (MemoryStream ms = new MemoryStream())
         {
-            currentPage = pageNumber;
+            // Tạo PDF writer
+            PdfWriter writer = new PdfWriter(ms);
+            PdfDocument pdf = new PdfDocument(writer);
+            Document document = new Document(pdf);
+
+            string fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "fonts", "Tinos-Regular.TTF"); // Example for Arial Unicode
+            PdfFont vietnameseFont = PdfFontFactory.CreateFont(fontPath);
+
+            // Thêm tiêu đề cho PDF
+            document.Add(new Paragraph("Danh sách bài báo")
+                .SetFont(vietnameseFont) // Sử dụng font bold
+                .SetFontSize(16));
+
+            // Tạo bảng
+            Table table = new Table(9, true);
+
+            // Thêm tiêu đề bảng
+            table.AddHeaderCell("");
+            table.AddHeaderCell("Tên bài báo");
+            table.AddHeaderCell("Năm");
+            table.AddHeaderCell("Tên tạp chí");
+            table.AddHeaderCell("Loại bài báo");
+            table.AddHeaderCell("Phạm vi");
+            table.AddHeaderCell("Chỉ số");
+            table.AddHeaderCell("Xếp hạng");
+            table.AddHeaderCell("Người tham gia");
+
+            // Duyệt qua danh sách và thêm dữ liệu vào bảng
+            int i = 1;
+            var groupedByMagazine = listMagazines.GroupBy(x => x.magazine_id).ToList();
+            foreach (var group in groupedByMagazine)
+            {
+                var magazine = group.First().Magazines;
+                var scientists = group.Select(x => new { x.Scientist?.profile_name, RoleName = x.Role?.role_name }).ToList();
+
+                MagazineRank enumValueRank;
+                string displayRank = Enum.TryParse(magazine?.rank, out enumValueRank)
+                    ? Helpers.EnumHelper.GetEnumDisplayName(enumValueRank)
+                    : "";
+
+                MagazineScope enumValue;
+                string displayName = Enum.TryParse(@magazine?.magazine_scope, out enumValue)
+                ? Helpers.EnumHelper.GetEnumDisplayName(enumValue)
+                : "";
+
+                table.AddCell(i.ToString()).SetFont(vietnameseFont);
+                table.AddCell(magazine?.magazine_name ?? "").SetFont(vietnameseFont);
+                table.AddCell(magazine?.year.ToString() ?? "").SetFont(vietnameseFont);
+                table.AddCell(magazine?.journal ?? "").SetFont(vietnameseFont);
+                table.AddCell(magazine?.Paper?.paper_name ?? "").SetFont(vietnameseFont);
+                table.AddCell(displayName).SetFont(vietnameseFont);
+                table.AddCell(displayRank).SetFont(vietnameseFont);
+                table.AddCell(magazine?.MagazineScore?.magazine_score_name ?? "").SetFont(vietnameseFont);
+                table.AddCell(string.Join(", ", scientists.Select(s => $"{s.profile_name} ({s.RoleName})"))).SetFont(vietnameseFont);
+
+                i++;
+            }
+
+            // Thêm bảng vào tài liệu
+            document.Add(table);
+
+            // Lưu tệp PDF vào ổ đĩa hoặc tải về
+            pdf.Close();
+
+            // Sau khi tạo xong PDF, có thể lưu vào file hoặc trả về cho người dùng
+            var pdfBytes = ms.ToArray();
+            // Ví dụ trả về file PDF cho người dùng trong Blazor
+            var fileName = "MagazineList.pdf";
+            var contentType = "application/pdf";
+            await SaveAsFile(pdfBytes, fileName, contentType);
         }
     }
 
-    private void NextPage()
+    private async Task SaveAsFile(byte[] content, string fileName, string contentType)
     {
-        if (currentPage < totalPages)
-        {
-            currentPage++;
-        }
+        var base64File = Convert.ToBase64String(content);
+        await JSRuntime.InvokeVoidAsync("downloadFilePDF", fileName, base64File, contentType);
     }
-
-    private void PreviousPage()
-    {
-        if (currentPage > 1)
-        {
-            currentPage--;
-        }
-    }
-
-    private async Task ExportToPdf()
-    {
-        await JSRuntime.InvokeVoidAsync("exportToPdf", "tableMagazines");
-    }
-
 }

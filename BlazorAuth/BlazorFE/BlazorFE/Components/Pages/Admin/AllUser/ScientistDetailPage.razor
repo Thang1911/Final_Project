@@ -48,7 +48,8 @@
         {
             @if (scientist != null)
             {
-                <TopicTable TopicsList="@TopicsList" />
+                <DataTable Searchable="true">
+                <TopicTable TopicsList="@TopicsList" /></DataTable>
             }
             else
             {
@@ -59,7 +60,8 @@
         {
             @if (scientist != null)
             {
-                <CurriculumsTable ListCurriculums="@CurriculumsList" />
+                <DataTable Searchable="true">
+                <CurriculumsTable ListCurriculums="@CurriculumsList" /></DataTable>
             }
             else
             {
@@ -70,7 +72,8 @@
         {
             @if (scientist != null)
             {
-                <MagazinesTable magazines="@MagazinesList" />
+                <DataTable Searchable="true">
+                <MagazinesTable magazines="@MagazinesList" /></DataTable>
             }
             else
             {
