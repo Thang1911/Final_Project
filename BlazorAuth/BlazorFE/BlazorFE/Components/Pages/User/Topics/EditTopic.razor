@@ -37,6 +37,14 @@
                                     <!-- Hàng đầu tiên -->
                                     <div class="auto-cols mb-2">
                                         <div>
+                                            <label class="labels">Mã đề tài<span class="text-red">*</span></label>
+                                            <input disabled="@IsReadOnly" type="text" class="form-control" placeholder="Mã đề tài" @bind="@scientistTopic.Topics.topicId">
+                                            @if (ShowError && string.IsNullOrWhiteSpace(scientistTopic.Topics.topicId))
+                                            {
+                                                <span class="text-danger">Vui lòng nhập mã đề tài</span>
+                                            }
+                                        </div>
+                                        <div>
                                             <label class="labels">Tên đề tài<span class="text-red">*</span></label>
                                             <input disabled="@IsReadOnly" type="text" class="form-control" placeholder="Tên đề tài" @bind="@scientistTopic.Topics.topic_name">
                                             @if (ShowError && string.IsNullOrWhiteSpace(scientistTopic.Topics.topic_name))
@@ -58,6 +66,8 @@
                                                 <span class="text-danger">Vui lòng chọn cấp độ đề tài.</span>
                                             }
                                         </div>
+                                    </div>
+                                    <div class="auto-cols">
                                         <div>
                                             <label class="labels">Kết quả đánh giá<span class="text-red">*</span></label>
                                             <select disabled="@IsReadOnly" type="text" class="form-control" @bind="scientistTopic.Topics.result" aria-label="Default select example">
@@ -75,9 +85,6 @@
                                                 <span class="text-danger">Vui lòng chọn kết quả.</span>
                                             }
                                         </div>
-                                    </div>
-                                    <div class="auto-cols">
-
                                         <div>
                                             <label class="labels">Ngày bắt đầu</label>
                                             <input disabled="@IsReadOnly" type="date" class="form-control" @bind="@scientistTopic.Topics.start_date">

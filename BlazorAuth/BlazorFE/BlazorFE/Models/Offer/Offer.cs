@@ -9,6 +9,7 @@ namespace BlazorFE.Models.Offer
         [Key]
         public string id { get; set; }
         public int year { get; set; }
+        public int? month { get; set; }
         public string offer_name { get; set; }
 
         [ForeignKey(nameof(Propose))]

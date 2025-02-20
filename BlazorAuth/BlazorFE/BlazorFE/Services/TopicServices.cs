@@ -215,6 +215,7 @@ namespace BlazorFE.Services
                 if (existingTopic == null) throw new InvalidOperationException("Topic not found");
 
                 existingTopic.topic_name = updatedTopic.topic_name;
+                existingTopic.topicId = updatedTopic.topicId;
                 existingTopic.result = updatedTopic.result;
                 existingTopic.lvtopic_id = updatedTopic.lvtopic_id;
                 existingTopic.start_date = updatedTopic.start_date;

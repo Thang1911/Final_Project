@@ -7,40 +7,37 @@
 @inject ScientistServices ScientistService
 @inject NavigationManager NavigationManager
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Họ và tên</th>
-            <th>Đơn vị công tác</th>
-            <th>Học vị</th>
-            <th>Chuyên ngành nghiên cứu</th>
-            <th>Thao tác</th>
-        </tr>
-    </thead>
-    <tbody>
-        @if (scientists == null || !scientists.Any())
-        {
+
+<DataTable Searchable="true">
+    <table class="table table-striped">
+        <thead>
             <tr>
-                <td colspan="5" class="text-center">Không có dữ liệu.</td>
+                <th>Họ và tên</th>
+                <th>Đơn vị công tác</th>
+                <th>Học vị</th>
+                <th>Chuyên ngành nghiên cứu</th>
+                <th>Thao tác</th>
             </tr>
-        }
-        else
-        {
-            @foreach (var scientist in scientists)
+        </thead>
+        <tbody>
+            @if (scientists != null && scientists.Count > 0)
             {
-                <tr>
-                    <td>@scientist.profile_name</td>
-                    <td>@scientist.Office?.office_name</td>
-                    <td>@scientist.scientific_title</td>
-                    <td>@scientist.research_major</td>
-                    <td>
-                        <button class="btn btn-info" @onclick="() => ViewDetails(scientist.user_id)">Xem thông tin</button>
-                    </td>
-                </tr>
+                @foreach (var scientist in scientists)
+                {
+                    <tr>
+                        <td>@scientist.profile_name</td>
+                        <td>@scientist.Office?.office_name</td>
+                        <td>@scientist.scientific_title</td>
+                        <td>@scientist.research_major</td>
+                        <td>
+                            <button class="btn btn-info" @onclick="() => ViewDetails(scientist.user_id)">Xem thông tin</button>
+                        </td>
+                    </tr>
+                }
             }
-        }
-    </tbody>
-</table>
+        </tbody>
+    </table>
+</DataTable>
 
 @code {
     private List<Models.Scientist.Scientist> scientists;

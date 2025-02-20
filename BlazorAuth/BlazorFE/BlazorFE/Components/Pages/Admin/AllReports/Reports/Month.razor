@@ -1,0 +1,465 @@
+﻿@page "/Admin/AllReports/Month"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Roles = "Administrators")]
+
+@using BlazorFE.Models.Scientist
+@using BlazorFE.Models.Category
+@using BlazorFE.Services
+
+@inject MagazineServices MagazineServices
+@inject TopicServices TopicServices
+@inject CurriculumServices CurriculumServices
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+
+<div class="card shadow rounded">
+    <div class="p-3">
+        <div class="d-flex justify-content-center">
+            <h3>
+                Báo cáo và thống kê kết quả khoa học theo tháng
+            </h3>
+        </div>
+        <div>
+            <div class="d-flex auto-cols">
+                <div class="d-flex flex-column gap-2">
+                    <label for="month" class="form-label">Tháng</label>
+                    <select class="form-select" id="month" @bind="selectedMonth">
+                        <option value="0" selected>Chọn tháng</option>
+                        @for (int month = 1; month <= 12; month++)
+                        {
+                            <option value="@month">Tháng @month</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="d-flex flex-column gap-2">
+                    <label for="year" class="form-label">Năm</label>
+                    <select class="form-select" id="year" @bind="selectedYear">
+                        <option value="0" selected>Chọn năm</option>
+                        @for (int year = DateTime.Now.Year; year >= 1900; year--)
+                        {
+                            <option value="@year">@year</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="d-flex gap-3 mt-3">
+                <button class="btn btn-primary" disabled="@IsDisabled" @onclick="ApplyFilter">
+                    @if (IsExportLoading)
+                    {
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        <span> Đang xuất...</span>
+                    }
+                    else
+                    {
+                        <span>Xuất PDF</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .auto-cols {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        gap: 16px;
+        justify-content: space-between;
+    }
+
+        .auto-cols > div {
+            flex: 1;
+            min-width: 200px;
+        }
+
+    .d-flex {
+        display: flex;
+        flex-direction: row;
+        justify-content: right;
+    }
+
+    .text-red {
+        color: red;
+    }
+
+</style>
+
+@code {
+    public List<ScientistMagazineRole> listMagazines { get; set; } = new();
+    private List<ScientistMagazineRole> allMagazines { get; set; } = new();
+
+    public List<ScientistCurriculumRole> CurriculumsList { get; set; } = new();
+    public List<ScientistCurriculumRole> AllCurriculums { get; set; } = new();
+
+    public List<scientist_topic_role> TopicsList { get; set; } = new();
+    public List<scientist_topic_role> AllTopics { get; set; } = new();
+
+    private int selectedYear { get; set; } = 0;
+    private int selectedMonth { get; set; } = 0;
+
+    private bool IsDisabled => selectedYear == 0;
+    private bool IsExportLoading { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMagazines();
+        await LoadCurriculums();
+        await LoadTopics();
+    }
+
+    private async Task LoadMagazines()
+    {
+        allMagazines = (await MagazineServices.GetAllMagazinesAsync())
+            .ToList();
+    }
+
+    private async Task LoadCurriculums()
+    {
+        AllCurriculums = (await CurriculumServices.GetAllCurriculumsAsync())
+            .ToList();
+    }
+
+    private async Task LoadTopics()
+    {
+        AllTopics = (await TopicServices.GetAllTopicAsync())
+            .ToList();
+    }
+
+    private async void ApplyFilter()
+    {
+        IsExportLoading = true;
+
+        listMagazines = allMagazines
+            .Where(mag => mag?.Magazines?.year == selectedYear && mag?.Magazines?.month == selectedMonth)
+            .ToList();
+
+        CurriculumsList = AllCurriculums
+        .Where(cur => cur?.Curriculums?.year == selectedYear && cur?.Curriculums?.month == selectedMonth)
+        .ToList();
+
+        TopicsList = AllTopics
+            .Where(top => top?.Topics?.start_date.HasValue == true &&
+                  top.Topics.start_date.Value.Year == selectedYear &&
+                  top.Topics.start_date.Value.Month == selectedMonth)
+            .ToList();
+
+        await ExportToPdf();
+    }
+
+    private void ResetFilter()
+    {
+        selectedYear = 0;
+        listMagazines = new List<ScientistMagazineRole>(allMagazines);
+    }
+
+
+    public async Task ExportToPdf()
+    {
+        using (MemoryStream ms = new MemoryStream())
+        {
+            // Tạo PDF writer
+            PdfWriter writer = new PdfWriter(ms);
+            PdfDocument pdf = new PdfDocument(writer);
+            Document document = new Document(pdf);
+
+            string fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "fonts", "Tinos-Regular.TTF");
+            PdfFont vietnameseFont = PdfFontFactory.CreateFont(fontPath);
+
+            // Thêm tiêu đề cho PDF
+            document.Add(new Paragraph($"KẾT QUẢ HOẠT ĐỘNG KHOA HỌC VÀ CÔNG NGHỆ THÁNG {selectedMonth} NĂM {selectedYear}")
+                .SetFont(vietnameseFont)
+                .SetTextAlignment(TextAlignment.CENTER)
+                .SetFontSize(17));
+
+
+            document.Add(new Paragraph("A. BÀI BÁO ĐĂNG TRÊN TẠP TRÍ KHOA HỌC QUỐC TẾ")
+               .SetFont(vietnameseFont)
+               .SetFontSize(17));
+            // Tạo bảng
+            Table tableMagazineInternational = new Table(7, true);
+
+            tableMagazineInternational.SetBorder(new SolidBorder(2));
+
+            // Thêm tiêu đề bảng
+            tableMagazineInternational.AddHeaderCell("Số TT");
+            tableMagazineInternational.AddHeaderCell("Tên bài báo");
+            tableMagazineInternational.AddHeaderCell("Tên tạp chí");
+            tableMagazineInternational.AddHeaderCell("Người thực hiện");
+            tableMagazineInternational.AddHeaderCell("Chỉ mục khoa học");
+            tableMagazineInternational.AddHeaderCell("Xếp loại");
+            tableMagazineInternational.AddHeaderCell("Ghi chú");
+
+
+            int i = 1;
+            var groupedByMagazine = listMagazines
+                .Where(x => Enum.TryParse<MagazineScope>(x.Magazines?.magazine_scope, out var scope) && scope == MagazineScope.Quốc_tế)
+                .GroupBy(x => x.magazine_id)
+                .ToList();
+
+            foreach (var group in groupedByMagazine)
+            {
+                var magazine = group.First().Magazines;
+                var scientists = group.Select(x => new { x.Scientist?.profile_name, RoleName = x.Role?.role_name }).ToList();
+
+                MagazineRank enumValueRank;
+                string displayRank = Enum.TryParse(magazine?.rank, out enumValueRank)
+                    ? Helpers.EnumHelper.GetEnumDisplayName(enumValueRank)
+                    : "";
+
+                tableMagazineInternational.AddCell(i.ToString()).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                tableMagazineInternational.AddCell(magazine?.magazine_name ?? "").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                tableMagazineInternational.AddCell(magazine?.journal ?? "").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                tableMagazineInternational.AddCell(string.Join(", ", scientists.Select(s => $"{s.profile_name} ({s.RoleName})"))).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                tableMagazineInternational.AddCell(magazine?.MagazineScore?.magazine_score_name ?? "").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                tableMagazineInternational.AddCell(displayRank).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                tableMagazineInternational.AddCell($"Số trích dẫn: {magazine?.citation_count}; Tập số: {magazine?.volume}; Số trang: {magazine?.page_count}").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+
+                i++;
+            }
+
+            // Thêm bảng vào tài liệu
+            document.Add(tableMagazineInternational);
+
+            document.Add(new Paragraph("\n").SetHeight(30));
+
+            document.Add(new Paragraph("B. BÀI BÁO ĐĂNG TRÊN TẠP TRÍ KHOA HỌC TRONG NƯỚC")
+               .SetFont(vietnameseFont)
+               .SetFontSize(17));
+            // Tạo bảng
+            Table tableDomestic = new Table(6, true);
+
+            tableDomestic.SetBorder(new SolidBorder(2));
+
+            // Thêm tiêu đề bảng
+            tableDomestic.AddHeaderCell("Số TT");
+            tableDomestic.AddHeaderCell("Nội dung");
+            tableDomestic.AddHeaderCell("Đơn vị chủ trì, Tác giả");
+            tableDomestic.AddHeaderCell("Chỉ mục khoa học");
+            tableDomestic.AddHeaderCell("Xếp loại");
+            tableDomestic.AddHeaderCell("Ghi chú");
+
+
+            int j = 1;
+            var groupedByMagazineDomestic = listMagazines
+                .Where(x => Enum.TryParse<MagazineScope>(x.Magazines?.magazine_scope, out var scope) && scope == MagazineScope.Trong_nước)
+                .GroupBy(x => x.magazine_id)
+                .ToList();
+
+            foreach (var group in groupedByMagazineDomestic)
+            {
+                var magazine = group.First().Magazines;
+                var scientists = group.Select(x => new { x.Scientist?.profile_name, RoleName = x.Role?.role_name }).ToList();
+
+                MagazineRank enumValueRank;
+                string displayRank = Enum.TryParse(magazine?.rank, out enumValueRank)
+                    ? Helpers.EnumHelper.GetEnumDisplayName(enumValueRank)
+                    : "";
+
+                tableDomestic.AddCell(j.ToString()).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                tableDomestic.AddCell(magazine?.magazine_name ?? "").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                tableDomestic.AddCell(string.Join(", ", scientists.Select(s => $"{s.profile_name} ({s.RoleName})"))).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                tableDomestic.AddCell(magazine?.MagazineScore?.magazine_score_name ?? "").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                tableDomestic.AddCell(displayRank).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                tableDomestic.AddCell($"Số trích dẫn: {magazine?.citation_count}; Tập số: {magazine?.volume}; Số trang: {magazine?.page_count}").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+
+                j++;
+            }
+            // Thêm bảng vào tài liệu
+            document.Add(tableDomestic);
+
+
+            document.Add(new Paragraph("\n").SetHeight(30));
+
+            document.Add(new Paragraph("C. BÀI BÁO ĐĂNG KỶ YẾU HỘI THẢO")
+               .SetFont(vietnameseFont)
+               .SetFontSize(17));
+            // Tạo bảng
+            Table tableMagazineCoference = new Table(6, true);
+
+            tableMagazineCoference.SetBorder(new SolidBorder(2));
+
+            // Thêm tiêu đề bảng
+            tableMagazineCoference.AddHeaderCell("Số TT");
+            tableMagazineCoference.AddHeaderCell("Tên bài báo");
+            tableMagazineCoference.AddHeaderCell("Tên hội thảo");
+            tableMagazineCoference.AddHeaderCell("Đơn vị chủ trì, Tác giả");
+            tableMagazineCoference.AddHeaderCell("Chỉ mục khoa học");
+            tableMagazineCoference.AddHeaderCell("Ghi chú");
+
+
+            int c = 1;
+            var groupedByMagazineCoference = listMagazines
+                .Where(x => x?.Magazines?.Paper?.paper_type == "Hội thảo")
+                .GroupBy(x => x.magazine_id)
+                .ToList();
+
+            foreach (var group in groupedByMagazineDomestic)
+            {
+                var magazine = group.First().Magazines;
+                var scientists = group.Select(x => new { x.Scientist?.profile_name, RoleName = x.Role?.role_name }).ToList();
+
+                MagazineRank enumValueRank;
+                string displayRank = Enum.TryParse(magazine?.rank, out enumValueRank)
+                    ? Helpers.EnumHelper.GetEnumDisplayName(enumValueRank)
+                    : "";
+
+                tableMagazineCoference.AddCell(c.ToString()).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                tableMagazineCoference.AddCell(magazine?.magazine_name ?? "").SetFont(vietnameseFont).SetBorder(new SolidBorder(1)); tableMagazineCoference
+                    .AddCell($"{magazine?.Paper?.paper_name} - {magazine?.Paper?.scope ?? ""}")
+                    .SetFont(vietnameseFont)
+                    .SetBorder(new SolidBorder(1));
+                tableMagazineCoference.AddCell(string.Join(", ", scientists.Select(s => $"{s.profile_name} ({s.RoleName})"))).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                tableMagazineCoference.AddCell(magazine?.MagazineScore?.magazine_score_name ?? "").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                tableMagazineCoference.AddCell($"Số trích dẫn: {magazine?.citation_count}; Tập số: {magazine?.volume}; Số trang: {magazine?.page_count}").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+
+                c++;
+            }
+            // Thêm bảng vào tài liệu
+            document.Add(tableMagazineCoference);
+
+
+            document.Add(new Paragraph("\n").SetHeight(30));
+            document.Add(new Paragraph("D. BÀI BÁO ĐĂNG TẠP CHÍ KHOA HỌC THANH NIÊN")
+               .SetFont(vietnameseFont)
+               .SetFontSize(17));
+            // Tạo bảng
+            Table tableMagazineScientific= new Table(5, true);
+
+            tableMagazineScientific.SetBorder(new SolidBorder(2));
+
+            // Thêm tiêu đề bảng
+            tableMagazineScientific.AddHeaderCell("Số TT");
+            tableMagazineScientific.AddHeaderCell("Tên bài báo");
+            tableMagazineScientific.AddHeaderCell("Đơn vị chủ trì, Tác giả");
+            tableMagazineScientific.AddHeaderCell("Số trích dẫn, tập số, số trang");
+            tableMagazineScientific.AddHeaderCell("Ghi chú");
+
+
+            int s = 1;
+            var groupedByMagazineScientific = listMagazines
+                .Where(x => x?.Magazines?.Paper?.paper_type == "Tạp chí")
+                .GroupBy(x => x.magazine_id)
+                .ToList();
+
+            foreach (var group in groupedByMagazineScientific)
+            {
+                var magazine = group.First().Magazines;
+                var scientists = group.Select(x => new { x.Scientist?.profile_name, RoleName = x.Role?.role_name }).ToList();
+
+                MagazineRank enumValueRank;
+                string displayRank = Enum.TryParse(magazine?.rank, out enumValueRank)
+                    ? Helpers.EnumHelper.GetEnumDisplayName(enumValueRank)
+                    : "";
+
+                tableMagazineScientific.AddCell(s.ToString()).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                tableMagazineScientific.AddCell(magazine?.magazine_name ?? "").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                tableMagazineScientific.AddCell(string.Join(", ", scientists.Select(s => $"{s.profile_name} ({s.RoleName})"))).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                tableMagazineScientific.AddCell($"Số trích dẫn: {magazine?.citation_count}; Tập số: {magazine?.volume}; Số trang: {magazine?.page_count}").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                tableMagazineScientific.AddCell("").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+
+                s++;
+            }
+            // Thêm bảng vào tài liệu
+            document.Add(tableMagazineScientific);
+
+
+            document.Add(new Paragraph("\n").SetHeight(30));
+            document.Add(new Paragraph("F. ĐỀ TÀI KHOA HỌC")
+               .SetFont(vietnameseFont)
+               .SetFontSize(17));
+            // Tạo bảng
+            Table tableScientificTopics = new Table(5, true);
+
+            tableScientificTopics.SetBorder(new SolidBorder(2));
+
+            // Thêm tiêu đề bảng
+            tableScientificTopics.AddHeaderCell("Số TT");
+            tableScientificTopics.AddHeaderCell("Mã số đề tài");
+            tableScientificTopics.AddHeaderCell("Tên đề tài");
+            tableScientificTopics.AddHeaderCell("Chủ nhiệm đề tài");
+            tableScientificTopics.AddHeaderCell("Ghi chú");
+
+
+            int p = 1;
+            var groupedByTopicIds = TopicsList
+                .GroupBy(x => x.topic_id)
+                .ToList();
+
+            foreach (var group in groupedByTopicIds)
+            {
+                var topic = group.First().Topics;
+                var scientists = group.Select(x => new { x.Scientist?.profile_name, RoleName = x.Role?.role_name }).ToList();
+
+
+                tableScientificTopics.AddCell(p.ToString()).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                tableScientificTopics.AddCell(topic?.topicId ?? "").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                tableScientificTopics.AddCell(topic?.topic_name ?? "").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                tableScientificTopics.AddCell(string.Join(", ", scientists.Select(s => $"{s.profile_name} ({s.RoleName})"))).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                tableScientificTopics.AddCell("").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+
+                p++;
+            }
+            document.Add(tableScientificTopics);
+
+
+
+            document.Add(new Paragraph("\n").SetHeight(30));
+            document.Add(new Paragraph("G. GIÁO TRÌNH")
+               .SetFont(vietnameseFont)
+               .SetFontSize(17));
+
+            Table tableScientificCurriculums = new Table(5, true);
+
+            tableScientificCurriculums.SetBorder(new SolidBorder(2));
+
+            tableScientificCurriculums.AddHeaderCell("Số TT");
+            tableScientificCurriculums.AddHeaderCell("Nội dung");
+            tableScientificCurriculums.AddHeaderCell("Đơn vị chủ trì, Tác giả");
+            tableScientificCurriculums.AddHeaderCell("Thể loại");
+            tableScientificCurriculums.AddHeaderCell("Ghi chú");
+
+
+            int g = 1;
+            var groupedByCurriculumId = CurriculumsList
+                .GroupBy(x => x.curriculum_id)
+                .ToList();
+
+            foreach (var group in groupedByCurriculumId)
+            {
+                var curriculum = group.First().Curriculums;
+                var scientists = group.Select(x => new { x.Scientist?.profile_name, RoleName = x.Role?.role_name }).ToList();
+
+                tableScientificCurriculums.AddCell(g.ToString()).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                tableScientificCurriculums.AddCell(curriculum?.name ?? "").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                tableScientificCurriculums.AddCell(string.Join(", ", scientists.Select(s => $"{s.profile_name} ({s.RoleName})"))).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                tableScientificCurriculums.AddCell(curriculum?.Book?.book_name ?? "").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                tableScientificCurriculums.AddCell("").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+
+                g++;
+            }
+            document.Add(tableScientificCurriculums);
+
+            // Lưu tệp PDF vào ổ đĩa hoặc tải về
+            pdf.Close();
+            IsExportLoading = false;
+
+
+            var pdfBytes = ms.ToArray();
+            var fileName = $"Báo cáo khoa học tháng {selectedMonth} năm {selectedYear}.pdf";
+            var contentType = "application/pdf";
+            await SaveAsFile(pdfBytes, fileName, contentType);
+        }
+    }
+
+    private async Task SaveAsFile(byte[] content, string fileName, string contentType)
+    {
+        var base64File = Convert.ToBase64String(content);
+        await JSRuntime.InvokeVoidAsync("downloadFilePDF", fileName, base64File, contentType);
+    }
+}

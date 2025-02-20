@@ -85,6 +85,20 @@
                                 <!-- Hàng thứ hai -->
                                 <div class="auto-cols mt-2">
                                     <div>
+                                        <label class="labels">Tháng công bố<span class="text-red">*</span></label>
+                                        <select disabled="@isReadOnly" class="form-control" @bind="magazine.month">
+                                            <option value="0" selected>Chọn tháng</option>
+                                            @for (int month = 1; month <= 12; month++)
+                                            {
+                                                <option value="@month">Tháng @month</option>
+                                            }
+                                        </select>
+                                        @if (showError && magazine.month == 0)
+                                        {
+                                            <span class="text-danger">Vui lòng chọn tháng công bố.</span>
+                                        }
+                                    </div>
+                                    <div>
                                         <label class="labels">Năm công bố<span class="text-red">*</span></label>
                                         <select disabled="@isReadOnly" class="form-control" @bind="magazine.year">
                                             <option value="0" selected>Chọn năm</option>
@@ -126,7 +140,24 @@
                                     </div>
                                 </div>
 
-                                <div class="auto-cols">
+                                <!-- Hàng thứ ba -->
+                                <div class="auto-cols mt-2">
+                                    <div>
+                                        <label class="labels">Tập số</label>
+                                        <input disabled="@isReadOnly" type="number" class="form-control" placeholder="Tập số" @bind="@magazine.volume">
+                                    </div>
+                                    <div>
+                                        <label class="labels">Số trang</label>
+                                        <input disabled="@isReadOnly" type="number" class="form-control" placeholder="Số trang" @bind="@magazine.page_count" min="1">
+                                    </div>
+                                    <div>
+                                        <label class="labels">Số trích dẫn</label>
+                                        <input disabled="@isReadOnly" type="number" class="form-control" placeholder="Số trích dẫn" @bind="@magazine.citation_count" min="0">
+                                    </div>
+                                </div>
+
+                                <!-- Hàng thứ tư -->
+                                <div class="auto-cols mt-2">
                                     <div>
                                         <label class="labels">Loại bài báo<span class="text-red">*</span></label>
                                         <select disabled="@isReadOnly" type="text" class="form-control" @bind="@magazine.paper_id">
@@ -165,7 +196,6 @@
                                     <th scope="col">Tên tạp chí</th>
                                     <th scope="col">Loại bài báo</th>
                                     <th scope="col">Vai trò</th>
-                                    <th scope="col">Yêu cầu</th>
                                     <th scope="col">Thao tác</th>
                                 </tr>
                             </thead>
@@ -182,7 +212,6 @@
                                             <td>@item?.Magazines?.journal</td>
                                             <td>@item?.Magazines?.Paper?.paper_name</td>
                                             <td>@item?.Role?.role_name</td>
-                                            <td><Label Type="@(Helpers.LabelHelper.GetStatusLabel(item?.requestStatus))" Text="@item?.requestStatus" /></td>
                                             <td>
                                                 <button class="btn btn-warning" @onclick="() => EditMagazine(item.Magazines)">
                                                     <div class="bi-pencil-square-custom" style="width: 20px; height: 20px;"></div>

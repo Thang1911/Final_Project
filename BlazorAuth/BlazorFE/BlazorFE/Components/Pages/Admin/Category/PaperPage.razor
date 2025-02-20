@@ -16,13 +16,39 @@
 @if (isAdding)
 {
     <form class="border p-3 mb-3">
-        <div class="mb-3">
-            <label class="form-label">Tên tạp chí</label>
-            <input type="text" class="form-control" @bind="newPaper.paper_name">
-            @if (showError)
-            {
-                <span class="text-danger">Tên tạp chí không được để trống.</span>
-            }
+        <div class="auto-cols mb-3">
+            <div>
+                <label class="form-label">Loại bài báo</label>
+                <input type="text" class="form-control" @bind="newPaper.paper_name">
+                @if (showError)
+                {
+                    <span class="text-danger">Loại bài báo không được để trống.</span>
+                }
+            </div>
+            <div>
+                <label class="form-label">Thể loại</label>
+                <select type="text" class="form-control" @bind="newPaper.paper_type">
+                    <option value="0">Chọn thể loại</option>
+                    <option value="Hội thảo">Hội thảo</option>
+                    <option value="Tạp chí">Tạp chí</option>
+                </select>
+                @if (showError)
+                {
+                    <span class="text-danger">Thể loại không được để trống.</span>
+                }
+            </div>
+            <div>
+                <label class="form-label">Phạm vi</label>
+                <select type="text" class="form-control" @bind="newPaper.scope">
+                    <option value="0">Chọn phạm vi</option>
+                    <option value="Trong nước">Trong nước</option>
+                    <option value="Quốc tế">Quốc tế</option>
+                </select>
+                @if (showError)
+                {
+                    <span class="text-danger">Phạm vi không được để trống.</span>
+                }
+            </div>
         </div>
         <button class="btn btn-success" @onclick="SavePaper">Lưu</button>
         <button class="btn btn-secondary" @onclick="CancelAdd">Hủy</button>
@@ -64,6 +90,31 @@
         }
     </tbody>
 </table>
+
+<style>
+    .auto-cols {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    gap: 16px;
+    justify-content: space-between;
+    }
+
+    .auto-cols > div {
+    flex: 1;
+    min-width: 200px;
+    }
+
+    .d-flex {
+    display: flex;
+    flex-direction: row;
+    justify-content: right;
+    }
+
+    .text-red {
+    color: red;
+    }
+</style>
 
 @code {
     private List<Paper> papers;
@@ -124,6 +175,8 @@
             {
                 id = editPaper.id,
                 paper_name = editPaper.paper_name,
+                paper_type = editPaper.paper_type,
+                scope = editPaper.scope,
                 created_at = editPaper.created_at,
                 updated_at = editPaper.updated_at
             };
@@ -131,7 +184,7 @@
 
     private async Task DeletePaper(string id)
     {
-        var confirm = await JS.InvokeAsync<bool>("confirm", "Bạn có chắc chắn muốn xóa tạp chí này?");
+        var confirm = await JS.InvokeAsync<bool>("confirm", "Bạn có chắc chắn muốn xóa loại bài báo này?");
         if (confirm)
         {
             await PaperService.DeletePaper(id);

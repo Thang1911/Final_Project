@@ -37,6 +37,20 @@
         <!-- Hàng thứ hai -->
         <div class="auto-cols mt-2">
             <div>
+                <label class="labels">Tháng xuất bản<span class="text-red">*</span></label>
+                <select disabled="@IsReadOnly" class="form-control" @bind="NewCurriculum.month">
+                    <option value="0" selected>Chọn năm</option>
+                    @for (int month = 1; month <= 12; month++)
+                    {
+                        <option value="@month">Tháng @month</option>
+                    }
+                </select>
+                @if (showError && NewCurriculum.month == 0)
+                {
+                    <span class="text-danger">Vui lòng chọn tháng xuất bản.</span>
+                }
+            </div>
+            <div>
                 <label class="labels">Năm xuất bản<span class="text-red">*</span></label>
                 <select disabled="@IsReadOnly" class="form-control" @bind="@NewCurriculum.year">
                     <option value="0" selected>Chọn năm</option>

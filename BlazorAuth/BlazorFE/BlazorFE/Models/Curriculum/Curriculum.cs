@@ -11,6 +11,8 @@ namespace BlazorFE.Models.Curriculum
         public string id { get; set; }
         public string name { get; set; }
         public int year { get; set; }
+        public int? month { get; set; }
+        public int? day { get; set; }
         public string publisher { get; set; }
 
         [ForeignKey(nameof(Book))]

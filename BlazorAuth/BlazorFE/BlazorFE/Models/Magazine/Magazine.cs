@@ -10,6 +10,7 @@ namespace BlazorFE.Models.Magazine
         public string id { get; set; }
         public string magazine_name { get; set; }
         public int year { get; set; }
+        public int? month { get; set; }
         public string journal {  get; set; }
 
         [ForeignKey("Paper")]
@@ -21,6 +22,9 @@ namespace BlazorFE.Models.Magazine
         public string? magazine_score_id { get; set; }
         public virtual MagazineScore? MagazineScore { get; set; }
         public string? rank { get; set; }
+        public string? volume { get; set; }
+        public int? page_count { get; set; }
+        public int? citation_count { get; set; }
         public DateTime created_at { get; set; }
         public DateTime updated_at { get; set; }
     }

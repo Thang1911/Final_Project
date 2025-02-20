@@ -6,6 +6,14 @@
         <!-- Hàng đầu tiên -->
         <div class="auto-cols mb-2">
             <div>
+                <label class="labels">Mã đề tài<span class="text-red">*</span></label>
+                <input readonly="@IsReadOnly" type="text" class="form-control" placeholder="Mã đề tài" @bind="@Topics.topicId">
+                @if (ShowError && string.IsNullOrWhiteSpace(Topics.topicId))
+                {
+                    <span class="text-danger">Vui lòng nhập mã đề tài</span>
+                }
+            </div>
+            <div>
                 <label class="labels">Tên đề tài<span class="text-red">*</span></label>
                 <input readonly="@IsReadOnly" type="text" class="form-control" placeholder="Tên đề tài" @bind="@Topics.topic_name">
                 @if (ShowError && string.IsNullOrWhiteSpace(Topics.topic_name))
@@ -27,6 +35,9 @@
                     <span class="text-danger">Vui lòng chọn cấp độ đề tài.</span>
                 }
             </div>
+        </div>
+
+        <div class="auto-cols">
             <div>
                 <label class="labels">Vai trò<span class="text-red">*</span></label>
                 <select disabled="@IsReadOnly" type="text" class="form-control" @bind="@roleId">
@@ -41,8 +52,6 @@
                     <span class="text-danger">Vui lòng chọn vai tró.</span>
                 }
             </div>
-        </div>
-        <div class="auto-cols">
             <div>
                 <label class="labels">Kết quả đánh giá<span class="text-red">*</span></label>
                 <select type="text" class="form-control" @bind="Topics.result" aria-label="Default select example">
@@ -60,6 +69,9 @@
                     <span class="text-danger">Vui lòng chọn kết quả.</span>
                 }
             </div>
+        </div>
+
+        <div class="auto-cols">
             <div>
                 <label class="labels">Ngày bắt đầu</label>
                 <input readonly="@IsReadOnly" type="date" class="form-control" @bind="@Topics.start_date">

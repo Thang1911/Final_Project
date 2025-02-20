@@ -39,6 +39,8 @@ namespace BlazorFE.Services
             if (existingPaper != null)
             {
                 existingPaper.paper_name = paper.paper_name;
+                existingPaper.paper_type = paper.paper_type;
+                existingPaper.scope = paper.scope;
                 existingPaper.updated_at = DateTime.Now;
 
                 _context.Entry(existingPaper).State = EntityState.Modified;

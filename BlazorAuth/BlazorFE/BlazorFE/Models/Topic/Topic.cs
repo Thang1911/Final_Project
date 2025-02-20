@@ -8,6 +8,7 @@ namespace BlazorFE.Models.Topic
     {
         [Key]
         public string id { get; set; }
+        public string? topicId { get; set; }
         public string topic_name { get; set; }
         public string result {  get; set; }
         [ForeignKey(nameof(LvTopics))]
