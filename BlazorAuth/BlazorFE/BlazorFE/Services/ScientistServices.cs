@@ -1,16 +1,20 @@
 ﻿using BlazorFE.Data;
 using BlazorFE.Models.Scientist;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+
 
 namespace BlazorFE.Services
 {
     public class ScientistServices
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> UserManager;
 
-        public ScientistServices(ApplicationDbContext context)
+        public ScientistServices(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            UserManager = userManager;
         }
 
         public async Task<List<Scientist>> GetAllScientistIdAsync()
@@ -32,6 +36,24 @@ namespace BlazorFE.Services
                 .ToListAsync();
 
             return allScientist;
+        }
+
+        public async Task<(string message, bool isError)> ResetPasswordAsync(string currentPassword, string newPassword, string email)
+        {
+            var user = await UserManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                return ("Người dùng không tồn tại!", true);
+            }
+
+            var result = await UserManager.ChangePasswordAsync(user, currentPassword, newPassword);
+
+            if (!result.Succeeded)
+            {
+                return ("Đổi mật khẩu thất bại! Kiểm tra lại mật khẩu hiện tại.", true);
+            }
+
+            return ("Đổi mật khẩu thành công!", false);
         }
 
         public async Task<Scientist> GetProfileAsync(string userId)
