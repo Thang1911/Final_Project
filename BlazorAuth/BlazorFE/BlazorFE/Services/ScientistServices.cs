@@ -1,5 +1,6 @@
 ﻿using BlazorFE.Data;
 using BlazorFE.Models.Scientist;
+using BlazorFE.Models.User;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -55,6 +56,37 @@ namespace BlazorFE.Services
 
             return ("Đổi mật khẩu thành công!", false);
         }
+
+        public async Task<List<User>> GetUsersWithScientistsAsync()
+        {
+            var usersWithScientists = await (from user in _context.Users
+                                             join scientist in _context.Scientists
+                                             on user.Id equals scientist.user_id into scientistGroup
+                                             from scientist in scientistGroup.DefaultIfEmpty()
+
+                                             join login in _context.UserLogins
+                                             on user.Id equals login.UserId into loginGroup
+                                             from login in loginGroup.DefaultIfEmpty()
+
+                                             select new User
+                                             {
+                                                 UserId = user.Id,
+                                                 Email = user.Email,
+                                                 Username = user.UserName,
+                                                 PasswordHash = user.PasswordHash,
+                                                 FullName = scientist != null ? scientist.profile_name : null,
+                                                 Birthday = scientist != null ? scientist.birthday : null,
+                                                 Gender = scientist != null ? scientist.gender : null,
+                                                 Address = scientist != null ? scientist.address : null,
+                                                 Phone = scientist != null ? scientist.phone : null,
+                                                 ScientificTitle = scientist != null ? scientist.scientific_title : null,
+                                                 LoginProvider = login != null ? login.LoginProvider : "Nội bộ"
+                                             })
+                                             .ToListAsync();
+
+            return usersWithScientists;
+        }
+
 
         public async Task<Scientist> GetProfileAsync(string userId)
         {

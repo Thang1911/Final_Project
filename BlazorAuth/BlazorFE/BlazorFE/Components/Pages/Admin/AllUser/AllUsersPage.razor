@@ -1,0 +1,54 @@
+﻿@page "/Admin/AllUsers"
+@rendermode InteractiveServer
+
+@using Microsoft.AspNetCore.Authorization;
+
+@attribute [Authorize(Roles = "Administrators")]
+
+@using BlazorFE.Models.User
+@using BlazorFE.Services
+
+@inject ScientistServices ScientistServices
+@inject NavigationManager NavigationManager
+
+<h3>Danh sách người dùng</h3>
+@if (allUsers.Count == 0)
+{
+    <p>Không có dữ liệu.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>Tên người dùng</th>
+                <th>Phương thức đăng nhập</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in allUsers)
+            {
+                <tr>
+                    <td>@user.Email</td>
+                    <td>@user.FullName</td>
+                    <td>@user.LoginProvider</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    public List<User> allUsers { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadScientists();
+    }
+
+    private async Task LoadScientists()
+    {
+        allUsers = (await ScientistServices.GetUsersWithScientistsAsync()).Where((user) => user.Email != "admin@gmail.com").ToList();
+    }
+}

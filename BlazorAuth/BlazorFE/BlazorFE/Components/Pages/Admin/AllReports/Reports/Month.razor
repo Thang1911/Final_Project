@@ -56,11 +56,15 @@
                     }
                     else
                     {
-                        <span>Xuất PDF</span>
+                        <span>Xem trước</span>
                     }
                 </button>
             </div>
         </div>
+        @if (!string.IsNullOrEmpty(pdfUrl))
+        {
+            <iframe src="@pdfUrl" width="100%" height="600px"></iframe>
+        }
     </div>
 </div>
 
@@ -105,6 +109,8 @@
 
     private bool IsDisabled => selectedYear == 0;
     private bool IsExportLoading { get; set; } = false;
+
+    private string pdfUrl { get; set; } = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -181,19 +187,20 @@
             document.Add(new Paragraph("A. BÀI BÁO ĐĂNG TRÊN TẠP TRÍ KHOA HỌC QUỐC TẾ")
                .SetFont(vietnameseFont)
                .SetFontSize(17));
-            // Tạo bảng
+
+
             Table tableMagazineInternational = new Table(7, true);
 
             tableMagazineInternational.SetBorder(new SolidBorder(2));
 
             // Thêm tiêu đề bảng
-            tableMagazineInternational.AddHeaderCell("Số TT");
-            tableMagazineInternational.AddHeaderCell("Tên bài báo");
-            tableMagazineInternational.AddHeaderCell("Tên tạp chí");
-            tableMagazineInternational.AddHeaderCell("Người thực hiện");
-            tableMagazineInternational.AddHeaderCell("Chỉ mục khoa học");
-            tableMagazineInternational.AddHeaderCell("Xếp loại");
-            tableMagazineInternational.AddHeaderCell("Ghi chú");
+            tableMagazineInternational.AddHeaderCell("Số TT").SetFont(vietnameseFont);
+            tableMagazineInternational.AddHeaderCell("Tên bài báo").SetFont(vietnameseFont);
+            tableMagazineInternational.AddHeaderCell("Tên tạp chí").SetFont(vietnameseFont);
+            tableMagazineInternational.AddHeaderCell("Người thực hiện").SetFont(vietnameseFont);
+            tableMagazineInternational.AddHeaderCell("Chỉ mục khoa học").SetFont(vietnameseFont);
+            tableMagazineInternational.AddHeaderCell("Xếp loại").SetFont(vietnameseFont);
+            tableMagazineInternational.AddHeaderCell("Ghi chú").SetFont(vietnameseFont);
 
 
             int i = 1;
@@ -202,29 +209,42 @@
                 .GroupBy(x => x.magazine_id)
                 .ToList();
 
-            foreach (var group in groupedByMagazine)
+            if (groupedByMagazine != null && groupedByMagazine.Count > 0)
             {
-                var magazine = group.First().Magazines;
-                var scientists = group.Select(x => new { x.Scientist?.profile_name, RoleName = x.Role?.role_name }).ToList();
+                foreach (var group in groupedByMagazine)
+                {
+                    var magazine = group.First().Magazines;
+                    var scientists = group.Select(x => new { x.Scientist?.profile_name, RoleName = x.Role?.role_name }).ToList();
 
-                MagazineRank enumValueRank;
-                string displayRank = Enum.TryParse(magazine?.rank, out enumValueRank)
-                    ? Helpers.EnumHelper.GetEnumDisplayName(enumValueRank)
-                    : "";
+                    MagazineRank enumValueRank;
+                    string displayRank = Enum.TryParse(magazine?.rank, out enumValueRank)
+                        ? Helpers.EnumHelper.GetEnumDisplayName(enumValueRank)
+                        : "";
 
-                tableMagazineInternational.AddCell(i.ToString()).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
-                tableMagazineInternational.AddCell(magazine?.magazine_name ?? "").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
-                tableMagazineInternational.AddCell(magazine?.journal ?? "").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
-                tableMagazineInternational.AddCell(string.Join(", ", scientists.Select(s => $"{s.profile_name} ({s.RoleName})"))).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
-                tableMagazineInternational.AddCell(magazine?.MagazineScore?.magazine_score_name ?? "").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
-                tableMagazineInternational.AddCell(displayRank).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
-                tableMagazineInternational.AddCell($"Số trích dẫn: {magazine?.citation_count}; Tập số: {magazine?.volume}; Số trang: {magazine?.page_count}").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                    tableMagazineInternational.AddCell(i.ToString()).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                    tableMagazineInternational.AddCell(magazine?.magazine_name ?? "").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                    tableMagazineInternational.AddCell(magazine?.journal ?? "").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                    tableMagazineInternational.AddCell(string.Join(", ", scientists.Select(s => $"{s.profile_name} ({s.RoleName})"))).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                    tableMagazineInternational.AddCell(magazine?.MagazineScore?.magazine_score_name ?? "").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                    tableMagazineInternational.AddCell(displayRank).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                    tableMagazineInternational.AddCell($"Số trích dẫn: {magazine?.citation_count}; Tập số: {magazine?.volume}; Số trang: {magazine?.page_count}").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
 
-                i++;
+                    i++;
+                }
             }
+            else
+            {
+                Cell emptyCell = new Cell(1, 7).Add(new Paragraph("Không có dữ liệu").SetFont(vietnameseFont));
+                emptyCell.SetTextAlignment(TextAlignment.CENTER);
+                tableMagazineInternational.AddCell(emptyCell);
+            }
+
 
             // Thêm bảng vào tài liệu
             document.Add(tableMagazineInternational);
+            tableMagazineInternational.Complete();
+
+
 
             document.Add(new Paragraph("\n").SetHeight(30));
 
@@ -237,12 +257,12 @@
             tableDomestic.SetBorder(new SolidBorder(2));
 
             // Thêm tiêu đề bảng
-            tableDomestic.AddHeaderCell("Số TT");
-            tableDomestic.AddHeaderCell("Nội dung");
-            tableDomestic.AddHeaderCell("Đơn vị chủ trì, Tác giả");
-            tableDomestic.AddHeaderCell("Chỉ mục khoa học");
-            tableDomestic.AddHeaderCell("Xếp loại");
-            tableDomestic.AddHeaderCell("Ghi chú");
+            tableDomestic.AddHeaderCell("Số TT").SetFont(vietnameseFont);
+            tableDomestic.AddHeaderCell("Nội dung").SetFont(vietnameseFont);
+            tableDomestic.AddHeaderCell("Đơn vị chủ trì, Tác giả").SetFont(vietnameseFont);
+            tableDomestic.AddHeaderCell("Chỉ mục khoa học").SetFont(vietnameseFont);
+            tableDomestic.AddHeaderCell("Xếp loại").SetFont(vietnameseFont);
+            tableDomestic.AddHeaderCell("Ghi chú").SetFont(vietnameseFont);
 
 
             int j = 1;
@@ -251,27 +271,37 @@
                 .GroupBy(x => x.magazine_id)
                 .ToList();
 
-            foreach (var group in groupedByMagazineDomestic)
+            if (groupedByMagazineDomestic != null && groupedByMagazineDomestic.Count > 0)
             {
-                var magazine = group.First().Magazines;
-                var scientists = group.Select(x => new { x.Scientist?.profile_name, RoleName = x.Role?.role_name }).ToList();
+                foreach (var group in groupedByMagazineDomestic)
+                {
+                    var magazine = group.First().Magazines;
+                    var scientists = group.Select(x => new { x.Scientist?.profile_name, RoleName = x.Role?.role_name }).ToList();
 
-                MagazineRank enumValueRank;
-                string displayRank = Enum.TryParse(magazine?.rank, out enumValueRank)
-                    ? Helpers.EnumHelper.GetEnumDisplayName(enumValueRank)
-                    : "";
+                    MagazineRank enumValueRank;
+                    string displayRank = Enum.TryParse(magazine?.rank, out enumValueRank)
+                        ? Helpers.EnumHelper.GetEnumDisplayName(enumValueRank)
+                        : "";
 
-                tableDomestic.AddCell(j.ToString()).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
-                tableDomestic.AddCell(magazine?.magazine_name ?? "").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
-                tableDomestic.AddCell(string.Join(", ", scientists.Select(s => $"{s.profile_name} ({s.RoleName})"))).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
-                tableDomestic.AddCell(magazine?.MagazineScore?.magazine_score_name ?? "").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
-                tableDomestic.AddCell(displayRank).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
-                tableDomestic.AddCell($"Số trích dẫn: {magazine?.citation_count}; Tập số: {magazine?.volume}; Số trang: {magazine?.page_count}").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                    tableDomestic.AddCell(j.ToString()).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                    tableDomestic.AddCell(magazine?.magazine_name ?? "").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                    tableDomestic.AddCell(string.Join(", ", scientists.Select(s => $"{s.profile_name} ({s.RoleName})"))).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                    tableDomestic.AddCell(magazine?.MagazineScore?.magazine_score_name ?? "").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                    tableDomestic.AddCell(displayRank).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                    tableDomestic.AddCell($"Số trích dẫn: {magazine?.citation_count}; Tập số: {magazine?.volume}; Số trang: {magazine?.page_count}").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
 
-                j++;
+                    j++;
+                }
+            }
+            else
+            {
+                Cell emptyCell = new Cell(1, 6).Add(new Paragraph("Không có dữ liệu").SetFont(vietnameseFont));
+                emptyCell.SetTextAlignment(TextAlignment.CENTER);
+                tableDomestic.AddCell(emptyCell);
             }
             // Thêm bảng vào tài liệu
             document.Add(tableDomestic);
+            tableDomestic.Complete();
 
 
             document.Add(new Paragraph("\n").SetHeight(30));
@@ -285,12 +315,12 @@
             tableMagazineCoference.SetBorder(new SolidBorder(2));
 
             // Thêm tiêu đề bảng
-            tableMagazineCoference.AddHeaderCell("Số TT");
-            tableMagazineCoference.AddHeaderCell("Tên bài báo");
-            tableMagazineCoference.AddHeaderCell("Tên hội thảo");
-            tableMagazineCoference.AddHeaderCell("Đơn vị chủ trì, Tác giả");
-            tableMagazineCoference.AddHeaderCell("Chỉ mục khoa học");
-            tableMagazineCoference.AddHeaderCell("Ghi chú");
+            tableMagazineCoference.AddHeaderCell("Số TT").SetFont(vietnameseFont);
+            tableMagazineCoference.AddHeaderCell("Tên bài báo").SetFont(vietnameseFont);
+            tableMagazineCoference.AddHeaderCell("Tên hội thảo").SetFont(vietnameseFont);
+            tableMagazineCoference.AddHeaderCell("Đơn vị chủ trì, Tác giả").SetFont(vietnameseFont);
+            tableMagazineCoference.AddHeaderCell("Chỉ mục khoa học").SetFont(vietnameseFont);
+            tableMagazineCoference.AddHeaderCell("Ghi chú").SetFont(vietnameseFont);
 
 
             int c = 1;
@@ -299,29 +329,37 @@
                 .GroupBy(x => x.magazine_id)
                 .ToList();
 
-            foreach (var group in groupedByMagazineDomestic)
+            if (groupedByMagazineCoference != null && groupedByMagazineCoference.Count > 0)
             {
-                var magazine = group.First().Magazines;
-                var scientists = group.Select(x => new { x.Scientist?.profile_name, RoleName = x.Role?.role_name }).ToList();
+                foreach (var group in groupedByMagazineCoference)
+                {
+                    var magazine = group.First().Magazines;
+                    var scientists = group.Select(x => new { x.Scientist?.profile_name, RoleName = x.Role?.role_name }).ToList();
 
-                MagazineRank enumValueRank;
-                string displayRank = Enum.TryParse(magazine?.rank, out enumValueRank)
-                    ? Helpers.EnumHelper.GetEnumDisplayName(enumValueRank)
-                    : "";
+                    MagazineRank enumValueRank;
+                    string displayRank = Enum.TryParse(magazine?.rank, out enumValueRank)
+                        ? Helpers.EnumHelper.GetEnumDisplayName(enumValueRank)
+                        : "";
 
-                tableMagazineCoference.AddCell(c.ToString()).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
-                tableMagazineCoference.AddCell(magazine?.magazine_name ?? "").SetFont(vietnameseFont).SetBorder(new SolidBorder(1)); tableMagazineCoference
-                    .AddCell($"{magazine?.Paper?.paper_name} - {magazine?.Paper?.scope ?? ""}")
-                    .SetFont(vietnameseFont)
-                    .SetBorder(new SolidBorder(1));
-                tableMagazineCoference.AddCell(string.Join(", ", scientists.Select(s => $"{s.profile_name} ({s.RoleName})"))).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
-                tableMagazineCoference.AddCell(magazine?.MagazineScore?.magazine_score_name ?? "").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
-                tableMagazineCoference.AddCell($"Số trích dẫn: {magazine?.citation_count}; Tập số: {magazine?.volume}; Số trang: {magazine?.page_count}").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                    tableMagazineCoference.AddCell(c.ToString()).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                    tableMagazineCoference.AddCell(magazine?.magazine_name ?? "").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                    tableMagazineCoference.AddCell($"{magazine?.Paper?.paper_name} - {magazine?.Paper?.scope ?? ""}").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                    tableMagazineCoference.AddCell(string.Join(", ", scientists.Select(s => $"{s.profile_name} ({s.RoleName})"))).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                    tableMagazineCoference.AddCell(magazine?.MagazineScore?.magazine_score_name ?? "").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                    tableMagazineCoference.AddCell($"Số trích dẫn: {magazine?.citation_count}; Tập số: {magazine?.volume}; Số trang: {magazine?.page_count}").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
 
-                c++;
+                    c++;
+                }
+            }
+            else
+            {
+                Cell emptyCell = new Cell(1, 6).Add(new Paragraph("Không có dữ liệu").SetFont(vietnameseFont));
+                emptyCell.SetTextAlignment(TextAlignment.CENTER);
+                tableMagazineCoference.AddCell(emptyCell);
             }
             // Thêm bảng vào tài liệu
             document.Add(tableMagazineCoference);
+            tableMagazineCoference.Complete();
 
 
             document.Add(new Paragraph("\n").SetHeight(30));
@@ -334,11 +372,11 @@
             tableMagazineScientific.SetBorder(new SolidBorder(2));
 
             // Thêm tiêu đề bảng
-            tableMagazineScientific.AddHeaderCell("Số TT");
-            tableMagazineScientific.AddHeaderCell("Tên bài báo");
-            tableMagazineScientific.AddHeaderCell("Đơn vị chủ trì, Tác giả");
-            tableMagazineScientific.AddHeaderCell("Số trích dẫn, tập số, số trang");
-            tableMagazineScientific.AddHeaderCell("Ghi chú");
+            tableMagazineScientific.AddHeaderCell("Số TT").SetFont(vietnameseFont);
+            tableMagazineScientific.AddHeaderCell("Tên bài báo").SetFont(vietnameseFont);
+            tableMagazineScientific.AddHeaderCell("Đơn vị chủ trì, Tác giả").SetFont(vietnameseFont);
+            tableMagazineScientific.AddHeaderCell("Số trích dẫn, tập số, số trang").SetFont(vietnameseFont);
+            tableMagazineScientific.AddHeaderCell("Ghi chú").SetFont(vietnameseFont);
 
 
             int s = 1;
@@ -347,26 +385,36 @@
                 .GroupBy(x => x.magazine_id)
                 .ToList();
 
-            foreach (var group in groupedByMagazineScientific)
+            if (groupedByMagazineScientific != null && groupedByMagazineScientific.Count > 0)
             {
-                var magazine = group.First().Magazines;
-                var scientists = group.Select(x => new { x.Scientist?.profile_name, RoleName = x.Role?.role_name }).ToList();
+                foreach (var group in groupedByMagazineScientific)
+                {
+                    var magazine = group.First().Magazines;
+                    var scientists = group.Select(x => new { x.Scientist?.profile_name, RoleName = x.Role?.role_name }).ToList();
 
-                MagazineRank enumValueRank;
-                string displayRank = Enum.TryParse(magazine?.rank, out enumValueRank)
-                    ? Helpers.EnumHelper.GetEnumDisplayName(enumValueRank)
-                    : "";
+                    MagazineRank enumValueRank;
+                    string displayRank = Enum.TryParse(magazine?.rank, out enumValueRank)
+                        ? Helpers.EnumHelper.GetEnumDisplayName(enumValueRank)
+                        : "";
 
-                tableMagazineScientific.AddCell(s.ToString()).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
-                tableMagazineScientific.AddCell(magazine?.magazine_name ?? "").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
-                tableMagazineScientific.AddCell(string.Join(", ", scientists.Select(s => $"{s.profile_name} ({s.RoleName})"))).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
-                tableMagazineScientific.AddCell($"Số trích dẫn: {magazine?.citation_count}; Tập số: {magazine?.volume}; Số trang: {magazine?.page_count}").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
-                tableMagazineScientific.AddCell("").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                    tableMagazineScientific.AddCell(s.ToString()).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                    tableMagazineScientific.AddCell(magazine?.magazine_name ?? "").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                    tableMagazineScientific.AddCell(string.Join(", ", scientists.Select(s => $"{s.profile_name} ({s.RoleName})"))).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                    tableMagazineScientific.AddCell($"Số trích dẫn: {magazine?.citation_count}; Tập số: {magazine?.volume}; Số trang: {magazine?.page_count}").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                    tableMagazineScientific.AddCell("").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
 
-                s++;
+                    s++;
+                }
+            }
+            else
+            {
+                Cell emptyCell = new Cell(1, 5).Add(new Paragraph("Không có dữ liệu").SetFont(vietnameseFont));
+                emptyCell.SetTextAlignment(TextAlignment.CENTER);
+                tableMagazineScientific.AddCell(emptyCell);
             }
             // Thêm bảng vào tài liệu
             document.Add(tableMagazineScientific);
+            tableMagazineScientific.Complete();
 
 
             document.Add(new Paragraph("\n").SetHeight(30));
@@ -379,11 +427,11 @@
             tableScientificTopics.SetBorder(new SolidBorder(2));
 
             // Thêm tiêu đề bảng
-            tableScientificTopics.AddHeaderCell("Số TT");
-            tableScientificTopics.AddHeaderCell("Mã số đề tài");
-            tableScientificTopics.AddHeaderCell("Tên đề tài");
-            tableScientificTopics.AddHeaderCell("Chủ nhiệm đề tài");
-            tableScientificTopics.AddHeaderCell("Ghi chú");
+            tableScientificTopics.AddHeaderCell("Số TT").SetFont(vietnameseFont);
+            tableScientificTopics.AddHeaderCell("Mã số đề tài").SetFont(vietnameseFont);
+            tableScientificTopics.AddHeaderCell("Tên đề tài").SetFont(vietnameseFont);
+            tableScientificTopics.AddHeaderCell("Chủ nhiệm đề tài").SetFont(vietnameseFont);
+            tableScientificTopics.AddHeaderCell("Ghi chú").SetFont(vietnameseFont);
 
 
             int p = 1;
@@ -391,22 +439,31 @@
                 .GroupBy(x => x.topic_id)
                 .ToList();
 
-            foreach (var group in groupedByTopicIds)
+            if (groupedByTopicIds != null && groupedByTopicIds.Count > 0)
             {
-                var topic = group.First().Topics;
-                var scientists = group.Select(x => new { x.Scientist?.profile_name, RoleName = x.Role?.role_name }).ToList();
+                foreach (var group in groupedByTopicIds)
+                {
+                    var topic = group.First().Topics;
+                    var scientists = group.Select(x => new { x.Scientist?.profile_name, RoleName = x.Role?.role_name }).ToList();
 
+                    tableScientificTopics.AddCell(p.ToString()).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                    tableScientificTopics.AddCell(topic?.topicId ?? "").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                    tableScientificTopics.AddCell(topic?.topic_name ?? "").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                    tableScientificTopics.AddCell(string.Join(", ", scientists.Select(s => $"{s.profile_name} ({s.RoleName})"))).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                    tableScientificTopics.AddCell("").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
 
-                tableScientificTopics.AddCell(p.ToString()).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
-                tableScientificTopics.AddCell(topic?.topicId ?? "").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
-                tableScientificTopics.AddCell(topic?.topic_name ?? "").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
-                tableScientificTopics.AddCell(string.Join(", ", scientists.Select(s => $"{s.profile_name} ({s.RoleName})"))).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
-                tableScientificTopics.AddCell("").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
-
-                p++;
+                    p++;
+                }
             }
-            document.Add(tableScientificTopics);
+            else
+            {
+                Cell emptyCell = new Cell(1, 5).Add(new Paragraph("Không có dữ liệu").SetFont(vietnameseFont));
+                emptyCell.SetTextAlignment(TextAlignment.CENTER);
+                tableScientificTopics.AddCell(emptyCell);
+            }
 
+            document.Add(tableScientificTopics);
+            tableScientificTopics.Complete();
 
 
             document.Add(new Paragraph("\n").SetHeight(30));
@@ -418,11 +475,11 @@
 
             tableScientificCurriculums.SetBorder(new SolidBorder(2));
 
-            tableScientificCurriculums.AddHeaderCell("Số TT");
-            tableScientificCurriculums.AddHeaderCell("Nội dung");
-            tableScientificCurriculums.AddHeaderCell("Đơn vị chủ trì, Tác giả");
-            tableScientificCurriculums.AddHeaderCell("Thể loại");
-            tableScientificCurriculums.AddHeaderCell("Ghi chú");
+            tableScientificCurriculums.AddHeaderCell("Số TT").SetFont(vietnameseFont);
+            tableScientificCurriculums.AddHeaderCell("Nội dung").SetFont(vietnameseFont);
+            tableScientificCurriculums.AddHeaderCell("Đơn vị chủ trì, Tác giả").SetFont(vietnameseFont);
+            tableScientificCurriculums.AddHeaderCell("Thể loại").SetFont(vietnameseFont);
+            tableScientificCurriculums.AddHeaderCell("Ghi chú").SetFont(vietnameseFont);
 
 
             int g = 1;
@@ -430,20 +487,32 @@
                 .GroupBy(x => x.curriculum_id)
                 .ToList();
 
-            foreach (var group in groupedByCurriculumId)
+            if (groupedByCurriculumId != null && groupedByCurriculumId.Count > 0)
             {
-                var curriculum = group.First().Curriculums;
-                var scientists = group.Select(x => new { x.Scientist?.profile_name, RoleName = x.Role?.role_name }).ToList();
+                foreach (var group in groupedByCurriculumId)
+                {
+                    var curriculum = group.First().Curriculums;
+                    var scientists = group.Select(x => new { x.Scientist?.profile_name, RoleName = x.Role?.role_name }).ToList();
 
-                tableScientificCurriculums.AddCell(g.ToString()).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
-                tableScientificCurriculums.AddCell(curriculum?.name ?? "").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
-                tableScientificCurriculums.AddCell(string.Join(", ", scientists.Select(s => $"{s.profile_name} ({s.RoleName})"))).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
-                tableScientificCurriculums.AddCell(curriculum?.Book?.book_name ?? "").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
-                tableScientificCurriculums.AddCell("").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                    tableScientificCurriculums.AddCell(g.ToString()).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                    tableScientificCurriculums.AddCell(curriculum?.name ?? "").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                    tableScientificCurriculums.AddCell(string.Join(", ", scientists.Select(s => $"{s.profile_name} ({s.RoleName})"))).SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                    tableScientificCurriculums.AddCell(curriculum?.Book?.book_name ?? "").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
+                    tableScientificCurriculums.AddCell("").SetFont(vietnameseFont).SetBorder(new SolidBorder(1));
 
-                g++;
+                    g++;
+                }
             }
+            else
+            {
+                Cell emptyCell = new Cell(1, 5).Add(new Paragraph("Không có dữ liệu").SetFont(vietnameseFont));
+                emptyCell.SetTextAlignment(TextAlignment.CENTER);
+                tableScientificCurriculums.AddCell(emptyCell);
+            }
+
             document.Add(tableScientificCurriculums);
+            tableScientificCurriculums.Complete();
+
 
             // Lưu tệp PDF vào ổ đĩa hoặc tải về
             pdf.Close();
@@ -453,13 +522,14 @@
             var pdfBytes = ms.ToArray();
             var fileName = $"Báo cáo khoa học tháng {selectedMonth} năm {selectedYear}.pdf";
             var contentType = "application/pdf";
-            await SaveAsFile(pdfBytes, fileName, contentType);
+            SaveAsFile(pdfBytes, fileName, contentType);
         }
     }
 
-    private async Task SaveAsFile(byte[] content, string fileName, string contentType)
+    private void SaveAsFile(byte[] content, string fileName, string contentType)
     {
         var base64File = Convert.ToBase64String(content);
-        await JSRuntime.InvokeVoidAsync("downloadFilePDF", fileName, base64File, contentType);
+        // await JSRuntime.InvokeVoidAsync("downloadFilePDF", fileName, base64File, contentType);
+        pdfUrl = $"data:application/pdf;base64,{base64File}";
     }
 }
