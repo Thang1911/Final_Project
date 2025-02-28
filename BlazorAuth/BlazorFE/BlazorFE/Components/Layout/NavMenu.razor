@@ -13,11 +13,11 @@
 
 <input type="checkbox" title="Navigation menu" class="navbar-toggler" />
 
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+<div class="nav-scrollable remove-scroll-bar" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="flex-column w-auto">
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Trang chủ
+                <span class="bi bi-house-door-fill-nav-menu"></span> Trang chủ
             </NavLink>
         </div>
 
@@ -25,113 +25,69 @@
             <Authorized>
                 @if (IsAdmin)
                 {
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="/Admin/Scientists">
-                            <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Nhà khoa học
-                        </NavLink>
-                    </div>
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="/Admin/AllOffers">
-                            <span class="bi bi-file-check-nav-menu" aria-hidden="true"></span> Quản lý đề xuất
-                        </NavLink>
-                    </div>
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="/Admin/AllTopics">
-                            <span class="bi bi-file-text-nav-menu" aria-hidden="true"></span> Đề tài/Đề án
-                        </NavLink>
-                    </div>
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link">
-                            <span class="bi bi-file-text-nav-menu" aria-hidden="true"></span> Hội thảo/Hội nghị
-                        </NavLink>
-                    </div>
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="/Admin/AllMagazines">
-                            <span class="bi bi-book-nav-menu" aria-hidden="true"></span> Bài báo khoa học
-                        </NavLink>
-                    </div>
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="/Admin/AllCurriculums">
-                            <span class="bi bi-book-fill-nav-menu" aria-hidden="true"></span> Giáo trình/Sách tham khảo
-                        </NavLink>
-                    </div>
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="/Admin/Council">
-                            <span class="bi bi-check-nav-menu" aria-hidden="true"></span> Hội đồng khoa học
-                        </NavLink>
-                    </div>
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link">
-                            <span class="bi bi-clock-history-nav-menu" aria-hidden="true"></span> Tổng giờ khoa học
-                        </NavLink>
-                    </div>
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="/Admin/AllReports">
-                            <span class="bi bi-bar-chart-nav-menu" aria-hidden="true"></span> Báo cáo thống kê
-                        </NavLink>
-                    </div>
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link">
-                            <span class="bi bi-file-earmark-spreadsheet-nav-menu" aria-hidden="true"></span> Thống kê tiến độ
-                        </NavLink>
-                    </div>
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="/Admin/All-Categories">
-                            <span class="bi bi-setting-nav-menu" aria-hidden="true"></span> Danh mục
-                        </NavLink>
-                    </div>
-                } else {
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="/ProfileDetail">
-                            <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> Thông tin cá nhân
-                        </NavLink>
-                    </div>
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="/User/Offers">
-                            <span class="bi bi-file-check-nav-menu" aria-hidden="true"></span> Đề xuất đề tài/đề án
-                        </NavLink>
-                    </div>
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="/User/Topics">
-                            <span class="bi bi-file-text-nav-menu" aria-hidden="true"></span> Đề tài/Đề án
-                        </NavLink>
-                    </div>
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="/User/Magazines">
-                            <span class="bi bi-book-nav-menu" aria-hidden="true"></span> Bài báo khoa học
-                        </NavLink>
-                    </div>
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="/User/Curriculums">
-                            <span class="bi bi-book-fill-nav-menu" aria-hidden="true"></span> Giáo trình/Sách tham khảo
-                        </NavLink>
-                    </div>
+                    @foreach (var item in new[] {
+                        ("/Admin/AllUsers", "bi bi-person-badge-nav-menu", "Quản lý người dùng"),
+                        ("/Admin/Scientists", "bi bi-person-badge-nav-menu", "Nhà khoa học"),
+                        ("/Admin/AllOffers", "bi bi-file-check-nav-menu", "Quản lý đề xuất"),
+                        ("/Admin/AllTopics", "bi bi-file-text-nav-menu", "Đề tài/Đề án"),
+                        ("/Admin/AllMagazines", "bi bi-book-nav-menu", "Bài báo khoa học"),
+                        ("/Admin/AllCurriculums", "bi bi-book-fill-nav-menu", "Giáo trình/Sách tham khảo"),
+                        ("/Admin/Council", "bi bi-check-nav-menu", "Hội đồng khoa học"),
+                        ("/Admin/AllReports", "bi bi-bar-chart-nav-menu", "Báo cáo thống kê"),
+                        ("/Admin/All-Categories", "bi bi-setting-nav-menu", "Danh mục")
+                    })
+                    {
+                        <div class="nav-item px-3">
+                            <NavLink class="nav-link" href="@item.Item1">
+                                <span class="@item.Item2"></span> @item.Item3
+                            </NavLink>
+                        </div>
+                    }
+                }
+                else
+                {
+                    @foreach (var item in new[] {
+                        ("/ProfileDetail", "bi bi-person-fill-nav-menu", "Thông tin cá nhân"),
+                        ("/User/Offers", "bi bi-file-check-nav-menu", "Đề xuất đề tài/đề án"),
+                        ("/User/Topics", "bi bi-file-text-nav-menu", "Đề tài/Đề án"),
+                        ("/User/Magazines", "bi bi-book-nav-menu", "Bài báo khoa học"),
+                        ("/User/Curriculums", "bi bi-book-fill-nav-menu", "Giáo trình/Sách tham khảo")
+                    })
+                    {
+                        <div class="nav-item px-3">
+                            <NavLink class="nav-link" href="@item.Item1">
+                                <span class="@item.Item2"></span> @item.Item3
+                            </NavLink>
+                        </div>
+                    }
                 }
                 <div class="nav-item px-3">
                     <form action="Account/Logout" method="post">
                         <AntiforgeryToken />
                         <input type="hidden" name="ReturnUrl" value="@currentUrl" />
                         <button type="submit" class="nav-link">
-                            <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Đăng xuất
+                            <span class="bi bi-arrow-bar-left-nav-menu"></span> Đăng xuất
                         </button>
                     </form>
                 </div>
             </Authorized>
             <NotAuthorized>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Account/Register">
-                        <span class="bi bi-person-nav-menu" aria-hidden="true"></span> Đăng ký
-                    </NavLink>
-                </div>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Account/Login">
-                        <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Đăng nhập
-                    </NavLink>
-                </div>
+                @foreach (var item in new[] {
+                    ("Account/Register", "bi bi-person-nav-menu", "Đăng ký"),
+                    ("Account/Login", "bi bi-person-badge-nav-menu", "Đăng nhập")
+                })
+                {
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="@item.Item1">
+                            <span class="@item.Item2"></span> @item.Item3
+                        </NavLink>
+                    </div>
+                }
             </NotAuthorized>
         </AuthorizeView>
     </nav>
 </div>
+
 
 @code {
     private string? currentUrl;

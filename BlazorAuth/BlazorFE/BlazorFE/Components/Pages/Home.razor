@@ -25,7 +25,7 @@ else
 }
 
 <div class="d-flex justify-content-center mt-4">
-    <div class="w-fit d-flex flex-wrap gap-4">
+    <div class="d-flex flex-wrap gap-4">
         @if (!IsAdmin)
         {
             @foreach (var menuItem in userMenuItems)
@@ -69,7 +69,8 @@ else
     }
 
     .width-item {
-        width: 210px;
+        flex: 1;
+        min-width: 210px;
         height: 160px;
         cursor: pointer;
     }

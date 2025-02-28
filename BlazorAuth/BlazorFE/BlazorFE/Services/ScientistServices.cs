@@ -74,6 +74,7 @@ namespace BlazorFE.Services
                                                  Email = user.Email,
                                                  Username = user.UserName,
                                                  PasswordHash = user.PasswordHash,
+                                                 EmailConfirmed = user.EmailConfirmed,
                                                  FullName = scientist != null ? scientist.profile_name : null,
                                                  Birthday = scientist != null ? scientist.birthday : null,
                                                  Gender = scientist != null ? scientist.gender : null,
@@ -85,6 +86,89 @@ namespace BlazorFE.Services
                                              .ToListAsync();
 
             return usersWithScientists;
+        }
+
+        public async Task<(string message, bool isError)> CreateUserAsync(User user, string password)
+        {
+            var existingUser = await UserManager.FindByEmailAsync(user.Email);
+            if (existingUser != null)
+            {
+                return ("Email đã tồn tại!", true);
+            }
+
+            var identityUser = new ApplicationUser
+            {
+                UserName = user.Email,
+                Email = user.Email
+            };
+
+            var result = await UserManager.CreateAsync(identityUser, password);
+            if (result.Succeeded)
+            {
+                identityUser.EmailConfirmed = true;
+                await UserManager.UpdateAsync(identityUser);
+
+                return ("Tạo tài khoản thành công!", false);
+            }
+
+            return ("Tạo tài khoản thất bại!", true);
+        }
+
+
+        public async Task<(string message, bool isError)> UpdateUserAsync(User user)
+        {
+            var identityUser = await UserManager.FindByIdAsync(user.UserId);
+            if (identityUser == null)
+            {
+                return ("Người dùng không tồn tại!", true);
+            }
+
+            identityUser.Email = user.Email;
+            identityUser.UserName = user.Email;
+
+            var result = await UserManager.UpdateAsync(identityUser);
+            if (!result.Succeeded)
+            {
+                return ("Cập nhật tài khoản thất bại!", true);
+            }
+
+            return ("Cập nhật tài khoản thành công!", false);
+        }
+
+        public async Task<(string message, bool isError)> DeleteUserAsync(string userId)
+        {
+            var identityUser = await UserManager.FindByIdAsync(userId);
+            if (identityUser == null)
+            {
+                return ("Người dùng không tồn tại!", true);
+            }
+
+            var result = await UserManager.DeleteAsync(identityUser);
+            if (!result.Succeeded)
+            {
+                return ("Xóa tài khoản thất bại!", true);
+            }
+
+            return ("Xóa tài khoản thành công!", false);
+        }
+
+        public async Task<(string message, bool isError)> ChangePasswordWithoutOldPasswordAsync(string newPassword, string email)
+        {
+            var user = await UserManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                return ("Người dùng không tồn tại!", true);
+            }
+
+            var token = await UserManager.GeneratePasswordResetTokenAsync(user);
+            var result = await UserManager.ResetPasswordAsync(user, token, newPassword);
+
+            if (!result.Succeeded)
+            {
+                return ("Cập nhật mật khẩu thất bại!", true);
+            }
+
+            return ("Cập nhật mật khẩu thành công!", false);
         }
 
 

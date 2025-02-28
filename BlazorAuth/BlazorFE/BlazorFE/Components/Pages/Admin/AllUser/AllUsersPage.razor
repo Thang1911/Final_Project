@@ -5,42 +5,156 @@
 
 @attribute [Authorize(Roles = "Administrators")]
 
-@using BlazorFE.Models.User
-@using BlazorFE.Services
+@using BlazorFE.Models.User;
+@using BlazorFE.Services;
+@using BlazorFE.Components.Common;
 
 @inject ScientistServices ScientistServices
 @inject NavigationManager NavigationManager
 
-<h3>Danh sách người dùng</h3>
-@if (allUsers.Count == 0)
-{
-    <p>Không có dữ liệu.</p>
-}
-else
-{
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Email</th>
-                <th>Tên người dùng</th>
-                <th>Phương thức đăng nhập</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var user in allUsers)
+@inject IToastService toastService
+
+<div class="d-flex flex-column gap-5">
+    <div class="card shadow rounded">
+        <div class="p-3">
+            <div class="d-flex justify-content-between mb-4">
+                <h3>Danh sách người dùng</h3>
+                <button class="btn btn-success" @onclick="OpenAddUserModal">+ Thêm tài khoản mới</button>
+            </div>
+
+
+            @if (allUsers.Count > 0)
             {
-                <tr>
-                    <td>@user.Email</td>
-                    <td>@user.FullName</td>
-                    <td>@user.LoginProvider</td>
-                </tr>
+                <DataTable Searchable="true">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                <th>Tên người dùng</th>
+                                <th>Phương thức đăng nhập</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var user in allUsers)
+                            {
+                                <tr>
+                                    <td>@user.Email</td>
+                                    <td>@user.FullName</td>
+                                    <td>@user.LoginProvider</td>
+                                    <td>
+                                        <button class="btn btn-warning" @onclick="() => OpenChangePasswordModal(user)">Thay đổi mật khẩu</button>
+                                        <button class="btn btn-danger" @onclick="() => DeleteUser(user.UserId)">Xóa</button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </DataTable>
             }
-        </tbody>
-    </table>
-}
+        </div>
+    </div>
+    @if (showAddUserModal)
+    {
+        <div class="card shadow rounded">
+            <div class="p-3">
+                <div class="d-flex justify-content-between">
+                    <h5 class="modal-title">Thêm tài khoản</h5>
+                    <button type="button" class="btn-close" @onclick="CloseAddUserModal"></button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="@newUser" OnValidSubmit="AddUser">
+                        <div class="auto-cols">
+                            <DataAnnotationsValidator />
+
+                            <div class="mb-3">
+                                <label>Email:</label>
+                                <InputText class="form-control" @bind-Value="newUser.Email" />
+                            </div>
+                            <div class="mb-3">
+                                <label>Mật khẩu:</label>
+                                <InputText type="password" class="form-control" @bind-Value="newUser.PasswordHash" />
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Thêm tài khoản</button>
+                        <button type="button" class="btn btn-secondary" @onclick="CloseAddUserModal">Hủy</button>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+
+    }
+
+    @if (showChangePasswordModal)
+    {
+        <div class="card shadow rounded">
+            <div class="p-3">
+                <div class="d-flex justify-content-between">
+                    <h5 class="modal-title">Thay đổi mật khẩu</h5>
+                    <button type="button" class="btn-close" @onclick="CloseChangePasswordModal"></button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="@changePasswordModel" OnValidSubmit="ChangePassword">
+                        <div class="auto-cols">
+                            <DataAnnotationsValidator />
+                            <div class="mb-3">
+                                <label>Email:</label>
+                                <InputText class="form-control" @bind-Value="changePasswordModel.Email" disabled />
+                            </div>
+                            <div class="mb-3">
+                                <label>Mật khẩu mới:</label>
+                                <InputText type="password" class="form-control" @bind-Value="changePasswordModel.NewPassword" />
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Cập nhật mật khẩu</button>
+                        <button type="button" class="btn btn-secondary" @onclick="CloseChangePasswordModal">Hủy</button>
+                    </EditForm>
+                </div>
+            </div>
+        </div>       
+    }
+</div>
+<style>
+    .auto-cols {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    gap: 16px;
+    justify-content: space-between;
+    }
+
+    .auto-cols > div {
+    flex: 1;
+    min-width: 200px;
+    }
+
+    .d-flex {
+    display: flex;
+    flex-direction: row;
+    justify-content: right;
+    }
+
+    .text-red {
+    color: red;
+    }
+
+    .text-gray {
+    color: #ccc;
+    opacity: 0.8;
+    }
+</style>
 
 @code {
     public List<User> allUsers { get; set; } = new();
+    private User newUser = new();
+    private bool showAddUserModal = false;
+    private bool showChangePasswordModal = false;
+    private ChangePasswordModel changePasswordModel = new();
+
+    private void Reload()
+    {
+        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -49,6 +163,92 @@ else
 
     private async Task LoadScientists()
     {
-        allUsers = (await ScientistServices.GetUsersWithScientistsAsync()).Where((user) => user.Email != "admin@gmail.com").ToList();
+        allUsers = (await ScientistServices.GetUsersWithScientistsAsync())
+            .Where(user => user.Email != "admin@gmail.com")
+            .OrderBy(user => user.Email)
+            .ToList();
+    }
+
+    private void OpenAddUserModal()
+    {
+        newUser = new User();
+        showAddUserModal = true;
+    }
+
+    private void CloseAddUserModal()
+    {
+        showAddUserModal = false;
+    }
+
+    private async Task AddUser()
+    {
+        var result = await ScientistServices.CreateUserAsync(newUser, newUser.PasswordHash);
+        if (!result.isError)
+        {
+            CloseAddUserModal();
+            toastService.ShowSuccess("Thêm tài khoản thành công!");
+            await Task.Delay(3000);
+            Reload();
+        }
+        else
+        {
+            toastService.ShowError($"Lỗi: {result.message}");
+        }
+    }
+
+    private async Task DeleteUser(string userId)
+    {
+        var result = await ScientistServices.DeleteUserAsync(userId);
+        if (!result.isError)
+        {
+            toastService.ShowSuccess("Xóa tài khoản thành công!");
+            await Task.Delay(3000);
+            Reload();
+        }
+        else
+        {
+            toastService.ShowError($"Lỗi: {result.message}");
+        }
+    }
+
+    private void OpenChangePasswordModal(User user)
+    {
+        changePasswordModel = new ChangePasswordModel
+            {
+                Email = user.Email
+            };
+        showChangePasswordModal = true;
+    }
+
+    private void CloseChangePasswordModal()
+    {
+        showChangePasswordModal = false;
+        changePasswordModel = new ChangePasswordModel();
+    }
+
+    private async Task ChangePassword()
+    {
+        var result = await ScientistServices.ChangePasswordWithoutOldPasswordAsync(
+            changePasswordModel.NewPassword,
+            changePasswordModel.Email
+        );
+
+        if (!result.isError)
+        {
+            CloseChangePasswordModal();
+            toastService.ShowSuccess("Cập nhật mật khẩu thành công!");
+            await Task.Delay(3000);
+            Reload();
+        }
+        else
+        {
+            toastService.ShowError($"Lỗi: {result.message}");
+        }
+    }
+
+    public class ChangePasswordModel
+    {
+        public string Email { get; set; }
+        public string NewPassword { get; set; }
     }
 }

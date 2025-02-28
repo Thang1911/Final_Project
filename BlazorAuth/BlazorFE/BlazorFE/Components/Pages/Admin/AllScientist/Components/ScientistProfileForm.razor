@@ -140,28 +140,6 @@
     </div>
 </form>
 
-<div class="mt-4">
-    <h5>Đổi mật khẩu</h5>
-    <div class="auto-cols">
-        <div>
-            <label class="labels">Mật khẩu hiện tại<span class="text-red">*</span></label>
-            <input type="password" class="form-control" placeholder="Mật khẩu hiện tại" @bind="@currentPassword">
-        </div>
-        <div>
-            <label class="labels">Mật khẩu mới<span class="text-red">*</span></label>
-            <input type="password" class="form-control" placeholder="Mật khẩu mới" @bind="@newPassword">
-        </div>
-        <div>
-            <label class="labels">Xác nhận mật khẩu mới<span class="text-red">*</span></label>
-            <input type="password" class="form-control" placeholder="Xác nhận mật khẩu mới" @bind="@confirmNewPassword">
-        </div>
-    </div>
-</div>
-
-<div class="mt-3 text-center">
-    <button class="btn btn-primary" type="button" @onclick="ChangePassword">Đổi mật khẩu</button>
-</div>
-
 <style>
     .auto-cols {
         display: flex;
