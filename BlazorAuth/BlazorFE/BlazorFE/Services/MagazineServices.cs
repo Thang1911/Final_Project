@@ -294,5 +294,30 @@ namespace BlazorFE.Services
                 throw;
             }
         }
+
+        public async Task<bool> DeleteMagazineAsync(string magazineId)
+        {
+            if (string.IsNullOrEmpty(magazineId)) throw new ArgumentException("Magazine ID cannot be null or empty", nameof(magazineId));
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var existingMagazine = await _context.Set<Magazines>().FindAsync(magazineId);
+                if (existingMagazine != null)
+                {
+                    _context.Set<Magazines>().Remove(existingMagazine);
+                    await _context.SaveChangesAsync();
+                }
+
+                await transaction.CommitAsync();
+                return true;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                return false;
+                throw;
+            }
+        }
     }
 }

@@ -1,4 +1,4 @@
-﻿@page "/Admin/AllReports/Month"
+﻿@page "/Admin/AllReports/Office"
 @rendermode InteractiveServer
 @using Microsoft.AspNetCore.Authorization
 
@@ -8,9 +8,11 @@
 @using BlazorFE.Models.Category
 @using BlazorFE.Services
 
+@inject ScientistServices ProfileServices
 @inject MagazineServices MagazineServices
 @inject TopicServices TopicServices
 @inject CurriculumServices CurriculumServices
+@inject OfficeServices OfficeServices
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 
@@ -19,11 +21,21 @@
     <div class="p-3">
         <div class="d-flex justify-content-center">
             <h3>
-                Báo cáo và thống kê kết quả khoa học theo tháng
+                Báo cáo và thống kê kết quả khoa học theo cơ quan
             </h3>
         </div>
         <div>
             <div class="d-flex auto-cols">
+                <div class="d-flex flex-column gap-2">
+                    <label for="office" class="form-label">Cơ quan</label>
+                    <select class="form-select" id="office" @onchange="HandleOfficeChange">
+                        <option value="">Tất cả</option>
+                        @foreach (var office in listOffices)
+                        {
+                            <option value="@office.id">@office.office_name</option>
+                        }
+                    </select>
+                </div>
                 <div class="d-flex flex-column gap-2">
                     <label for="month" class="form-label">Tháng</label>
                     <select class="form-select" id="month" @bind="selectedMonth">
@@ -69,26 +81,26 @@
 
 <style>
     .auto-cols {
-        display: flex;
-        flex-direction: row;
-        width: 100%;
-        gap: 16px;
-        justify-content: space-between;
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    gap: 16px;
+    justify-content: space-between;
     }
 
-        .auto-cols > div {
-            flex: 1;
-            min-width: 200px;
-        }
+    .auto-cols > div {
+    flex: 1;
+    min-width: 200px;
+    }
 
     .d-flex {
-        display: flex;
-        flex-direction: row;
-        justify-content: right;
+    display: flex;
+    flex-direction: row;
+    justify-content: right;
     }
 
     .text-red {
-        color: red;
+    color: red;
     }
 
 </style>
@@ -103,10 +115,19 @@
     public List<scientist_topic_role> TopicsList { get; set; } = new();
     public List<scientist_topic_role> AllTopics { get; set; } = new();
 
+    private List<Scientist> scientists { get; set; } = new();
+    public List<Office> listOffices { get; set; } = new();
+
+    private string ScientistId { get; set; } = "";
+    private string ScientistName { get; set; } = "";
+    private List<string> ListScientistIds { get; set; } = new();
+
     private int selectedYear { get; set; } = 0;
     private int selectedMonth { get; set; } = 0;
+    private string selectedOfficeId { get; set; } = "";
+    private Office selectedOffice { get; set; } = new();
 
-    private bool IsDisabled => selectedYear == 0;
+    private bool IsDisabled => string.IsNullOrEmpty(selectedOffice.id);
     private bool IsExportLoading { get; set; } = false;
 
     private string pdfUrl { get; set; } = "";
@@ -116,12 +137,48 @@
         await LoadMagazines();
         await LoadCurriculums();
         await LoadTopics();
+        await LoadOffices();
+    }
+
+    private void HandleOfficeChange(ChangeEventArgs e)
+    {
+        string officeId = e.Value.ToString() ?? "";
+        selectedOffice = listOffices.FirstOrDefault(o => o.id == officeId);
+    }
+
+    private async Task<List<Scientist>> LoadScientists()
+    {
+        var listScientist = await ProfileServices.GetAllScientistIdAsync();
+
+        return listScientist.ToList();
+    }
+
+    private void OnAutoCompleteChanged(Scientist selectedScientist)
+    {
+        if (selectedScientist != null)
+        {
+            ScientistName = selectedScientist.profile_name;
+            ScientistId = selectedScientist.id;
+        }
+    }
+
+    private async Task<AutoCompleteDataProviderResult<Scientist>> ScientistsDataProvider(AutoCompleteDataProviderRequest<Scientist> request)
+    {
+        if (scientists.Count == 0)
+            scientists = await LoadScientists().ConfigureAwait(false);
+
+        return await Task.FromResult(request.ApplyTo(scientists.OrderBy(customer => customer.profile_name)));
     }
 
     private async Task LoadMagazines()
     {
         allMagazines = (await MagazineServices.GetAllMagazinesAsync())
             .ToList();
+    }
+
+    private async Task LoadOffices()
+    {
+        listOffices = await OfficeServices.GetListOffices();
     }
 
     private async Task LoadCurriculums()
@@ -141,17 +198,17 @@
         IsExportLoading = true;
 
         listMagazines = allMagazines
-            .Where(mag => mag?.Magazines?.year == selectedYear && mag?.Magazines?.month == selectedMonth)
+            .Where(mag => (selectedYear == 0 || mag?.Magazines?.year == selectedYear) && (selectedMonth == 0 || mag?.Magazines?.month == selectedMonth) && mag?.Scientist?.office_id == selectedOffice.id)
             .ToList();
 
         CurriculumsList = AllCurriculums
-        .Where(cur => cur?.Curriculums?.year == selectedYear && cur?.Curriculums?.month == selectedMonth)
+        .Where(cur => (selectedYear == 0 || cur?.Curriculums?.year == selectedYear) && (selectedMonth == 0 || cur?.Curriculums?.month == selectedMonth) && cur?.Scientist?.office_id == selectedOffice.id)
         .ToList();
 
         TopicsList = AllTopics
             .Where(top => top?.Topics?.start_date.HasValue == true &&
-                  top.Topics.start_date.Value.Year == selectedYear &&
-                  top.Topics.start_date.Value.Month == selectedMonth)
+                  (selectedYear == 0 || top.Topics.start_date.Value.Year == selectedYear) &&
+                  (selectedMonth == 0 || top.Topics.start_date.Value.Month == selectedMonth) && top.Scientist.office_id == selectedOffice.id)
             .ToList();
 
         await ExportToPdf();
@@ -166,6 +223,8 @@
 
     public async Task ExportToPdf()
     {
+        string monthPart = selectedMonth > 0 ? $"THÁNG {selectedMonth} " : "";
+        string yearPart = selectedYear > 0 ? $"NĂM {selectedYear} " : "";
         using (MemoryStream ms = new MemoryStream())
         {
             // Tạo PDF writer
@@ -177,7 +236,7 @@
             PdfFont vietnameseFont = PdfFontFactory.CreateFont(fontPath);
 
             // Thêm tiêu đề cho PDF
-            document.Add(new Paragraph($"KẾT QUẢ HOẠT ĐỘNG KHOA HỌC VÀ CÔNG NGHỆ THÁNG {selectedMonth} NĂM {selectedYear}")
+            document.Add(new Paragraph($"KẾT QUẢ HOẠT ĐỘNG KHOA HỌC VÀ CÔNG NGHỆ {monthPart} {yearPart} CỦA {selectedOffice.office_name.ToUpper()}")
                 .SetFont(vietnameseFont)
                 .SetTextAlignment(TextAlignment.CENTER)
                 .SetFontSize(17));
@@ -366,7 +425,7 @@
                .SetFont(vietnameseFont)
                .SetFontSize(17));
             // Tạo bảng
-            Table tableMagazineScientific= new Table(5, true);
+            Table tableMagazineScientific = new Table(5, true);
 
             tableMagazineScientific.SetBorder(new SolidBorder(2));
 
@@ -519,7 +578,7 @@
 
 
             var pdfBytes = ms.ToArray();
-            var fileName = $"Báo cáo khoa học tháng {selectedMonth} năm {selectedYear}.pdf";
+            var fileName = $"Báo cáo khoa học của {selectedOffice.office_name}.pdf";
             var contentType = "application/pdf";
             SaveAsFile(pdfBytes, fileName, contentType);
         }

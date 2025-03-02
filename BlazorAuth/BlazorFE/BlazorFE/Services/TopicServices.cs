@@ -286,5 +286,30 @@ namespace BlazorFE.Services
                 throw;
             }
         }
+
+        public async Task<bool> DeleteTopicAsync(string topicId)
+        {
+            if (string.IsNullOrEmpty(topicId)) throw new ArgumentException("Topic ID cannot be null or empty", nameof(topicId));
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var existingTopic = await _context.Set<Topics>().FindAsync(topicId);
+                if (existingTopic != null)
+                {
+                    _context.Set<Topics>().Remove(existingTopic);
+                    await _context.SaveChangesAsync();
+                }
+
+                await transaction.CommitAsync();
+                return true;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                return false;
+                throw;
+            }
+        }
     }
 }

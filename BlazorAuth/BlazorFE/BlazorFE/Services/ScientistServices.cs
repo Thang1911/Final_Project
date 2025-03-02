@@ -68,6 +68,14 @@ namespace BlazorFE.Services
                                              on user.Id equals login.UserId into loginGroup
                                              from login in loginGroup.DefaultIfEmpty()
 
+                                             join userRole in _context.UserRoles
+                                             on user.Id equals userRole.UserId into userRoleGroup
+                                             from userRole in userRoleGroup.DefaultIfEmpty()
+
+                                             join role in _context.AspNetRoles
+                                             on userRole.RoleId equals role.Id into roleGroup
+                                             from role in roleGroup.DefaultIfEmpty()
+
                                              select new User
                                              {
                                                  UserId = user.Id,
@@ -81,14 +89,16 @@ namespace BlazorFE.Services
                                                  Address = scientist != null ? scientist.address : null,
                                                  Phone = scientist != null ? scientist.phone : null,
                                                  ScientificTitle = scientist != null ? scientist.scientific_title : null,
-                                                 LoginProvider = login != null ? login.LoginProvider : "Nội bộ"
+                                                 LoginProvider = login != null ? login.LoginProvider : "Nội bộ",
+                                                 Role = role != null ? role.Name : "User" // Lấy tên vai trò
                                              })
                                              .ToListAsync();
 
             return usersWithScientists;
         }
 
-        public async Task<(string message, bool isError)> CreateUserAsync(User user, string password)
+
+        public async Task<(string message, bool isError)> CreateUserAsync(User user, string password, string role)
         {
             var existingUser = await UserManager.FindByEmailAsync(user.Email);
             if (existingUser != null)
@@ -99,20 +109,30 @@ namespace BlazorFE.Services
             var identityUser = new ApplicationUser
             {
                 UserName = user.Email,
-                Email = user.Email
+                Email = user.Email,
+                EmailConfirmed = true
             };
 
             var result = await UserManager.CreateAsync(identityUser, password);
-            if (result.Succeeded)
+            if (!result.Succeeded)
             {
-                identityUser.EmailConfirmed = true;
-                await UserManager.UpdateAsync(identityUser);
-
-                return ("Tạo tài khoản thành công!", false);
+                return ("Tạo tài khoản thất bại!", true);
             }
 
-            return ("Tạo tài khoản thất bại!", true);
+            if (role != "User" && role != "Administrators")
+            {
+                return ("Vai trò không hợp lệ!", true);
+            }
+
+            var roleResult = await UserManager.AddToRoleAsync(identityUser, role);
+            if (!roleResult.Succeeded)
+            {
+                return ("Gán quyền thất bại!", true);
+            }
+
+            return ("Tạo tài khoản thành công!", false);
         }
+
 
 
         public async Task<(string message, bool isError)> UpdateUserAsync(User user)
@@ -132,8 +152,22 @@ namespace BlazorFE.Services
                 return ("Cập nhật tài khoản thất bại!", true);
             }
 
+            var currentRoles = await UserManager.GetRolesAsync(identityUser);
+
+            if (!currentRoles.Contains(user.Role))
+            {
+                await UserManager.RemoveFromRolesAsync(identityUser, currentRoles);
+
+                var roleResult = await UserManager.AddToRoleAsync(identityUser, user.Role);
+                if (!roleResult.Succeeded)
+                {
+                    return ("Cập nhật vai trò thất bại!", true);
+                }
+            }
+
             return ("Cập nhật tài khoản thành công!", false);
         }
+
 
         public async Task<(string message, bool isError)> DeleteUserAsync(string userId)
         {

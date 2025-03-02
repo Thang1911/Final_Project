@@ -7,6 +7,7 @@
         public string Username { get; set; }
         public string PasswordHash { get; set; }
         public string FullName { get; set; }
+        public string Role { get; set; }
         public bool EmailConfirmed { get; set; }
         public DateTime? Birthday { get; set; }
         public string Gender { get; set; }

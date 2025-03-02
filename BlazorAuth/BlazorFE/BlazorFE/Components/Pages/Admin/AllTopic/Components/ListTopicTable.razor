@@ -54,6 +54,7 @@
                     </td>
                     <td>
                         <button class="btn btn-info" @onclick="() => ViewTopic(topic)"><div class="bi-eye-fill-custom" style="width: 20px; height: 20px;"></div></button>
+                        <button class="btn btn-danger" @onclick="() => Delete.InvokeAsync(topic)"><div class="bi-trash-custom" style="width: 20px; height: 20px;"></div></button>
                     </td>
                 </tr>
                 i++;
@@ -64,6 +65,7 @@
 
 @code {
     [Parameter] public List<scientist_topic_role> TopicsList { get; set; }
+    [Parameter] public EventCallback<Models.Topic.Topics> Delete { get; set; }
 
     private void ViewTopic(Topics topic)
     {

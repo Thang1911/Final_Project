@@ -31,6 +31,7 @@
                             <tr>
                                 <th>Email</th>
                                 <th>Tên người dùng</th>
+                                <th>Vai trò</th>
                                 <th>Phương thức đăng nhập</th>
                                 <th>Hành động</th>
                             </tr>
@@ -41,10 +42,20 @@
                                 <tr>
                                     <td>@user.Email</td>
                                     <td>@user.FullName</td>
+                                    <td>@user.Role</td>
                                     <td>@user.LoginProvider</td>
                                     <td>
-                                        <button class="btn btn-warning" @onclick="() => OpenChangePasswordModal(user)">Thay đổi mật khẩu</button>
-                                        <button class="btn btn-danger" @onclick="() => DeleteUser(user.UserId)">Xóa</button>
+                                        <button class="btn btn-warning" @onclick="() => OpenChangePasswordModal(user)">
+                                            <i class="bi bi-key"></i>
+                                        </button>
+
+                                        <button class="btn btn-success" @onclick="() => OpenEditUserModal(user)">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </button>
+
+                                        <button class="btn btn-danger" @onclick="() => DeleteUser(user.UserId)">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
                                     </td>
                                 </tr>
                             }
@@ -75,6 +86,13 @@
                                 <label>Mật khẩu:</label>
                                 <InputText type="password" class="form-control" @bind-Value="newUser.PasswordHash" />
                             </div>
+                            <div class="mb-3">
+                                <label>Chọn quyền:</label>
+                                <select type="text" class="form-control" @bind="@selectedRole">
+                                    <option value="User">User</option>
+                                    <option value="Administrators">Admin</option>
+                                </select>
+                            </div>
                         </div>
                         <button type="submit" class="btn btn-primary">Thêm tài khoản</button>
                         <button type="button" class="btn btn-secondary" @onclick="CloseAddUserModal">Hủy</button>
@@ -83,6 +101,39 @@
             </div>
         </div>
 
+    }
+
+    @if (showEditUserModal)
+    {
+        <div class="card shadow rounded">
+            <div class="p-3">
+                <div class="d-flex justify-content-between">
+                    <h5 class="modal-title">Chỉnh sửa tài khoản</h5>
+                    <button type="button" class="btn-close" @onclick="CloseEditUserModal"></button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="@editUser" OnValidSubmit="UpdateUser">
+                        <div class="auto-cols">
+                            <DataAnnotationsValidator />
+
+                            <div class="mb-3">
+                                <label>Email:</label>
+                                <InputText class="form-control" @bind-Value="editUser.Email" />
+                            </div>
+                            <div class="mb-3">
+                                <label>Chọn quyền:</label>
+                                <select type="text" class="form-control" @bind="@editUser.Role">
+                                    <option value="User">User</option>
+                                    <option value="Administrators">Admin</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Cập nhật</button>
+                        <button type="button" class="btn btn-secondary" @onclick="CloseEditUserModal">Hủy</button>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
     }
 
     @if (showChangePasswordModal)
@@ -147,8 +198,11 @@
 @code {
     public List<User> allUsers { get; set; } = new();
     private User newUser = new();
+    private User editUser = new();
+    private string selectedRole = "User";
     private bool showAddUserModal = false;
     private bool showChangePasswordModal = false;
+    private bool showEditUserModal = false;
     private ChangePasswordModel changePasswordModel = new();
 
     private void Reload()
@@ -182,11 +236,43 @@
 
     private async Task AddUser()
     {
-        var result = await ScientistServices.CreateUserAsync(newUser, newUser.PasswordHash);
+        var result = await ScientistServices.CreateUserAsync(newUser, newUser.PasswordHash, selectedRole);
         if (!result.isError)
         {
             CloseAddUserModal();
             toastService.ShowSuccess("Thêm tài khoản thành công!");
+            await Task.Delay(3000);
+            Reload();
+        }
+        else
+        {
+            toastService.ShowError($"Lỗi: {result.message}");
+        }
+    }
+
+    private void OpenEditUserModal(User user)
+    {
+        editUser = new User
+            {
+                UserId = user.UserId,
+                Email = user.Email,
+                Role = user.Role
+            };
+        showEditUserModal = true;
+    }
+
+    private void CloseEditUserModal()
+    {
+        showEditUserModal = false;
+    }
+
+    private async Task UpdateUser()
+    {
+        var result = await ScientistServices.UpdateUserAsync(editUser);
+        if (!result.isError)
+        {
+            CloseEditUserModal();
+            toastService.ShowSuccess("Cập nhật tài khoản thành công!");
             await Task.Delay(3000);
             Reload();
         }

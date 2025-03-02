@@ -5,18 +5,21 @@
 @attribute [Authorize(Roles = "Administrators")]
 
 @using BlazorFE.Models.Scientist
+@using BlazorFE.Models.Magazine
 @using BlazorFE.Services
 @using BlazorFE.Components.Pages.Admin.AllMagazines.Components
 
 @inject MagazineServices MagazineServices
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+@inject IToastService toastService
 
 @if (listMagazines != null)
 {
     <div class="card shadow rounded">
         <div class="p-3">
             <DataTable Searchable="true">
-                <AllMagazinesTable MagazinesList="@listMagazines" />
+                <AllMagazinesTable MagazinesList="@listMagazines" Delete="ConfirmDelete" />
             </DataTable>
         </div>
     </div>
@@ -35,5 +38,35 @@
         listMagazines = (await MagazineServices.GetAllMagazinesAsync())
             .Where(smr => smr.requestStatus == "Đã tham gia")
             .ToList();
+    }
+
+    private void Reload()
+    {
+        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+    }
+
+    private async Task ConfirmDelete(Magazines magazine)
+    {
+        bool confirm = await JSRuntime.InvokeAsync<bool>("confirm", $"Bạn có chắc chắn muốn xóa '{magazine.magazine_name}'?");
+        if (confirm)
+        {
+            await DeleteMagazine(magazine.id);
+        }
+    }
+
+    private async Task DeleteMagazine(string magazineId)
+    {
+        var success = await MagazineServices.DeleteMagazineAsync(magazineId);
+
+        if (success)
+        {
+            toastService.ShowSuccess("Xoá bài báo thành công!");
+            await Task.Delay(3000);
+            Reload();
+        }
+        else
+        {
+            toastService.ShowError("Xoá bài báo không thành công!");
+        }
     }
 }

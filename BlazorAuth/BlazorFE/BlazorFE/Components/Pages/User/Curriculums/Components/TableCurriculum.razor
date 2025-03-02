@@ -13,7 +13,6 @@
                 <th scope="col">Loại sách</th>
                 <th scope="col">Trình độ đào tạo</th>
                 <th scope="col">Vai trò</th>
-                <th scope="col">Trạng thái</th>
                 <th scope="col">Tệp đính kèm</th>
                 <th scope="col">Thao tác</th>
             </tr>
@@ -32,7 +31,7 @@
                         <td>@item?.Curriculums?.Book?.book_name</td>
                         <td>@item?.Curriculums?.Training?.training_name</td>
                         <td>@item?.Role?.role_name</td>
-                        <td><Label Type="@(Helpers.LabelHelper.GetStatusLabel(item?.requestStatus))" Text="@item?.requestStatus" /></td>
+                       
                         <td></td>
                         <td>
                             <button class="btn btn-warning"

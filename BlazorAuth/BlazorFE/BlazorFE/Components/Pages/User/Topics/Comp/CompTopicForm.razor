@@ -40,7 +40,7 @@
         <div class="auto-cols">
             <div>
                 <label class="labels">Vai trò<span class="text-red">*</span></label>
-                <select disabled="@IsReadOnly" type="text" class="form-control" @bind="@roleId">
+                <select disabled="@IsReadOnly" type="text" class="form-control" @onchange="HandleRoleChange">
                     <option value="">Chọn vai trò</option>
                     @foreach (var item in roles)
                     {
@@ -101,4 +101,12 @@
     [Parameter] public List<Models.Category.Role> roles { get; set; }
     [Parameter] public EventCallback OnCancel { get; set; }
     [Parameter] public EventCallback OnSave { get; set; }
+    [Parameter] public EventCallback<string> roleIdChanged { get; set; }
+
+    private async Task HandleRoleChange(ChangeEventArgs e)
+    {
+        roleId = e.Value?.ToString();
+        Console.WriteLine($"roleId: {roleId}");
+        await roleIdChanged.InvokeAsync(roleId); // <-- Gửi giá trị lên parent
+    }
 }

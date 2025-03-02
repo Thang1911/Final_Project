@@ -35,7 +35,7 @@
                         </div>
                         @if (scientist != null && isAdd)
                         {
-                            <CurriculumForm NewCurriculum="@curriculum" ListBooks="@books" ListTrainings="@trainings" IsReadOnly="@isReadOnly" showError="@showError" OnCancel="ToggleCurriculum" OnSave="SaveCurriculum" roleId="@roleId" roles="@roles" />
+                            <CurriculumForm NewCurriculum="@curriculum" ListBooks="@books" ListTrainings="@trainings" IsReadOnly="@isReadOnly" showError="@showError" OnCancel="ToggleCurriculum" OnSave="SaveCurriculum" roleId="@roleId" roles="@roles" roleIdChanged="HandleRoleIdChanged"/>
                         }
                         <TableCurriculum ListCurriculums="@curriculums" OnEdit="EditCurriculum" OnDelete="DeleteCurriculum" />
                     </div>
@@ -102,6 +102,11 @@
         NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
     }
 
+    private void HandleRoleIdChanged(string newRoleId)
+    {
+        roleId = newRoleId;
+        Console.WriteLine($"Parent received roleId: {roleId}");
+    }
 
     private async Task SaveCurriculum()
     {

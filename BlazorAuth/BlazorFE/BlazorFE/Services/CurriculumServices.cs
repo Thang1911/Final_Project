@@ -275,6 +275,8 @@ namespace BlazorFE.Services
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
+                var scientistsCurriculumRole = await _context.Set<ScientistCurriculumRole>()
+                    .Where(scr => scr.curriculum_id == curriculumId).ToListAsync();
                 var scientistCurriculumRole = await _context.Set<ScientistCurriculumRole>()
                     .FirstOrDefaultAsync(scr => scr.scientist_id == scientistId && scr.curriculum_id == curriculumId);
 
@@ -284,6 +286,31 @@ namespace BlazorFE.Services
                     await _context.SaveChangesAsync();
                 }
 
+                var existingCurriculum = await _context.Set<Curriculums>().FindAsync(curriculumId);
+                if (existingCurriculum != null && scientistsCurriculumRole.Count == 1)
+                {
+                    _context.Set<Curriculums>().Remove(existingCurriculum);
+                    await _context.SaveChangesAsync();
+                }
+
+                await transaction.CommitAsync();
+                return true;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                return false;
+                throw;
+            }
+        }
+
+        public async Task<bool> DeleteCurriculumAsync(string curriculumId)
+        {
+            if (string.IsNullOrEmpty(curriculumId)) throw new ArgumentException("Curriculum ID cannot be null or empty", nameof(curriculumId));
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
                 var existingCurriculum = await _context.Set<Curriculums>().FindAsync(curriculumId);
                 if (existingCurriculum != null)
                 {

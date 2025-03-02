@@ -37,22 +37,23 @@
                         </div>
                         @if (isAdd)
                         {
-                           <CompTopicForm 
-                                Topics="@topics"
-                                roleId="@roleId"
-                                roles="@roles"
-                                IsReadOnly="@isReadOnly"
-                                ShowError="@showError"
-                                LvTopics="@lvTopics"
-                                OnCancel="ToggleTopics"
-                                OnSave="SaveTopic" 
-                             />
+                            <CompTopicForm 
+                            Topics="@topics"
+                            roleId="@roleId"
+                            roles="@roles"
+                            roleIdChanged="HandleRoleIdChanged"
+                            IsReadOnly="@isReadOnly"
+                            ShowError="@showError"
+                            LvTopics="@lvTopics"
+                            OnCancel="ToggleTopics"
+                            OnSave="SaveTopic" 
+                            />
 
                         }
                         <ListTopicTable 
-                            TopicsList="@ListTopics" 
-                            OnEdit="EditTopic"
-                            OnDelete="DeleteTopic" />
+                        TopicsList="@ListTopics" 
+                        OnEdit="EditTopic"
+                        OnDelete="DeleteTopic" />
                     </div>
                 </div>
             </div>
@@ -62,30 +63,30 @@
 
 <style>
     .auto-cols {
-        display: flex;
-        flex-direction: row;
-        width: 100%;
-        gap: 16px;
-        justify-content: space-between;
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    gap: 16px;
+    justify-content: space-between;
     }
 
     .auto-cols > div {
-        flex: 1;
-        min-width: 200px;
+    flex: 1;
+    min-width: 200px;
     }
 
     .d-flex {
-        display: flex;
-        flex-direction: row;
-        justify-content: right;
+    display: flex;
+    flex-direction: row;
+    justify-content: right;
     }
 
     .text-red {
-        color: red;
+    color: red;
     }
 
     .text-gray {
-        color: #ccc;
+    color: #ccc;
     }
 </style>
 
@@ -137,6 +138,12 @@
         var displayAttribute = fieldInfo?.GetCustomAttributes(typeof(DisplayAttribute), false)
             .FirstOrDefault() as DisplayAttribute;
         return displayAttribute?.Name ?? result.ToString();
+    }
+
+    private void HandleRoleIdChanged(string newRoleId)
+    {
+        roleId = newRoleId;
+        Console.WriteLine($"Parent received roleId: {roleId}");
     }
 
     protected override async Task OnInitializedAsync()

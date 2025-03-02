@@ -49,14 +49,14 @@
                                         <div>
                                             <label class="labels">Tên tạp chí<span class="text-red">*</span></label>
                                             <AutoComplete @bind-Value="magazine.journal"
-                                            TItem="Journal"
-                                            DataProvider="JournalProvider"
-                                            PropertyName="journal_name"
-                                            Placeholder="Tên tạp chí"
-                                            AllowCustomValue="true"
-                                            OnChanged="HandleJournalChange"
-                                            @onchange="HandleInputChange"
-                                            Disabled="@isReadOnly"/>
+                                                TItem="Journal"
+                                                DataProvider="JournalProvider"
+                                                PropertyName="journal_name"
+                                                Placeholder="Tên tạp chí"
+                                                AllowCustomValue="true"
+                                                OnChanged="HandleJournalChange"
+                                                @onchange="HandleInputChange"
+                                                Disabled="@isReadOnly"/>
                                             @if (showError && string.IsNullOrWhiteSpace(magazine.journal))
                                             {
                                                 <span class="text-danger">Vui lòng nhập tên tạp chí</span>
@@ -528,7 +528,6 @@
     private void HandleInputChange(ChangeEventArgs e)
     {
         string inputValue = e.Value?.ToString() ?? string.Empty;
-        Console.WriteLine(inputValue);
 
         if (!string.IsNullOrWhiteSpace(inputValue))
         {

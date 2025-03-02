@@ -113,6 +113,9 @@
                                     <div class="text-center">
                                         <button class="btn btn-primary" type="button" @onclick="ToggleUpdate">Hủy</button>
                                     </div>
+                                    <div class="text-center">
+                                        <button class="btn btn-danger" type="button" @onclick="ConfirmDelete">Xóa</button>
+                                    </div>
                                 </div>
                             </form>
                         </div>
@@ -516,6 +519,31 @@
         catch (Exception ex)
         {
             Console.Error.WriteLine($"An error occurred while deleting: {ex.Message}");
+        }
+    }
+
+    private async Task ConfirmDelete()
+    {
+        bool confirm = await JSRuntime.InvokeAsync<bool>("confirm", $"Bạn có chắc chắn muốn xóa '{topic.topic_name}'?");
+        if (confirm)
+        {
+            await DeleteTopic(topic.id);
+        }
+    }
+
+    private async Task DeleteTopic(string topicId)
+    {
+        var success = await TopicServices.DeleteTopicAsync(topicId);
+
+        if (success)
+        {
+            toastService.ShowSuccess("Xoá đề tài thành công!");
+            await Task.Delay(1500);
+            NavigationManager.NavigateTo("/Admin/AllTopics");
+        }
+        else
+        {
+            toastService.ShowError("Xoá đề tài không thành công!");
         }
     }
 

@@ -43,6 +43,7 @@
                     </td>
                     <td>
                         <button class="btn btn-info" @onclick="() => ViewCurriculum(curriculum)"><div class="bi-eye-fill-custom" style="width: 20px; height: 20px;"></div></button>
+                        <button class="btn btn-danger" @onclick="() => Delete.InvokeAsync(curriculum)"><div class="bi-trash-custom" style="width: 20px; height: 20px;"></div></button>
                     </td>
                 </tr>
                 i++;
@@ -53,6 +54,7 @@
 
 @code {
     [Parameter] public List<ScientistCurriculumRole> CurriculumsList { get; set; }
+    [Parameter] public EventCallback<Models.Curriculum.Curriculums> Delete { get; set; }
 
     private void ViewCurriculum(Curriculums curriculum)
     {

@@ -6,18 +6,21 @@
 @attribute [Authorize(Roles = "Administrators")]
 
 @using BlazorFE.Models.Scientist
+@using BlazorFE.Models.Curriculum
 @using BlazorFE.Services
 @using BlazorFE.Components.Pages.Admin.AllCurriculums.Components
 
 @inject CurriculumServices CurriculumServices
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+@inject IToastService toastService
 
 @if (listCurriculums != null)
 {   
     <div class="card shadow rounded">
         <div class="p-3">
             <DataTable Searchable="true">
-                <AllCurriculumsTable CurriculumsList="@listCurriculums" />
+                <AllCurriculumsTable CurriculumsList="@listCurriculums" Delete="ConfirmDelete" />
             </DataTable>
         </div>
     </div>
@@ -36,5 +39,35 @@
         listCurriculums = (await CurriculumServices.GetAllCurriculumsAsync())
             .Where(smr => smr.requestStatus == "Đã tham gia")
             .ToList();
+    }
+
+    private void Reload()
+    {
+        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+    }
+
+    private async Task ConfirmDelete(Curriculums cur)
+    {
+        bool confirm = await JSRuntime.InvokeAsync<bool>("confirm", $"Bạn có chắc chắn muốn xóa '{cur.name}'?");
+        if (confirm)
+        {
+            await DeleteCurriculum(cur.id);
+        }
+    }
+
+    private async Task DeleteCurriculum(string curId)
+    {
+        var success = await CurriculumServices.DeleteCurriculumAsync(curId);
+
+        if (success)
+        {
+            toastService.ShowSuccess("Xoá giáo trình thành công!");
+            await Task.Delay(3000);
+            Reload();
+        }
+        else
+        {
+            toastService.ShowError("Xoá giáo trình không thành công!");
+        }
     }
 }

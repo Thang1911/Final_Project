@@ -6,18 +6,21 @@
 @attribute [Authorize(Roles = "Administrators")]
 
 @using BlazorFE.Models.Scientist
+@using BlazorFE.Models.Topic
 @using BlazorFE.Services
 @using BlazorFE.Components.Pages.Admin.AllTopic.Components
 
 @inject TopicServices TopicServices
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+@inject IToastService toastService
 
 @if(listTopics != null)
 {
     <div class="card shadow rounded">
         <div class="p-3">
             <DataTable Searchable="true">
-                <ListTopicTable TopicsList="@listTopics" />
+                <ListTopicTable TopicsList="@listTopics" Delete="ConfirmDelete"/>
             </DataTable>
         </div>
     </div>
@@ -36,5 +39,35 @@
         listTopics = (await TopicServices.GetAllTopicAsync())
             .Where(topic => topic.requestStatus == "Đã tham gia")
             .ToList();
+    }
+
+    private void Reload()
+    {
+        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+    }
+
+    private async Task ConfirmDelete(Topics topic)
+    {
+        bool confirm = await JSRuntime.InvokeAsync<bool>("confirm", $"Bạn có chắc chắn muốn xóa '{topic.topic_name}'?");
+        if (confirm)
+        {
+            await DeleteTopic(topic.id);
+        }
+    }
+
+    private async Task DeleteTopic(string topicId)
+    {
+        var success = await TopicServices.DeleteTopicAsync(topicId);
+
+        if (success)
+        {
+            toastService.ShowSuccess("Xoá đề tài thành công!");
+            await Task.Delay(3000);
+            Reload();
+        }
+        else
+        {
+            toastService.ShowError("Xoá đề tài không thành công!");
+        }
     }
 }

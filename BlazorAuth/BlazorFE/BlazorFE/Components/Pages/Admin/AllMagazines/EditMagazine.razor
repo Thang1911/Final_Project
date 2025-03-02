@@ -47,7 +47,15 @@
                                         </div>
                                         <div>
                                             <label class="labels">Tên tạp chí<span class="text-red">*</span></label>
-                                            <input disabled="@isReadOnly" type="text" class="form-control" placeholder="Tên tạp chí" @bind="@magazine.journal">
+                                            <AutoComplete @bind-Value="magazine.journal"
+                                                TItem="Journal"
+                                                DataProvider="JournalProvider"
+                                                PropertyName="journal_name"
+                                                Placeholder="Tên tạp chí"
+                                                AllowCustomValue="true"
+                                                OnChanged="HandleJournalChange"
+                                                @onchange="HandleInputChange"
+                                                Disabled="@isReadOnly"/>
                                             @if (showError && string.IsNullOrWhiteSpace(magazine.journal))
                                             {
                                                 <span class="text-danger">Vui lòng nhập tên tạp chí</span>
@@ -181,6 +189,9 @@
                                     }
                                     <div class="text-center">
                                         <button class="btn btn-primary" type="button" @onclick="ToggleUpdate">Hủy</button>
+                                    </div>
+                                    <div class="text-center">
+                                        <button class="btn btn-danger" type="button" @onclick="ConfirmDelete">Xóa</button>
                                     </div>
                                 </div>
                             </form>
@@ -389,6 +400,7 @@
     private List<ScientistMagazineRole> listScientistMagazines { get; set; } = new();
     private List<string> ListMagazineIds { get; set; } = new();
     private List<string> ListScientistIds { get; set; } = new();
+    private List<Journal> ListJournals { get; set; } = new();
     private List<Scientist> scientists { get; set; } = new();
     private List<Models.File.File> listFiles { get; set; } = new();
 
@@ -480,6 +492,19 @@
         return await Task.FromResult(request.ApplyTo(scientists.OrderBy(customer => customer.profile_name)));
     }
 
+    private async Task<AutoCompleteDataProviderResult<Journal>> JournalProvider(AutoCompleteDataProviderRequest<Journal> request)
+    {
+        if (ListJournals == null || ListJournals.Count == 0)
+        {
+            var journalNames = await MagazineServices.GetAllJournalsAsync().ConfigureAwait(false);
+
+            ListJournals = journalNames
+                .Select(name => new Journal { journal_name = name })
+                .ToList();
+        }
+
+        return request.ApplyTo(ListJournals.OrderBy(journal => journal.journal_name));
+    }
 
     private async Task<List<Scientist>> LoadScientists()
     {
@@ -489,6 +514,24 @@
         return listScientist
             .Where(scientist => !ListScientistIds.Contains(scientist.id))
             .ToList();
+    }
+
+    private void HandleJournalChange(Journal journal)
+    {
+        if (journal != null)
+        {
+            magazine.journal = journal.journal_name;
+        }
+    }
+
+    private void HandleInputChange(ChangeEventArgs e)
+    {
+        string inputValue = e.Value?.ToString() ?? string.Empty;
+
+        if (!string.IsNullOrWhiteSpace(inputValue))
+        {
+            magazine.journal = inputValue;
+        }
     }
 
     protected override async Task OnInitializedAsync()
@@ -609,6 +652,31 @@
         }
     }
 
+    private async Task ConfirmDelete()
+    {
+        bool confirm = await JSRuntime.InvokeAsync<bool>("confirm", $"Bạn có chắc chắn muốn xóa '{magazine.magazine_name}'?");
+        if (confirm)
+        {
+            await DeleteMagazine(magazine.id);
+        }
+    }
+
+    private async Task DeleteMagazine(string magazineId)
+    {
+        var success = await MagazineServices.DeleteMagazineAsync(magazineId);
+
+        if (success)
+        {
+            toastService.ShowSuccess("Xoá bài báo thành công!");
+            await Task.Delay(1500);
+            NavigationManager.NavigateTo("/Admin/AllMagazines");
+        }
+        else
+        {
+            toastService.ShowError("Xoá bài báo không thành công!");
+        }
+    }
+
     private void UpdateScore(ChangeEventArgs e)
     {
         var selectedScope = e.Value?.ToString();
@@ -632,6 +700,11 @@
 
             await JSRuntime.InvokeVoidAsync("downloadFile", fileUrl, fileName);
         }
+    }
+
+    private class Journal
+    {
+        public string journal_name { get; set; }
     }
 }
 

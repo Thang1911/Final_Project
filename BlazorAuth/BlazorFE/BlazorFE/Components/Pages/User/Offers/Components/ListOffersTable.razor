@@ -14,7 +14,6 @@
                 <th scope="col">Ghi chú</th>
                 <th scope="col">Trạng thái</th>
                 <th scope="col">Vai trò</th>
-                <th scope="col">Yêu cầu</th>
                 <th scope="col">Thao tác</th>
             </tr>
         </thead>
@@ -32,7 +31,6 @@
                         <td>@item?.Offer?.note</td>
                         <td>@item?.Offer?.status</td>
                         <td>@item?.Role?.role_name</td>
-                        <td><Label Type="@(Helpers.LabelHelper.GetStatusLabel(item?.requestStatus))" Text="@item?.requestStatus" /></td>
                         <td>
                             <button class="btn btn-warning" @onclick="() => OnEdit.InvokeAsync(item.Offer)"><div class="bi-pencil-square-custom" style="width: 20px; height: 20px;"></div></button>
                             <button class="btn btn-danger"

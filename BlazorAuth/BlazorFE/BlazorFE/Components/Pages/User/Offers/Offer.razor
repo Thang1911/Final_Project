@@ -35,7 +35,7 @@
                         </div>
                         @if (isAdd)
                         {
-                            <OfferForm NewOffer="@offer" ListProposes="@proposes" IsReadOnly="@isReadOnly" showError="@showError" OnCancel="ToggleOffer" OnSave="SaveOffer" roleId="@roleId" roles="@roles" />
+                            <OfferForm NewOffer="@offer" ListProposes="@proposes" IsReadOnly="@isReadOnly" showError="@showError" OnCancel="ToggleOffer" OnSave="SaveOffer" roleId="@roleId" roles="@roles" roleIdChanged="HandleRoleIdChanged"/>
                         }
 
                     </div>
@@ -113,6 +113,12 @@
         NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
     }
 
+    private void HandleRoleIdChanged(string newRoleId)
+    {
+        roleId = newRoleId;
+        Console.WriteLine($"Parent received roleId: {roleId}");
+    }
+
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -169,7 +175,13 @@
             var result = await OfferServices.AddOfferAndLinkToScientistAsync(offer, scientist.id, roleId, false, false);
             if (result)
             {
-                offers = await OfferServices.GetOffersByScientistIdAsync(scientist.id);
+                toastService.ShowSuccess("Thành công!");
+                await Task.Delay(3000);
+                Reload();
+            }
+            else
+            {
+                toastService.ShowError("Thất bại!");
             }
 
             isAdd = false;

@@ -7,6 +7,7 @@ using BlazorFE.Models.Magazine;
 using BlazorFE.Models.Offer;
 using BlazorFE.Models.Scientist;
 using BlazorFE.Models.Topic;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,6 +15,7 @@ namespace BlazorFE.Data
 {
     public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext<ApplicationUser>(options)
     {
+        public DbSet<IdentityRole> AspNetRoles { get; set; }
         public DbSet<Arseach> Arseachs { get; set; }
         public DbSet<Artopic> ArTopics { get; set; }
         public DbSet<Training> Trainings { get; set; }
